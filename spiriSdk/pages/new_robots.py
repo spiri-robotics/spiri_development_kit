@@ -37,6 +37,8 @@ async def new_robots():
 
     selected_robot = None
     selected_additions = ["gimbal"]
+
+    options_container = ui.column()
     
     with ui.card():
         def display_robot_options(robot_name):
@@ -51,10 +53,10 @@ async def new_robots():
                 options = yaml.safe_load(yaml_file)
 
             # Clear previous options UI
-            ui.clear()
+            options_container.clear()
 
             # Display options dynamically
-            with ui.card():
+            with options_container:
                 ui.label(f"Options for {robot_name}").classes('text-h5')
                 for key, option in options.get('x-spiri-options', {}).items():
                     ui.label(option.get('help-text', '')).classes('text-body2')
