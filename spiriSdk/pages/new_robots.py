@@ -5,4 +5,5 @@ robots = [1, 2, 3]
 
 @ui.page('/new_robots')
 async def new_robots():
-    await header()
+
+    ui.label('this is the new robots page yayyyy')
