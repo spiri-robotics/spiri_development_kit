@@ -1,6 +1,6 @@
 from nicegui import ui
 from pages.header import header
 
-@ui.page('/tools')
-async def tools():
+@ui.page('/manage_robots')
+async def manage_robots():
     await header()
