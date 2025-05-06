@@ -2,12 +2,13 @@ import docker
 import atexit
 
 class DockerInDocker:
-    def __init__(self, image_name="docker:dind", container_name="dind"):
+    def __init__(self, image_name="docker:dind", container_name="dind", host_port=None):
         """Initialize the Docker-in-Docker manager.
 
         Args:
             image_name: Docker image to use (default: docker:dind)
             container_name: Name for the container (default: dind)
+            host_port: Host port to bind to (default: None = auto-select)
         """
         self.client = docker.from_env()
         self.image_name = image_name
@@ -22,13 +23,15 @@ class DockerInDocker:
         if self.container is not None:
             raise RuntimeError("Container already running")
 
+        port_bindings = {'2376/tcp': self.host_port} if self.host_port else None
+        
         self.container = self.client.containers.run(
             self.image_name,
             name=self.container_name,
             privileged=True,
             detach=True,
             remove=True,
-            ports={'2376/tcp': 2376},
+            ports=port_bindings,
             environment={
                 'DOCKER_TLS_CERTDIR': ''  # Disable TLS for simplicity
             }
@@ -40,7 +43,8 @@ class DockerInDocker:
         if self.container is None:
             raise RuntimeError("Container not running")
 
-        return docker.DockerClient(base_url=f"tcp://localhost:2376")
+        port = self.host_port or 2376
+        return docker.DockerClient(base_url=f"tcp://localhost:{port}")
 
     def cleanup(self):
         """Stop and remove the container."""
