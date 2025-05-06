@@ -27,7 +27,7 @@ class DockerInDocker:
             name=self.container_name,
             privileged=True,
             detach=True,
-            remove=False,  # We'll handle removal ourselves
+            remove=True,
             ports={'2376/tcp': 2376},
             environment={
                 'DOCKER_TLS_CERTDIR': ''  # Disable TLS for simplicity
