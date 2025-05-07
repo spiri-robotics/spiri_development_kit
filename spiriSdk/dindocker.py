@@ -34,26 +34,26 @@ class DockerInDocker:
             name=self.container_name,
             privileged=True,
             detach=True,
+            remove=True,  # Let Docker handle cleanup automatically
             environment={'DOCKER_TLS_CERTDIR': ''}  # Disable TLS
         )
 
         # Wait for the container to be ready
         max_attempts = 30
-        attempt = 0
-        while attempt < max_attempts:
+        for _ in range(max_attempts):
             try:
-                self.container.reload()  # Refresh container attributes
+                # Get fresh container info
+                self.container = self.client.containers.get(self.container.id)
                 if self.container.status == 'running':
                     # Check if Docker daemon is ready
                     client = docker.DockerClient(base_url=f"tcp://{self.container_ip()}")
                     client.ping()
-                    break
+                    return
             except (docker.errors.NotFound, docker.errors.APIError, docker.errors.DockerException):
                 pass
-            attempt += 1
             time.sleep(1)
-        else:
-            raise RuntimeError("Failed to start Docker-in-Docker container")
+        
+        raise RuntimeError("Failed to start Docker-in-Docker container")
 
     def get_client(self) -> docker.DockerClient:
         """Get a Docker client connected to this DinD container."""
@@ -72,20 +72,16 @@ class DockerInDocker:
         ], check=True)
 
     def cleanup(self) -> None:
-        """Stop and remove the container."""
+        """Cleanup handler (still registered but minimal since remove=True handles it)."""
         if self.container is not None:
             try:
-                # Only try to stop if container exists and is running
-                self.container.reload()
-                if self.container.status == 'running':
-                    self.container.stop(timeout=5)
-                self.container.remove(v=True, force=True)
+                # Just ensure container is stopped - removal is handled by remove=True
+                self.container.stop(timeout=5)
             except docker.errors.NotFound:
                 pass  # Container already gone
             except Exception as e:
                 print(f"Error during cleanup: {e}")
-            finally:
-                self.container = None
+            self.container = None
 
 if __name__ == "__main__":
     # Example usage with multiple daemons
