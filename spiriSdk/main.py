@@ -1,6 +1,6 @@
 from nicegui import ui
 from spiriSdk.dindocker import DockerInDocker
-from spiriSdk.pages import home, robots, new_robots, tools
+from spiriSdk.pages import home, manage_robots, new_robots, tools
 from spiriSdk.pages.header import header
 
 favicon = """

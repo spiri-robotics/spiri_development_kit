@@ -172,10 +172,9 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+.aider*
 
-#data
-data/
+
 robots/
-world/
-
-.gitignore\
+data/
+worlds/
