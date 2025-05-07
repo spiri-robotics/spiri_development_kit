@@ -1,4 +1,5 @@
 from nicegui import ui, binding, app, run
+from spiriSdk.pages.styles import styles
 from spiriSdk.pages.header import header
 import time
 import docker
@@ -37,12 +38,13 @@ async def find_worlds(p = Path('./worlds')):
 
 @ui.page('/tools')
 async def tools():
+    await styles()
     await header()
     with ui.grid(columns=3):
         for app_name, command in applications.items():
-            with ui.button(on_click=lambda cmd=command: launch_app(cmd), color='#20788a').classes('rounded-1/2'):
+            with ui.button(on_click=lambda cmd=command: launch_app(cmd), color='warning').classes('rounded-1/2'):   # old color for all 3: color='#20788a'
                 ui.label(app_name).classes('text-lg text-center')
-        with ui.dropdown_button('GZ', auto_close=True, color='#20788a').classes('text-lg text-center'):
+        with ui.dropdown_button('GZ', auto_close=True, color='warning').classes('text-lg text-center'):
             await find_worlds()
             for dir, name in worlds.items():
                 ui.item(name, on_click=lambda cmd=(['gz', 'sim', f'./worlds/{dir}/worlds/{name}']): launch_app(cmd))
