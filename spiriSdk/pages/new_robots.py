@@ -1,6 +1,6 @@
 from nicegui import ui
 import os
-from pages.header import header
+from spiriSdk.pages.header import header
 import yaml
 
 robots = [1, 2, 3]
@@ -42,7 +42,6 @@ async def new_robots():
     
     with ui.card():
         def display_robot_options(robot_name):
-            ui.label("Options for selected Robot")
             ui.notify(f'Selected Robot: {robot_name}, Selected Addition: {addition}' for addition in selected_additions)
             options_path = os.path.join(ROBOTS_DIR, robot_name, 'options.yaml')
             if not os.path.exists(options_path):
