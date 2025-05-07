@@ -1,0 +1,30 @@
+services:
+  spiri-sdk:
+    build: ./
+    command: tail -f /dev/null
+    volumes:
+      - ./:/app
+      #Mount the docker socket to allow the container to communicate with the host Docker daemon
+      - /var/run/docker.sock:/var/run/docker.sock
+      # X11 socket
+      - /tmp/.X11-unix:/tmp/.X11-unix
+      - ${XAUTHORITY:-~/.Xauthority}:/root/.Xauthority
+      # Wayland socket
+      #- ${XDG_RUNTIME_DIR}/wayland-0:${XDG_RUNTIME_DIR}/wayland-0
+      # Access to GPU devices
+      - /dev/dri:/dev/dri      
+    ports:
+      - "8197:8197"
+    environment:
+      # Display settings
+      DISPLAY: "${DISPLAY}"
+      WAYLAND_DISPLAY: "${WAYLAND_DISPLAY}"
+      # Uncomment below if using X11
+      # QT_QPA_PLATFORM: "${QT_QPA_PLATFORM:-xcb}"
+      XDG_RUNTIME_DIR: "${XDG_RUNTIME_DIR}"
+      ROS_MASTER_URI: "http://ros-master:11311"
+      RMW_IMPLEMENTATION: rmw_cyclonedds_cpp
+      SDK_ROOT: ${PWD}
+    devices:
+      # Provide access to GPU devices (supports non-NVIDIA GPUs)
+      - /dev/dri:/dev/dri      
