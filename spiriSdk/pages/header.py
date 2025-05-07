@@ -1,6 +1,7 @@
 from nicegui import ui
 from datetime import datetime
 import subprocess
+import pytz
 
 def get_battery_status():
     """Fetch battery percentage and charging status."""
@@ -77,10 +78,12 @@ async def header():
         ui.button('Home', on_click=lambda: ui.navigate.to('/'), color='#20788a')
         ui.button('Tools', on_click=lambda: ui.navigate.to('/tools'), color='#20788a')
         ui.button('Manage Robots', on_click=lambda: ui.navigate.to('/manage_robots'), color='#20788a')
-        
+
         @ui.refreshable
         def clock():
-            return ui.label(str(datetime.now()))
+            dateTime = datetime.astimezone(datetime.now())
+            ui.label(dateTime.strftime('%A %B %m %Y')).classes('text-lg')
+            ui.label(dateTime.strftime('%X %Z')).classes('text-lg')
         ui.timer(1.0, clock.refresh)
         
         with ui.row():
