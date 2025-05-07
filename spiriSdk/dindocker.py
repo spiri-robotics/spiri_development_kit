@@ -22,7 +22,11 @@ class DockerInDocker:
         """Get the IP address of the Docker-in-Docker container."""
         if self.container is None:
             raise RuntimeError("Container not running")
-        return self.container.attrs['NetworkSettings']['IPAddress']
+        
+        ip = self.container.attrs['NetworkSettings']['IPAddress']
+        if not ip:
+            raise RuntimeError("Container has no IP address assigned")
+        return ip
 
     def start(self) -> None:
         """Start the Docker-in-Docker container."""
@@ -56,7 +60,7 @@ class DockerInDocker:
 
                 # Check if Docker daemon is ready
                 try:
-                    client = docker.DockerClient(base_url=f"tcp://{self.container_ip()}")
+                    client = docker.DockerClient(base_url=f"tcp://{self.container_ip()}:2375")
                     client.ping()
                     return
                 except Exception as e:
@@ -76,7 +80,7 @@ class DockerInDocker:
         """Get a Docker client connected to this DinD container."""
         if self.container is None:
             raise RuntimeError("Container not running")
-        return docker.DockerClient(base_url=f"tcp://{self.container_ip()}")
+        return docker.DockerClient(base_url=f"tcp://{self.container_ip()}:2375")
 
     def run_compose(self, compose_file: str) -> None:
         """Run a docker-compose file against this DinD instance."""
