@@ -1,31 +1,29 @@
 import docker
 import atexit
 import subprocess
+from typing import Optional
+
 class DockerInDocker:
-    def __init__(self, image_name="docker:dind", container_name="dind"):
+    def __init__(self, image_name: str = "docker:dind", container_name: str = "dind"):
         """Initialize the Docker-in-Docker manager.
 
         Args:
             image_name: Docker image to use (default: docker:dind)
-            container_name: Name for the container (default: dind)
-            host_port: Host port to bind to (default: None = auto-select)
+            container_name: Name for the container (must be unique per daemon)
         """
         self.client = docker.from_env()
         self.image_name = image_name
         self.container_name = container_name
-        self.container = None
-
-        # Register cleanup on exit
+        self.container: Optional[docker.models.containers.Container] = None
         atexit.register(self.cleanup)
 
-    def container_ip(self):
+    def container_ip(self) -> str:
         """Get the IP address of the Docker-in-Docker container."""
         if self.container is None:
             raise RuntimeError("Container not running")
-
         return self.container.attrs['NetworkSettings']['IPAddress']
 
-    def start(self):
+    def start(self) -> None:
         """Start the Docker-in-Docker container."""
         if self.container is not None:
             raise RuntimeError("Container already running")
@@ -36,47 +34,51 @@ class DockerInDocker:
             privileged=True,
             detach=True,
             remove=True,
-            environment={
-                'DOCKER_TLS_CERTDIR': ''  # Disable TLS for simplicity
-            }
+            environment={'DOCKER_TLS_CERTDIR': ''}  # Disable TLS
         )
+
         # Wait for the container to be ready
         while True:
             try:
                 self.client.ping()
                 break
-            except docker.errors.NotFound:
-                pass
-            except docker.errors.APIError:
+            except (docker.errors.NotFound, docker.errors.APIError):
                 pass
 
-        return self.container
-
-    def get_client(self):
-        """Get a Docker client connected to the DinD container."""
+    def get_client(self) -> docker.DockerClient:
+        """Get a Docker client connected to this DinD container."""
         if self.container is None:
             raise RuntimeError("Container not running")
+        return docker.DockerClient(base_url=f"tcp://{self.container_ip()}")
 
-        port = self.host_port or 2376
-        docker_host = f"tcp://{self.container_ip()}"
+    def run_compose(self, compose_file: str) -> None:
+        """Run a docker-compose file against this DinD instance."""
+        client = self.get_client()
+        subprocess.run([
+            "docker-compose",
+            "-H", client.api.base_url,
+            "-f", compose_file,
+            "up", "-d"
+        ], check=True)
 
-    def cleanup(self):
+    def cleanup(self) -> None:
         """Stop and remove the container."""
         if self.container is not None:
             try:
                 self.container.stop()
                 self.container.remove()
-                self.container = None
             except Exception as e:
                 print(f"Error during cleanup: {e}")
+            finally:
+                self.container = None
 
 if __name__ == "__main__":
-    # Example usage
-    dind = DockerInDocker()
-    dind.start()
-    client = dind.get_client()
-    #Run robots/webapp-example/services/whoami/docker-compose.yaml in the remote docker using docker compose
-    compose_file = "robots/webapp-example/services/whoami/docker-compose.yaml"
-    docker_host = client.api.base_url
-
-    subprocess.run(["docker-compose", "-H", docker_host, '-f', compose_file, "up", "-d"])
+    # Example usage with multiple daemons
+    daemon1 = DockerInDocker(container_name="dind1")
+    daemon2 = DockerInDocker(container_name="dind2")
+    
+    daemon1.start()
+    daemon2.start()
+    
+    print(f"Daemon 1 IP: {daemon1.container_ip()}")
+    print(f"Daemon 2 IP: {daemon2.container_ip()}")
