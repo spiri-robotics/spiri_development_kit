@@ -105,12 +105,22 @@ class DockerInDocker:
             self.container = None
 
 if __name__ == "__main__":
-    # Example usage with multiple daemons
-    daemon1 = DockerInDocker(container_name="dind1")
-    daemon2 = DockerInDocker(container_name="dind2")
+    # Example usage
+    daemon = DockerInDocker(container_name="dind_test")
+    daemon.start()
     
-    daemon1.start()
-    daemon2.start()
+    print(f"Docker-in-Docker IP: {daemon.container_ip()}")
     
-    print(f"Daemon 1 IP: {daemon1.container_ip()}")
-    print(f"Daemon 2 IP: {daemon2.container_ip()}")
+    # Run the compose file
+    compose_path = "robots/webapp-example/services/whoami/docker-compose.yaml"
+    print(f"Running compose file: {compose_path}")
+    daemon.run_compose(compose_path)
+    
+    # Check if port 80 is listening
+    import requests
+    try:
+        response = requests.get(f"http://{daemon.container_ip()}", timeout=5)
+        print(f"Service is running on port 80! Status: {response.status_code}")
+        print(f"Response: {response.text[:100]}...")
+    except Exception as e:
+        print(f"Failed to connect to port 80: {str(e)}")
