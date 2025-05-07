@@ -29,31 +29,48 @@ class DockerInDocker:
         if self.container is not None:
             raise RuntimeError("Container already running")
 
-        self.container = self.client.containers.run(
-            self.image_name,
-            name=self.container_name,
-            privileged=True,
-            detach=True,
-            remove=True,  # Let Docker handle cleanup automatically
-            environment={'DOCKER_TLS_CERTDIR': ''}  # Disable TLS
-        )
+        try:
+            self.container = self.client.containers.run(
+                self.image_name,
+                name=self.container_name,
+                privileged=True,
+                detach=True,
+                remove=True,
+                environment={'DOCKER_TLS_CERTDIR': ''},
+                publish_all_ports=True
+            )
+        except Exception as e:
+            raise RuntimeError(f"Failed to start container: {str(e)}")
 
         # Wait for the container to be ready
         max_attempts = 30
-        for _ in range(max_attempts):
+        last_error = None
+        for attempt in range(max_attempts):
             try:
                 # Get fresh container info
                 self.container = self.client.containers.get(self.container.id)
-                if self.container.status == 'running':
-                    # Check if Docker daemon is ready
+                if self.container.status != 'running':
+                    last_error = f"Container status: {self.container.status}"
+                    time.sleep(1)
+                    continue
+
+                # Check if Docker daemon is ready
+                try:
                     client = docker.DockerClient(base_url=f"tcp://{self.container_ip()}")
                     client.ping()
                     return
-            except (docker.errors.NotFound, docker.errors.APIError, docker.errors.DockerException):
-                pass
-            time.sleep(1)
+                except Exception as e:
+                    last_error = f"Docker daemon not ready: {str(e)}"
+                    time.sleep(1)
+            except Exception as e:
+                last_error = str(e)
+                time.sleep(1)
         
-        raise RuntimeError("Failed to start Docker-in-Docker container")
+        # If we get here, all attempts failed
+        raise RuntimeError(
+            f"Failed to start Docker-in-Docker container after {max_attempts} attempts. "
+            f"Last error: {last_error}"
+        )
 
     def get_client(self) -> docker.DockerClient:
         """Get a Docker client connected to this DinD container."""
