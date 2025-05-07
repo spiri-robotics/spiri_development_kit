@@ -108,25 +108,24 @@ class DockerInDocker:
 
 if __name__ == "__main__":
     # Example usage
-    try:
-        daemon = DockerInDocker(container_name="dind_test")
-        daemon.start()
-        
-        print(f"Docker-in-Docker IP: {daemon.container_ip()}")
-        
-        # Verify Docker connection
-        client = daemon.get_client()
-        print("Docker version:", client.version())
-        
-        # Run the compose file
-        compose_path = "robots/webapp-example/services/whoami/docker-compose.yaml"
-        print(f"Running compose file: {compose_path}")
-        daemon.run_compose(compose_path)
-        
-        # List running containers
-        print("Running containers:")
-        for container in client.containers.list():
-            print(f"- {container.name} (ID: {container.short_id})")
+    daemon = DockerInDocker(container_name="dind_test")
+    daemon.start()
+    
+    print(f"Docker-in-Docker IP: {daemon.container_ip()}")
+    
+    # Verify Docker connection
+    client = daemon.get_client()
+    print("Docker version:", client.version())
+    
+    # Run the compose file
+    compose_path = "robots/webapp-example/services/whoami/docker-compose.yaml"
+    print(f"Running compose file: {compose_path}")
+    daemon.run_compose(compose_path)
+    
+    # List running containers
+    print("Running containers:")
+    for container in client.containers.list():
+        print(f"- {container.name} (ID: {container.short_id})")
     
     # Check if port 80 is listening
     import requests
