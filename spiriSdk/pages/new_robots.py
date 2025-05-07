@@ -62,11 +62,30 @@ async def new_robots():
                     ui.label(option.get('help-text', '')).classes('text-body2')
                     option_type = option.get('type', 'text')
                     if option_type == 'bool':
-                        ui.toggle(key, value=option.get('value', False), on_change=lambda e, k=key: print(f"{k} toggled: {e.value}"))
+                        with ui.row():
+                            switch = ui.switch(value=option.get('value', False), on_change=lambda e, k=key: print(f"{k} switched: {e.value}"))
+                            switch.label = key
+                            ui.label(str(switch.value)).classes('text-body2')
                     elif option_type == 'int':
-                        ui.slider(key, min=option.get('min', 0), max=option.get('max', 100), step=option.get('step', 1), value=option.get('value', 0), on_change=lambda e, k=key: print(f"{k} changed: {e.value}"))
+                        ui.label(key)
+                        ui.slider(
+                            min=option.get('min', 0),
+                            max=option.get('max', 255),                   
+                            step=option.get('step', 1),
+                            value=option.get('value', 0),
+                            on_change=lambda e, k=key: print(f"{k} changed: {e.value}")
+                        ).props(f'label="{key}"')
                     elif option_type == 'text':
-                        ui.input(key, value=option.get('value', ''), on_change=lambda e, k=key: print(f"{k} changed: {e.value}"))
+                        ui.input(key, value=option.get('value', ''), on_change=lambda e, k=key: ui.label(f"{k} changed: {e.value}"))
+                    elif option_type == 'dropdown':
+                        # Ensure the dropdown options are a list
+                        dropdown_options = option.get('options', [])
+                        if isinstance(dropdown_options, list):
+                            with ui.dropdown_button(f"{key}: {option.get('value', '')}", auto_close=True):
+                                for item in dropdown_options:
+                                    ui.item(item, on_click=lambda _, i=item, k=key: print(f"{k} selected: {i}"))
+                        else:
+                            ui.label(f"Invalid dropdown options for {key}").classes('text-body2')
                     else:
                         ui.input(key, value=option.get('value', ''), on_change=lambda e, k=key: print(f"{k} changed: {e.value}"))
         
