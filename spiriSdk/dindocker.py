@@ -1,6 +1,7 @@
 import docker
 import atexit
 import subprocess
+import time
 from typing import Optional
 
 class DockerInDocker:
@@ -33,17 +34,26 @@ class DockerInDocker:
             name=self.container_name,
             privileged=True,
             detach=True,
-            remove=True,
             environment={'DOCKER_TLS_CERTDIR': ''}  # Disable TLS
         )
 
         # Wait for the container to be ready
-        while True:
+        max_attempts = 30
+        attempt = 0
+        while attempt < max_attempts:
             try:
-                self.client.ping()
-                break
-            except (docker.errors.NotFound, docker.errors.APIError):
+                self.container.reload()  # Refresh container attributes
+                if self.container.status == 'running':
+                    # Check if Docker daemon is ready
+                    client = docker.DockerClient(base_url=f"tcp://{self.container_ip()}")
+                    client.ping()
+                    break
+            except (docker.errors.NotFound, docker.errors.APIError, docker.errors.DockerException):
                 pass
+            attempt += 1
+            time.sleep(1)
+        else:
+            raise RuntimeError("Failed to start Docker-in-Docker container")
 
     def get_client(self) -> docker.DockerClient:
         """Get a Docker client connected to this DinD container."""
@@ -65,8 +75,13 @@ class DockerInDocker:
         """Stop and remove the container."""
         if self.container is not None:
             try:
-                self.container.stop()
-                self.container.remove()
+                # Only try to stop if container exists and is running
+                self.container.reload()
+                if self.container.status == 'running':
+                    self.container.stop(timeout=5)
+                self.container.remove(v=True, force=True)
+            except docker.errors.NotFound:
+                pass  # Container already gone
             except Exception as e:
                 print(f"Error during cleanup: {e}")
             finally:
