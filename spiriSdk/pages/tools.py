@@ -1,5 +1,5 @@
 from nicegui import ui
-from pages.header import header
+from spiriSdk.pages.header import header
 
 @ui.page('/tools')
 async def tools():
