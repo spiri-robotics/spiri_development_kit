@@ -31,14 +31,9 @@ def ensure_options_yaml():
 
 robots = ensure_options_yaml()
 
-@ui.page('/new_robots')
 async def new_robots():
-    #await header()
-
     selected_robot = None
     selected_additions = ["gimbal"]
-
-    options_container = ui.column()
     
     with ui.card():
         def display_robot_options(robot_name):
@@ -111,4 +106,7 @@ async def new_robots():
             with ui.dropdown_button('Select Robot', auto_close=True):
                 for robot in robots:
                     ui.item(robot, on_click=lambda r=robot: display_robot_options(r))
+
+            options_container = ui.column()
+
             ui.button('Add Robot', on_click=lambda: ui.notify(f'Robot {selected_robot} added!')).classes('q-mt-md')

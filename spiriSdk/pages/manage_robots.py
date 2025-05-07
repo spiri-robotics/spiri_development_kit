@@ -1,6 +1,6 @@
 from nicegui import ui
-from pages.header import header
-from pages.new_robots import new_robots
+from spiriSdk.pages.header import header
+from spiriSdk.pages.new_robots import new_robots
 
 @ui.page('/manage_robots')
 async def manage_robots():
