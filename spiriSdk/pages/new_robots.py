@@ -1,5 +1,6 @@
 from nicegui import ui
 import os
+from spiriSdk.pages.styles import styles
 from spiriSdk.pages.header import header
 import yaml
 
@@ -33,7 +34,7 @@ robots = ensure_options_yaml()
 
 @ui.page('/new_robots')
 async def new_robots():
-    #await header()
+    await styles()
 
     selected_robot = None
     selected_additions = ["gimbal"]
