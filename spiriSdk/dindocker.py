@@ -85,9 +85,11 @@ class DockerInDocker:
     def run_compose(self, compose_file: str) -> None:
         """Run a docker-compose file against this DinD instance."""
         client = self.get_client()
+        # Ensure we use the correct tcp:// protocol
+        docker_host = client.api.base_url.replace('http://', 'tcp://')
         subprocess.run([
             "docker-compose",
-            "-H", client.api.base_url,
+            "-H", docker_host,
             "-f", compose_file,
             "up", "-d"
         ], check=True)
@@ -106,15 +108,25 @@ class DockerInDocker:
 
 if __name__ == "__main__":
     # Example usage
-    daemon = DockerInDocker(container_name="dind_test")
-    daemon.start()
-    
-    print(f"Docker-in-Docker IP: {daemon.container_ip()}")
-    
-    # Run the compose file
-    compose_path = "robots/webapp-example/services/whoami/docker-compose.yaml"
-    print(f"Running compose file: {compose_path}")
-    daemon.run_compose(compose_path)
+    try:
+        daemon = DockerInDocker(container_name="dind_test")
+        daemon.start()
+        
+        print(f"Docker-in-Docker IP: {daemon.container_ip()}")
+        
+        # Verify Docker connection
+        client = daemon.get_client()
+        print("Docker version:", client.version())
+        
+        # Run the compose file
+        compose_path = "robots/webapp-example/services/whoami/docker-compose.yaml"
+        print(f"Running compose file: {compose_path}")
+        daemon.run_compose(compose_path)
+        
+        # List running containers
+        print("Running containers:")
+        for container in client.containers.list():
+            print(f"- {container.name} (ID: {container.short_id})")
     
     # Check if port 80 is listening
     import requests
