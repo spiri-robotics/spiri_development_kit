@@ -1,0 +1,26 @@
+{
+    "name": "Spiri SDK Development",
+    "dockerComposeFile": "../docker-compose.yaml",
+    "service": "spiri-sdk",
+    "workspaceFolder": "/app",
+    "customizations": {
+      "vscode": {
+        "extensions": [
+          "ms-azuretools.vscode-docker",
+          "ms-python.python",
+          "ms-python.vscode-pylance",
+          "redhat.vscode-yaml"
+        ],
+        "settings": {
+          "terminal.integrated.defaultProfile.linux": "bash",
+          "python.linting.enabled": true,
+          "python.formatting.provider": "black",
+          "editor.formatOnSave": true
+        }
+      }
+    },
+    "remoteUser": "root",
+    "forwardPorts": [8197],
+    "postCreateCommand": "echo 'Container is ready for development!'"
+  }
+  

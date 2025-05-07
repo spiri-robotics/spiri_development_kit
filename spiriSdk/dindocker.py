@@ -24,7 +24,7 @@ class DockerInDocker:
             raise RuntimeError("Container already running")
 
         port_bindings = {'2376/tcp': self.host_port} if self.host_port else None
-        
+
         self.container = self.client.containers.run(
             self.image_name,
             name=self.container_name,

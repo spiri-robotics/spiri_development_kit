@@ -1,6 +1,6 @@
 from nicegui import ui
 import os
-from pages.header import header
+from spiriSdk.pages.header import header
 import yaml
 
 robots = [1, 2, 3]
