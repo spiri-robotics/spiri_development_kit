@@ -33,7 +33,7 @@ robots = ensure_options_yaml()
 
 @ui.page('/new_robots')
 async def new_robots():
-    await header()
+    #await header()
 
     selected_robot = None
     selected_additions = ["gimbal"]
