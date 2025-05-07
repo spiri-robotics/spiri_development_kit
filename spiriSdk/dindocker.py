@@ -1,8 +1,8 @@
 import docker
 import atexit
-
+import subprocess
 class DockerInDocker:
-    def __init__(self, image_name="docker:dind", container_name="dind", host_port=None):
+    def __init__(self, image_name="docker:dind", container_name="dind"):
         """Initialize the Docker-in-Docker manager.
 
         Args:
@@ -18,12 +18,17 @@ class DockerInDocker:
         # Register cleanup on exit
         atexit.register(self.cleanup)
 
+    def container_ip(self):
+        """Get the IP address of the Docker-in-Docker container."""
+        if self.container is None:
+            raise RuntimeError("Container not running")
+
+        return self.container.attrs['NetworkSettings']['IPAddress']
+
     def start(self):
         """Start the Docker-in-Docker container."""
         if self.container is not None:
             raise RuntimeError("Container already running")
-
-        port_bindings = {'2376/tcp': self.host_port} if self.host_port else None
 
         self.container = self.client.containers.run(
             self.image_name,
@@ -31,11 +36,20 @@ class DockerInDocker:
             privileged=True,
             detach=True,
             remove=True,
-            ports=port_bindings,
             environment={
                 'DOCKER_TLS_CERTDIR': ''  # Disable TLS for simplicity
             }
         )
+        # Wait for the container to be ready
+        while True:
+            try:
+                self.client.ping()
+                break
+            except docker.errors.NotFound:
+                pass
+            except docker.errors.APIError:
+                pass
+
         return self.container
 
     def get_client(self):
@@ -44,7 +58,7 @@ class DockerInDocker:
             raise RuntimeError("Container not running")
 
         port = self.host_port or 2376
-        return docker.DockerClient(base_url=f"tcp://localhost:{port}")
+        docker_host = f"tcp://{self.container_ip()}"
 
     def cleanup(self):
         """Stop and remove the container."""
@@ -56,11 +70,13 @@ class DockerInDocker:
             except Exception as e:
                 print(f"Error during cleanup: {e}")
 
-    def __enter__(self):
-        """Context manager entry."""
-        return self.start()
+if __name__ == "__main__":
+    # Example usage
+    dind = DockerInDocker()
+    dind.start()
+    client = dind.get_client()
+    #Run robots/webapp-example/services/whoami/docker-compose.yaml in the remote docker using docker compose
+    compose_file = "robots/webapp-example/services/whoami/docker-compose.yaml"
+    docker_host = client.api.base_url
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        """Context manager exit."""
-        self.cleanup()
-
+    subprocess.run(["docker-compose", "-H", docker_host, '-f', compose_file, "up", "-d"])
