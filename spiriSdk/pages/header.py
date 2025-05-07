@@ -1,9 +1,92 @@
 from nicegui import ui
-favicon = """
-<svg viewBox="0 0 41.757 41.629" xmlns="http://www.w3.org/2000/svg"><g stroke-linecap="round"><path d="M13.069.128A12.813 12.813 0 0 0 .256 12.941 12.813 12.813 0 0 0 13.07 25.753a13 13 0 0 0 2.255-.224 7.3 7.3 0 0 1-1.776-4.772 7.303 7.303 0 0 1 7.303-7.304 7.3 7.3 0 0 1 4.795 1.797 13 13 0 0 0 .236-2.31A12.813 12.813 0 0 0 13.07.129" fill="#dd5935"/><path d="M28.415.128a12.813 12.813 0 0 0-12.813 12.813 13 13 0 0 0 .275 2.488 7.3 7.3 0 0 1 4.974-1.976 7.303 7.303 0 0 1 7.304 7.304 7.3 7.3 0 0 1-1.813 4.812 13 13 0 0 0 2.073.184 12.813 12.813 0 0 0 12.813-12.812A12.813 12.813 0 0 0 28.415.128" fill="#899ca3"/><path d="M28.944 16.003a13 13 0 0 0-2.35.245 7.3 7.3 0 0 1 1.56 4.509 7.303 7.303 0 0 1-7.303 7.303 7.3 7.3 0 0 1-4.482-1.56 13 13 0 0 0-.238 2.316 12.813 12.813 0 0 0 12.813 12.812 12.813 12.813 0 0 0 12.813-12.812 12.813 12.813 0 0 0-12.813-12.813" fill="#fac529"/><path d="M3.047 20.878a12.8 12.8 0 0 0-2.79 7.938 12.813 12.813 0 0 0 12.812 12.813 12.813 12.813 0 0 0 12.813-12.813 13 13 0 0 0-.277-2.518 7.3 7.3 0 0 1-4.754 1.762 7.3 7.3 0 0 1-5.528-2.532 13 13 0 0 1-2.254.226 12.81 12.81 0 0 1-10.022-4.876" fill="#9edfec"/><path d="M12.813 0A12.813 12.813 0 0 0 0 12.813a12.81 12.81 0 0 0 7.272 11.535 13.8 13.8 0 0 1-.553-3.858A13.77 13.77 0 0 1 20.49 6.72a13.8 13.8 0 0 1 3.877.56A12.81 12.81 0 0 0 12.813 0" fill="#fac529"/><path d="M28.688 0a12.81 12.81 0 0 0-11.466 7.143 13.8 13.8 0 0 1 3.268-.424A13.77 13.77 0 0 1 34.261 20.49a13.8 13.8 0 0 1-.65 4.127 12.81 12.81 0 0 0 7.89-11.804A12.813 12.813 0 0 0 28.688 0" fill="#9edfec"/><path d="M33.792 16.939a13.8 13.8 0 0 1 .47 3.551A13.77 13.77 0 0 1 20.49 34.261a13.8 13.8 0 0 1-3.544-.485A12.81 12.81 0 0 0 28.688 41.5 12.813 12.813 0 0 0 41.5 28.688a12.81 12.81 0 0 0-7.71-11.749" fill="#dd5935"/><path d="M2.79 20.75A12.8 12.8 0 0 0 0 28.688 12.813 12.813 0 0 0 12.813 41.5a12.81 12.81 0 0 0 11.83-7.9 13.8 13.8 0 0 1-4.153.66 13.77 13.77 0 0 1-13.225-9.946A12.8 12.8 0 0 1 2.79 20.75" fill="#899ca3"/></g></svg>"""
+from datetime import datetime
+import subprocess
+
+def get_battery_status():
+    """Fetch battery percentage and charging status."""
+    try:
+        result = subprocess.run(
+            ["upower", "-i", "/org/freedesktop/UPower/devices/battery_BAT0"],
+            capture_output=True, text=True, check=True
+        ).stdout
+
+        percent = "0%"
+        charging = False
+
+        for line in result.splitlines():
+            if "percentage" in line:
+                percent = line.split(":")[-1].strip()
+            elif "state" in line:
+                state = line.split(":")[-1].strip().lower()
+                charging = state == "charging"
+
+        return percent, charging
+    except:
+        return "Unknown", False
+    
+def get_wifi_signal():
+    """Fetch Wi-Fi signal strength."""
+    try:
+        result = subprocess.run(
+            ["nmcli", "-f", "IN-USE,SIGNAL", "dev", "wifi"],
+            capture_output=True, text=True, check=True
+        ).stdout
+
+        for line in result.splitlines():
+            if line.startswith("*"):  # Currently connected network
+                signal = int(line.split()[1])
+                return signal
+
+        return 0  # No connection
+    except:
+        return 0
+    
+def battery_icon(percent, charging):
+    """Return the appropriate Material Symbol for battery."""
+    percent = int(percent.replace("%", "")) if percent != "Unknown" else 0
+
+    if charging:
+        return "battery_charging_full"
+    elif percent > 80:
+        return "battery_full"
+    elif percent > 60:
+        return "battery_5_bar"
+    elif percent > 40:
+        return "battery_4_bar"
+    elif percent > 20:
+        return "battery_2_bar"
+    else:
+        return "battery_alert"
+
+def wifi_icon(signal):
+    """Return the appropriate Material Symbol for Wi-Fi signal strength."""
+    if signal > 75:
+        return "signal_wifi_4_bar"
+    elif signal > 50:
+        return "signal_wifi_3_bar"
+    elif signal > 25:
+        return "signal_wifi_2_bar"
+    elif signal > 0:
+        return "signal_wifi_1_bar"
+    else:
+        return "signal_wifi_off"
+
+
 async def header():
     with ui.header():
-        ui.button('Home', on_click=lambda: ui.navigate.to('/'))
-        ui.button('Tools', on_click=lambda: ui.navigate.to('/tools'))
-        ui.button('New Robots', on_click=lambda: ui.navigate.to('/new_robots'))
-        ui.button('Manage Robots', on_click=lambda: ui.navigate.to('/manage_robots'))
+        @ui.refreshable
+        def clock():
+            return ui.label(str(datetime.now()))
+        ui.timer(1.0, clock.refresh)
+        
+        with ui.row():
+            percent, charging = get_battery_status()
+            wifi_signal = get_wifi_signal()
+
+            clock()
+
+            # Battery icon
+            ui.icon(battery_icon(percent, charging)).classes("text-2xl")
+
+            # Wi-Fi icon
+            ui.icon(wifi_icon(wifi_signal)).classes("text-2xl")
