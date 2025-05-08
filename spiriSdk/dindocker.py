@@ -46,7 +46,7 @@ class DockerInDocker:
                 environment={'DOCKER_TLS_CERTDIR': ''},
                 publish_all_ports=True,
                 volumes={
-                    str(self.robot_data_root): {
+                    str(self.robot_data_root.resolve()): {  # Convert to absolute path
                         'bind': '/data',
                         'mode': 'rw'
                     }
