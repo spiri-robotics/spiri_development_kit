@@ -176,6 +176,5 @@ cython_debug/
 .aider*
 
 #Robots temporary files
-robots/
 worlds/
 data/

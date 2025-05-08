@@ -23,17 +23,27 @@ def ensure_options_yaml():
             options_path = os.path.join(folder_path, 'options.yaml')
             if not os.path.exists(options_path):
                 # Create a default options.yaml file
-                compose_file = os.path.join(folder_path, "docker-compose.yaml")
-                if not os.path.exists(compose_file):
-                    ui.notify("docker-compose.yaml not found!", type="error")
-                    return robots
+                services_path = Path(folder_path) / "services"
+                if not services_path.exists():
+                    ui.notify(f"Services folder not found under {folder_path}", type="error")
+                    continue               
+                service_folders = [p for p in services_path.iterdir() if p.is_dir()]
+                if not service_folders:
+                    ui.notify(f"No service folder found under {services_path}", type="error")
+                    continue
+
+                compose_file = service_folders[0] / "docker-compose.yaml"
+                if not compose_file.exists():
+                    ui.notify(f"{compose_file} not found!", type="error")
+                    continue
         
                 compose_text = compose_file.read_text()
-                variables = set(re.findall(r'\$\{([A-Z_][A-Z0-9_]*)\}', compose_text))
+                variables = set(re.findall(r'\$[{]?([A-Z_][A-Z0-9_]*)[}]?', compose_text))
 
                 default_options = {
                     'x-spiri-options': {}}
                 for var in variables:
+                    print(f"Detected variable: {var}")
                     if var not in default_options["x-spiri-options"]:
                         default_options["x-spiri-options"][var] = {
                             "type": "text",  # Default type (can be adjusted if needed)
