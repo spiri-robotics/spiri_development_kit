@@ -1,4 +1,5 @@
 from nicegui import ui, binding, app, run
+from spiriSdk.pages.styles import styles
 from spiriSdk.pages.header import header
 import time
 import docker
@@ -55,10 +56,11 @@ async def tools():
                 await find_worlds()
                 for dir, name in worlds.items():
                     ui.item(name, on_click=lambda: run_world(dir, name, world_auto_run.value))
+    await styles()
     await header()
     with ui.grid(columns=3):
         for app_name, command in applications.items():
-            with ui.button(on_click=lambda cmd=command: launch_app(cmd), color='#20788a').classes('rounded-1/2'):
+            with ui.button(on_click=lambda cmd=command: launch_app(cmd), color='warning').classes('rounded-1/2'):   # old color for all 3: color='#20788a'
                 ui.label(app_name).classes('text-lg text-center')
         with ui.button(on_click=gz_dialog.open, color='#20788a').classes('rounded-1/2'):
             ui.label('Launch Gazebo').classes('text-lg text-center')

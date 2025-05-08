@@ -1,7 +1,7 @@
 from nicegui import ui
+from spiriSdk.pages.styles import styles
 from datetime import datetime
 import subprocess
-
 
 def get_battery_status():
     """Fetch battery percentage and charging status."""
@@ -74,16 +74,21 @@ def wifi_icon(signal):
 
 
 async def header():
-    with ui.header().style('background-color: #9EDFEC'):
-        ui.button('Home', on_click=lambda: ui.navigate.to('/'), color='#20788a')
-        ui.button('Tools', on_click=lambda: ui.navigate.to('/tools'), color='#20788a')
-        ui.button('Manage Robots', on_click=lambda: ui.navigate.to('/manage_robots'), color='#20788a')
+
+    with ui.header():
+        with ui.row():
+            ui.button('Home', on_click=lambda: ui.navigate.to('/'), color='warning')
+            ui.button('Tools', on_click=lambda: ui.navigate.to('/tools'), color='warning')
+            ui.button('Manage Robots', on_click=lambda: ui.navigate.to('/manage_robots'), color='warning')
+
+        ui.space()
 
         @ui.refreshable
         def clock():
             dateTime = datetime.astimezone(datetime.now())
-            ui.label(dateTime.strftime('%A %B %m %Y')).classes('text-lg')
-            ui.label(dateTime.strftime('%X %Z')).classes('text-lg')
+            ui.label(dateTime.strftime('%A %B %m %Y')).classes('text-lg text-warning')
+            ui.label(dateTime.strftime('%X %Z')).classes('text-lg text-warning')
+
         ui.timer(1.0, clock.refresh)
         
         with ui.row():
@@ -93,7 +98,7 @@ async def header():
             clock()
 
             # Battery icon
-            ui.icon(battery_icon(percent, charging)).classes("text-2xl")
+            ui.icon(battery_icon(percent, charging), color='warning').classes("text-2xl")
 
             # Wi-Fi icon
-            ui.icon(wifi_icon(wifi_signal)).classes("text-2xl")
+            ui.icon(wifi_icon(wifi_signal), color='warning').classes("text-2xl")
