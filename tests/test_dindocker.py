@@ -7,8 +7,6 @@ import shutil
 from pathlib import Path
 from spiriSdk.dindocker import DockerInDocker
 
-import tempfile
-
 @pytest.fixture
 def dind():
     """Fixture that provides a DockerInDocker instance and cleans up after."""
