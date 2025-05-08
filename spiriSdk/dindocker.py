@@ -2,7 +2,9 @@ import docker
 import atexit
 import subprocess
 import time
-from typing import Optional
+import os
+from pathlib import Path
+from typing import Optional, Dict, Any
 
 class DockerInDocker:
     def __init__(self, image_name: str = "docker:dind", container_name: str = "dind"):
@@ -16,6 +18,7 @@ class DockerInDocker:
         self.image_name = image_name
         self.container_name = container_name
         self.container: Optional[docker.models.containers.Container] = None
+        self.robot_data_root = Path("./robot_data") / container_name
         atexit.register(self.cleanup)
 
     def container_ip(self) -> str:
@@ -82,17 +85,43 @@ class DockerInDocker:
             raise RuntimeError("Container not running")
         return docker.DockerClient(base_url=f"tcp://{self.container_ip()}:2375")
 
+    def _prepare_service_paths(self, compose_file: str) -> Dict[str, Any]:
+        """Prepare paths for compose file services and create directories."""
+        compose_path = Path(compose_file)
+        service_name = compose_path.parent.name
+        service_data_dir = self.robot_data_root / service_name
+        
+        # Create required directories
+        service_data_dir.mkdir(parents=True, exist_ok=True)
+        
+        return {
+            'host_path': str(service_data_dir),
+            'container_path': f"/data/{service_name}",
+            'compose_file': str(compose_path)
+        }
+
     def run_compose(self, compose_file: str) -> None:
-        """Run a docker-compose file against this DinD instance."""
+        """Run a docker-compose file against this DinD instance with proper path mapping."""
+        paths = self._prepare_service_paths(compose_file)
         client = self.get_client()
+        
         # Ensure we use the correct tcp:// protocol
         docker_host = client.api.base_url.replace('http://', 'tcp://')
+        
+        # Set environment variables for path mapping
+        env = os.environ.copy()
+        env.update({
+            'DOCKER_HOST': docker_host,
+            'HOST_DATA_DIR': paths['host_path'],
+            'CONTAINER_DATA_DIR': paths['container_path']
+        })
+        
         subprocess.run([
             "docker-compose",
             "-H", docker_host,
-            "-f", compose_file,
+            "-f", paths['compose_file'],
             "up", "-d"
-        ], check=True)
+        ], check=True, env=env)
 
     def cleanup(self) -> None:
         """Cleanup handler (still registered but minimal since remove=True handles it)."""
