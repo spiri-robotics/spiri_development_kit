@@ -4,12 +4,16 @@ import yaml
 import re
 from pathlib import Path
 import uuid
+from spiriSdk.dindocker import DockerInDocker
+from nicegui import run
 
 ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 ROBOTS_DIR = os.path.join(ROOT_DIR, 'robots')
 
 # Get the list of robots dynamically from the robots folder
 robots = [folder for folder in os.listdir(ROBOTS_DIR) if os.path.isdir(os.path.join(ROBOTS_DIR, folder))]
+
+daemons = {}
 
 def ensure_options_yaml():
     robots = []
@@ -52,7 +56,7 @@ def ensure_options_yaml():
                     yaml.dump(default_options, yaml_file)
     return robots
 
-def save_robot_config(robot_type, selected_options):
+async def save_robot_config(robot_type, selected_options):
     robot_id = uuid.uuid4().hex[:6]
     folder_name = f"{robot_type}-{robot_id}"
     folder_path = os.path.join(ROOT_DIR, "data", folder_name)
@@ -62,6 +66,10 @@ def save_robot_config(robot_type, selected_options):
     with open(config_path, "w") as f:
         for key, value in selected_options.items():
             f.write(f"{key}={value}\n")
+
+    new_daemon = DockerInDocker(image_name="docker:dind", container_name=folder_name)
+    await run.io_bound(new_daemon.start, timeout=1000)
+    daemons[folder_name] = new_daemon
 
     ui.notify(f"Saved config.env for {folder_name}")
 
