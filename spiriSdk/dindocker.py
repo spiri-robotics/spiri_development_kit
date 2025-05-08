@@ -1,3 +1,12 @@
+"""
+Docker-in-Docker (DinD) manager for running nested Docker containers.
+
+This provides a clean interface to:
+- Start/stop a Docker daemon inside a container
+- Run docker-compose files against the nested Docker
+- Manage data volumes and paths between host and containers
+"""
+
 import docker
 import atexit
 import subprocess
@@ -7,23 +16,56 @@ from pathlib import Path
 from typing import Optional, Dict, Any
 
 class DockerInDocker:
+    """Manager for Docker-in-Docker containers with path mapping support.
+    
+    Features:
+    - Automatic cleanup on exit
+    - Path mapping between host and containers
+    - Docker compose support
+    - SDK_ROOT environment variable integration
+    
+    Typical usage:
+        with DockerInDocker() as dind:
+            dind.run_compose("path/to/compose.yaml")
+    """
+    
     def __init__(self, image_name: str = "docker:dind", container_name: str = "dind"):
         """Initialize the Docker-in-Docker manager.
-
+        
         Args:
             image_name: Docker image to use (default: docker:dind)
-            container_name: Name for the container (must be unique per daemon)
+            container_name: Unique name for this container instance
         """
         self.client = docker.from_env()
         self.image_name = image_name
         self.container_name = container_name
         self.container: Optional[docker.models.containers.Container] = None
+        
+        # Set up paths - use SDK_ROOT if available, otherwise current directory
         sdk_root = os.environ.get('SDK_ROOT', '.')
         self.robot_data_root = Path(sdk_root) / "robot_data" / container_name
+        
+        # Ensure cleanup on exit
         atexit.register(self.cleanup)
 
+    def __enter__(self):
+        """Context manager entry point - starts the container."""
+        self.start()
+        return self
+        
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """Context manager exit - ensures cleanup."""
+        self.cleanup()
+        
     def container_ip(self) -> str:
-        """Get the IP address of the Docker-in-Docker container."""
+        """Get the container's IP address.
+        
+        Returns:
+            str: The container's IP address
+            
+        Raises:
+            RuntimeError: If container isn't running or has no IP
+        """
         if self.container is None:
             raise RuntimeError("Container not running")
         
@@ -33,21 +75,33 @@ class DockerInDocker:
         return ip
 
     def start(self) -> None:
-        """Start the Docker-in-Docker container."""
+        """Start the Docker-in-Docker container.
+        
+        Sets up:
+        - Privileged container with Docker socket
+        - Volume mapping for /data directory
+        - Automatic removal on stop
+        
+        Raises:
+            RuntimeError: If container fails to start
+        """
         if self.container is not None:
             raise RuntimeError("Container already running")
 
         try:
             self.container = self.client.containers.run(
-                self.image_name,
+                image=self.image_name,
                 name=self.container_name,
                 privileged=True,
                 detach=True,
-                remove=True,
-                environment={'DOCKER_TLS_CERTDIR': ''},
+                remove=True,  # Auto-remove when stopped
+                environment={
+                    'DOCKER_TLS_CERTDIR': ''  # Disable TLS for simplicity
+                },
                 publish_all_ports=True,
                 volumes={
-                    str(self.robot_data_root.resolve()): {  # Convert to absolute path
+                    # Map host robot_data to container /data
+                    str(self.robot_data_root.resolve()): {
                         'bind': '/data',
                         'mode': 'rw'
                     }
@@ -93,7 +147,14 @@ class DockerInDocker:
         return docker.DockerClient(base_url=f"tcp://{self.container_ip()}:2375")
 
     def _prepare_service_paths(self, compose_file: str) -> Dict[str, Any]:
-        """Prepare paths for compose file services."""
+        """Prepare path mappings for a compose file service.
+        
+        Args:
+            compose_file: Path to docker-compose.yaml file
+            
+        Returns:
+            Dict with paths for host, container, compose file and project dir
+        """
         compose_path = Path(compose_file)
         service_name = compose_path.parent.name
         
@@ -101,18 +162,31 @@ class DockerInDocker:
             'host_path': str(self.robot_data_root / service_name),
             'container_path': f"/data/{service_name}",
             'compose_file': str(compose_path),
-            'project_dir': f"/data/{service_name}"  # Add project directory in container
+            'project_dir': f"/data/{service_name}"  # Project dir in container
         }
 
     def run_compose(self, compose_file: str) -> None:
-        """Run a docker-compose file against this DinD instance with proper path mapping."""
+        """Run a docker-compose file against the DinD instance.
+        
+        Handles:
+        - Path mapping between host and container
+        - Proper Docker host configuration
+        - Project directory setup
+        
+        Args:
+            compose_file: Path to docker-compose.yaml file
+            
+        Raises:
+            subprocess.CalledProcessError: If compose fails
+            RuntimeError: If DinD container isn't running
+        """
         paths = self._prepare_service_paths(compose_file)
         client = self.get_client()
         
-        # Ensure we use the correct tcp:// protocol
+        # Configure Docker host URL
         docker_host = client.api.base_url.replace('http://', 'tcp://')
         
-        # Set environment variables for path mapping
+        # Set up environment for compose
         env = os.environ.copy()
         env.update({
             'DOCKER_HOST': docker_host,
@@ -120,11 +194,12 @@ class DockerInDocker:
             'CONTAINER_DATA_DIR': paths['container_path']
         })
         
+        # Run docker-compose with proper path mappings
         subprocess.run([
             "docker-compose",
             "-H", docker_host,
             "-f", paths['compose_file'],
-            "--project-directory", paths['project_dir'],  # Use container path
+            "--project-directory", paths['project_dir'],
             "up", "-d"
         ], check=True, env=env)
 
