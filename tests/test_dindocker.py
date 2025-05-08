@@ -1,14 +1,23 @@
 import pytest
 import requests
 import time
+import os
+import tempfile
 from pathlib import Path
 from spiriSdk.dindocker import DockerInDocker
+
+import tempfile
 
 @pytest.fixture
 def dind():
     """Fixture that provides a DockerInDocker instance and cleans up after."""
-    with DockerInDocker(container_name="pytest_dind") as dind:
-        yield dind
+    with tempfile.TemporaryDirectory() as temp_dir:
+        # Set SDK_ROOT to our temp directory
+        os.environ['SDK_ROOT'] = temp_dir
+        with DockerInDocker(container_name="pytest_dind") as dind:
+            yield dind
+        # Clean up environment
+        os.environ.pop('SDK_ROOT', None)
 
 def test_dind_startup(dind):
     """Test basic Docker-in-Docker container startup."""
