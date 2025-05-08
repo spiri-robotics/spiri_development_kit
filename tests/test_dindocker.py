@@ -42,8 +42,23 @@ def test_dind_startup(dind):
 
 def test_compose_operations(dind):
     """Test running docker-compose operations."""
-    compose_path = "robots/webapp-example/services/whoami/docker-compose.yaml"
-    dind.run_compose(compose_path)
+    # Create temporary compose file
+    compose_content = """
+version: '3'
+services:
+  whoami:
+    image: traefik/whoami
+    ports:
+      - "80:80"
+    volumes:
+      - ./test:/test
+"""
+    # Write to temp file
+    compose_path = Path(os.environ['SDK_ROOT']) / "docker-compose.yaml"
+    with open(compose_path, 'w') as f:
+        f.write(compose_content)
+    
+    dind.run_compose(str(compose_path))
 
     # Verify directory was created in the temp location
     test_dir = Path(os.environ['SDK_ROOT']) / "robot_data/pytest_dind/whoami/test"
