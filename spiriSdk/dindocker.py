@@ -86,16 +86,12 @@ class DockerInDocker:
         return docker.DockerClient(base_url=f"tcp://{self.container_ip()}:2375")
 
     def _prepare_service_paths(self, compose_file: str) -> Dict[str, Any]:
-        """Prepare paths for compose file services and create directories."""
+        """Prepare paths for compose file services."""
         compose_path = Path(compose_file)
         service_name = compose_path.parent.name
-        service_data_dir = self.robot_data_root / service_name
-        
-        # Create required directories
-        service_data_dir.mkdir(parents=True, exist_ok=True)
         
         return {
-            'host_path': str(service_data_dir),
+            'host_path': str(self.robot_data_root / service_name),
             'container_path': f"/data/{service_name}",
             'compose_file': str(compose_path)
         }
