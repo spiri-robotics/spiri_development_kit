@@ -14,25 +14,29 @@ async def manage_robots():
         await new_robots()
 
         with ui.card_actions().props('align=center'):
-            ui.button('Add', on_click=addRobot.close)  #color='#FAC528'
+            ui.button('Add', on_click=addRobot.close)
             ui.button('Cancel', on_click=addRobot.close)
 
-    ui.button('Add Robot', on_click=addRobot.open)
+    ui.button('Add Robot', on_click=addRobot.open, color='warning')
 
-    with ui.card(align_items='stretch'):
-        with ui.card_actions().props('align=between'):
-            ui.label('[robot name]')
-            ui.label('[status]')
-        with ui.card_section().props('horizontal'):
-            ui.button('Start').classes('m-2')  #color='#9EDFEC'
-            ui.button('Restart').classes('m-2')
-            ui.button('Stop').classes('m-2')
+    with ui.card().classes('w-full'):
+        with ui.row(align_items='stretch').classes('w-full'):
+            with ui.card_section():
+                ui.label('[robot name]').classes('mb-5')
+                ui.label('[status]').classes('mt-5')
+            ui.space()
+            with ui.card_actions():
+                ui.button('Start', icon='play_arrow', color='positive').classes('m-1')
+                ui.button('Stop', icon='stop', color='secondary').classes('m-1')
+                ui.button('Restart', icon='refresh', color='warning').classes('m-1 mr-10')
 
-            with ui.dialog() as editRobot, ui.card():
-                await edit_robot()
+                with ui.dialog() as editRobot, ui.card():
+                    await edit_robot()
 
-                with ui.card_actions().props('align=center'):
-                    ui.button('Save', on_click=editRobot.close)  #color='#FAC528'
-                    ui.button('Cancel', on_click=editRobot.close)
-            ui.button('Edit Robot', on_click=editRobot.open).classes('m-2')  #color='#9EDFEC'
-            ui.button('Delete Robot', on_click=lambda: ui.navigate.to('/delete_robot')).classes('m-2')
+                    with ui.card_actions().props('align=stretch'):
+                        ui.button('Save', on_click=editRobot.close)
+                        ui.button('Cancel', on_click=editRobot.close)
+
+                with ui.dropdown_button(icon='settings', color='warning'):
+                    ui.item('Edit', on_click=editRobot.open)
+                    ui.item('Delete')
