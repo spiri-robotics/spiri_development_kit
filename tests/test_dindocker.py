@@ -26,8 +26,8 @@ def dind():
         os.environ.pop('SDK_ROOT', None)
         try:
             shutil.rmtree(temp_dir)
-        except:
-            pass  # Best effort cleanup
+        except (OSError, shutil.Error) as e:
+            print(f"Warning: Failed to clean up temp dir {temp_dir}: {e}")
 
 def test_dind_startup(dind):
     """Test basic Docker-in-Docker container startup."""
