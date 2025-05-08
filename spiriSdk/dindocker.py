@@ -93,7 +93,8 @@ class DockerInDocker:
         return {
             'host_path': str(self.robot_data_root / service_name),
             'container_path': f"/data/{service_name}",
-            'compose_file': str(compose_path)
+            'compose_file': str(compose_path),
+            'project_dir': f"/data/{service_name}"  # Add project directory in container
         }
 
     def run_compose(self, compose_file: str) -> None:
@@ -116,7 +117,7 @@ class DockerInDocker:
             "docker-compose",
             "-H", docker_host,
             "-f", paths['compose_file'],
-            "--project-directory", paths['host_path'],
+            "--project-directory", paths['project_dir'],  # Use container path
             "up", "-d"
         ], check=True, env=env)
 
