@@ -22,7 +22,6 @@ async def new_robots():
         display_robot_options(robot_name)
     
     def display_robot_options(robot_name):
-        ui.notify(f'Selected Robot: {robot_name}, Selected Addition: {addition}' for addition in selected_additions)
         options_path = os.path.join(ROBOTS_DIR, robot_name, 'options.yaml')
         if not os.path.exists(options_path):
             ui.notify(f"No options.yaml found for {robot_name}")
@@ -36,9 +35,9 @@ async def new_robots():
 
         # Display options dynamically
         with options_container:
-            ui.label(f"Options for {robot_name}").classes('text-lg')
+            ui.label(f"Options for {robot_name}").classes('text-lg font-bold')
             for key, option in options.get('x-spiri-options', {}).items():
-                ui.label(key).classes('text-h6')
+                ui.label(key).classes('text-lg')
                 ui.label(option.get('help-text', '')).classes('text-body2')
                 option_type = option.get('type', 'text')
                 if option_type == 'bool':
@@ -72,11 +71,11 @@ async def new_robots():
                         # Fallback: no min/max, use input box
                         ui.input(
                             label=f"{key} (integer)",
-                            value=str(current_value),
+                            placeholder=str(current_value),
                             on_change=(lambda e, k=key: selected_options.update({k: e.value}))
                         )
                 elif option_type == 'text':
-                    ui.input(key, value=option.get('value', ''), on_change=(lambda e, k=key: selected_options.update({k: e.value})))
+                    ui.input(key, placeholder=option.get('value', ''), on_change=(lambda e, k=key: selected_options.update({k: e.value})))
                 elif option_type == 'dropdown':
                     # Ensure the dropdown options are a list
                     dropdown_options = option.get('options', [])
@@ -87,15 +86,15 @@ async def new_robots():
                     else:
                         ui.label(f"Invalid dropdown options for {key}").classes('text-body2')
                 else:
-                    ui.input(key, value=option.get('value', ''), on_change=(lambda e, k=key: selected_options.update({k: e.value})))
+                    ui.input(key, placeholder=option.get('value', ''), on_change=(lambda e, k=key: selected_options.update({k: e.value})))
         
-    with ui.card():
-        ui.label('New Robot').classes('text-h5')
-        ui.label("Select new robot type")
-        with ui.dropdown_button("Choose Robot Here", color='secondary', auto_close=True) as dropdown:
-            for robot in robots:
-                ui.item(robot, on_click=lambda _, r=robot: on_select(r))
+    ui.label('New Robot').classes('text-h5')
 
-        options_container = ui.column()
+    with ui.row():
+        ui.input('Robot Name', placeholder='Timothy J. Horton III').classes('w-52')
+        ui.space()
+        ui.select([f'{robot}' for robot in robots], label='Select robot type', on_change=lambda e: display_robot_options(e.value)).classes('w-52')
 
-        ui.button('Add Robot', color='secondary', on_click=lambda: save_robot_config(selected_robot['name'], selected_options)).classes('q-mt-md')
+    options_container = ui.column()
+
+    ui.button('Add Robot', color='secondary', on_click=lambda: save_robot_config(selected_robot['name'], selected_options)).classes('q-mt-md')
