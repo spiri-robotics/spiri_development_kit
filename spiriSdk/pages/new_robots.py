@@ -30,6 +30,10 @@ async def new_robots():
         with open(options_path, 'r') as yaml_file:
             options = yaml.safe_load(yaml_file)
 
+        selected_options.clear()
+        for key, option in options.get('x-spiri-options', {}).items():
+            selected_options[key] = option.get('value')
+
         # Clear previous options UI
         options_container.clear()
 
@@ -45,14 +49,11 @@ async def new_robots():
 
                 if option_type == 'bool':
                     with ui.row():
-                        switch_label = ui.label(str(option.get('value', False))).classes('text-body2')
-                        def toggle_switch(k, e):
-                            switch_label.set_text(f"{e.value}")
-                            return lambda e: selected_options.update({k: e.value})
-                        switch = ui.switch(
-                            value=option.get('value', False),
-                            on_change=lambda e: toggle_switch(key, e),
+                        ui.switch(
+                            value=current_value,
+                            on_change=lambda e, k=key: selected_options.update({k: e.value})
                         )
+                        ui.label(f'{current_value}').classes('text-body2')
 
                 elif option_type == 'int':
                     min_val = option.get('min')
