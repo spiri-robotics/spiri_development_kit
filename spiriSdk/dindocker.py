@@ -14,6 +14,7 @@ import time
 import os
 from pathlib import Path
 from typing import Optional, Dict, Any
+from loguru import logger
 
 
 class DockerInDocker:
@@ -89,6 +90,7 @@ class DockerInDocker:
         if self.container is not None:
             raise RuntimeError("Container already running")
 
+        logger.info(f"Starting Docker-in-Docker container {self.container_name} using image {self.image_name}")
         try:
             self.container = self.client.containers.run(
                 image=self.image_name,
@@ -108,6 +110,7 @@ class DockerInDocker:
         except Exception as e:
             raise RuntimeError(f"Failed to start container: {str(e)}")
 
+        logger.debug("Waiting for container to be ready...")
         # Wait for the container to be ready
         max_attempts = 30
         last_error = None
@@ -126,6 +129,7 @@ class DockerInDocker:
                         base_url=f"tcp://{self.container_ip()}:2375"
                     )
                     client.ping()
+                    logger.success("Docker-in-Docker container started successfully")
                     return
                 except Exception as e:
                     last_error = f"Docker daemon not ready: {str(e)}"
@@ -134,6 +138,7 @@ class DockerInDocker:
                 last_error = str(e)
                 time.sleep(1)
 
+        logger.error(f"Failed to start container after {max_attempts} attempts")
         # If we get here, all attempts failed
         raise RuntimeError(
             f"Failed to start Docker-in-Docker container after {max_attempts} attempts. "
@@ -166,6 +171,7 @@ class DockerInDocker:
         }
 
     def run_compose(self, compose_file: str) -> None:
+        logger.info(f"Running compose file: {compose_file}")
         """Run a docker-compose file against the DinD instance.
 
         Handles:
@@ -222,5 +228,5 @@ class DockerInDocker:
             except docker.errors.NotFound:
                 pass  # Container already gone
             except Exception as e:
-                print(f"Error during cleanup: {e}")
+                logger.error(f"Error during cleanup: {e}")
             self.container = None
