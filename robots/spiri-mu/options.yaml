@@ -1,0 +1,37 @@
+x-spiri-options:
+  ARDUPILOT_VEHICLE:
+    help-text: Auto-detected variable ARDUPILOT_VEHICLE
+    type: text
+    value: 0
+  DRONE_SYS_ID:
+    help-text: Auto-detected variable DRONE_SYS_ID
+    type: text
+    value: 0
+  GCS_PORT:
+    help-text: Auto-detected variable GCS_PORT
+    type: text
+    value: 0
+  INSTANCE:
+    help-text: Auto-detected variable INSTANCE
+    type: text
+    value: 0
+  MAVROS1_PORT:
+    help-text: Auto-detected variable MAVROS1_PORT
+    type: text
+    value: 0
+  MAVROS2_PORT:
+    help-text: Auto-detected variable MAVROS2_PORT
+    type: text
+    value: 0
+  ROBOT_NAME:
+    help-text: Auto-detected variable ROBOT_NAME
+    type: text
+    value: 0
+  SERIAL0_PORT:
+    help-text: Auto-detected variable SERIAL0_PORT
+    type: text
+    value: 0
+  SITL_PORT:
+    help-text: Auto-detected variable SITL_PORT
+    type: text
+    value: 0

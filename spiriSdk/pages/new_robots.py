@@ -118,7 +118,7 @@ async def new_robots():
                             on_change=lambda e, k=key: print(f"{k} changed: {e.value}")
                         )
                 elif option_type == 'text':
-                    ui.input(key, value=option.get('value', ''), on_change=lambda e, k=key: ui.label(f"{k} changed: {e.value}"))
+                    ui.input(key, value=option.get('value', ''), on_change=lambda e, k=key: print(f"{k} changed: {e.value}"))
                 elif option_type == 'dropdown':
                     # Ensure the dropdown options are a list
                     dropdown_options = option.get('options', [])
@@ -134,10 +134,10 @@ async def new_robots():
     with ui.card():
         ui.label('New Robot').classes('text-h5')
         ui.label("Select new robot type")
-        with ui.dropdown_button("Choose Robot Here", auto_close=True) as dropdown:
+        with ui.dropdown_button("Choose Robot Here", color='secondary', auto_close=True) as dropdown:
             for robot in robots:
                 ui.item(robot, on_click=lambda _, r=robot: on_select(r))
 
         options_container = ui.column()
 
-        ui.button('Add Robot', on_click=lambda: ui.notify(f'Robot {selected_robot} added!')).classes('q-mt-md')
+        ui.button('Add Robot', color='secondary', on_click=lambda: ui.notify(f'Robot {selected_robot} added!')).classes('q-mt-md')
