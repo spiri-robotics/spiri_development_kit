@@ -18,7 +18,8 @@ class DockerInDocker:
         self.image_name = image_name
         self.container_name = container_name
         self.container: Optional[docker.models.containers.Container] = None
-        self.robot_data_root = Path("./robot_data") / container_name
+        sdk_root = os.environ.get('SDK_ROOT', '.')
+        self.robot_data_root = Path(sdk_root) / "robot_data" / container_name
         atexit.register(self.cleanup)
 
     def container_ip(self) -> str:
