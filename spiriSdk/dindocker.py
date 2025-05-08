@@ -216,47 +216,7 @@ class DockerInDocker:
             self.container = None
 
 if __name__ == "__main__":
-    # Example usage
-    daemon = DockerInDocker(container_name="dind_test")
-    daemon.start()
-    
-    print(f"Docker-in-Docker IP: {daemon.container_ip()}")
-    
-    # Verify Docker connection
-    client = daemon.get_client()
-    print("Docker version:", client.version())
-    
-    # Run the compose file
-    compose_path = "robots/webapp-example/services/whoami/docker-compose.yaml"
-    print(f"Running compose file: {compose_path}")
-    daemon.run_compose(compose_path)
-    
-    # Verify directory was created and inspect mounts
-    test_dir = Path("./robot_data/dind_test/whoami/test")
-    if test_dir.exists():
-        print(f"✓ Directory created: {test_dir}")
-    else:
-        print(f"✗ Directory not found: {test_dir}")
-    
-    # Inspect container mounts
-    whoami_container = client.containers.get('whoami-whoami-1')
-    print("\nContainer mount points:")
-    for mount in whoami_container.attrs['Mounts']:
-        print(f"- Source: {mount.get('Source', 'N/A')}")
-        print(f"  Destination: {mount.get('Destination', 'N/A')}")
-        print(f"  Type: {mount.get('Type', 'N/A')}")
-        print(f"  RW: {mount.get('RW', 'N/A')}")
-    
-    # List running containers
-    print("Running containers:")
-    for container in client.containers.list():
-        print(f"- {container.name} (ID: {container.short_id})")
-    
-    # Check if port 80 is listening
-    import requests
-    try:
-        response = requests.get(f"http://{daemon.container_ip()}", timeout=5)
-        print(f"Service is running on port 80! Status: {response.status_code}")
-        print(f"Response: {response.text[:100]}...")
-    except Exception as e:
-        print(f"Failed to connect to port 80: {str(e)}")
+    """Simple example usage of DockerInDocker."""
+    with DockerInDocker(container_name="dind_example") as dind:
+        print(f"Docker-in-Docker running at: {dind.container_ip()}")
+        print(f"Example: dind.run_compose('path/to/compose.yaml')")
