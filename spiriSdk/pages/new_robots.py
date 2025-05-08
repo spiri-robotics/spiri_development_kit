@@ -49,11 +49,16 @@ async def new_robots():
 
                 if option_type == 'bool':
                     with ui.row():
+                        switch_label = ui.label(f"{current_value}").classes('text-body2')
+
+                        def on_toggle(e, k=key):
+                            selected_options[k] = e.value
+                            switch_label.set_text(f"{e.value}")
+
                         ui.switch(
                             value=current_value,
-                            on_change=lambda e, k=key: selected_options.update({k: e.value})
+                            on_change=on_toggle
                         )
-                        ui.label(f'{current_value}').classes('text-body2')
 
                 elif option_type == 'int':
                     min_val = option.get('min')
