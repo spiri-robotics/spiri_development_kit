@@ -5,8 +5,7 @@ from spiriSdk.pages.header import header
 import yaml
 import re
 from pathlib import Path
-from spiriSdk.utils.new_robot_utils import ensure_options_yaml
-from spiriSdk.utils.new_robot_utils import ROOT_DIR, ROBOTS_DIR
+from spiriSdk.utils.new_robot_utils import ensure_options_yaml, ROBOTS_DIR, save_robot_config
 
 robots = ensure_options_yaml()
 
@@ -65,7 +64,7 @@ async def new_robots():
                         with ui.select(
                             options=int_options,
                             value=current_value,
-                            on_change=lambda e, k=key: selected_options.update({k: e.value})
+                            on_change=(lambda e, k=key: selected_options.update({k: e.value}))
                         ) as dropdown:
                             dropdown.label = key
                     else:
@@ -73,21 +72,21 @@ async def new_robots():
                         ui.input(
                             label=f"{key} (integer)",
                             value=str(current_value),
-                            on_change=lambda e, k=key: selected_options.update({k: e.value})
+                            on_change=(lambda e, k=key: selected_options.update({k: e.value}))
                         )
                 elif option_type == 'text':
-                    ui.input(key, value=option.get('value', ''), on_change=lambda e, k=key: selected_options.update({k: e.value}))
+                    ui.input(key, value=option.get('value', ''), on_change=(lambda e, k=key: selected_options.update({k: e.value})))
                 elif option_type == 'dropdown':
                     # Ensure the dropdown options are a list
                     dropdown_options = option.get('options', [])
                     if isinstance(dropdown_options, list):
                         with ui.dropdown_button(f"{key}: {option.get('value', '')}", auto_close=True):
                             for item in dropdown_options:
-                                ui.item(item, on_change=lambda e, k=key: selected_options.update({k: e.value}))
+                                ui.item(item, on_change=(lambda e, k=key: selected_options.update({k: e.value})))
                     else:
                         ui.label(f"Invalid dropdown options for {key}").classes('text-body2')
                 else:
-                    ui.input(key, value=option.get('value', ''), on_change=lambda e, k=key: selected_options.update({k: e.value}))
+                    ui.input(key, value=option.get('value', ''), on_change=(lambda e, k=key: selected_options.update({k: e.value})))
         
     with ui.card():
         ui.label('New Robot').classes('text-h5')
@@ -98,4 +97,4 @@ async def new_robots():
 
         options_container = ui.column()
 
-        ui.button('Add Robot', color='secondary', on_click=lambda: ui.notify(f'Robot {selected_robot} added!')).classes('q-mt-md')
+        ui.button('Add Robot', color='secondary', on_click=lambda: save_robot_config(selected_robot['name'], selected_options)).classes('q-mt-md')
