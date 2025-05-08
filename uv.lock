@@ -731,7 +731,7 @@ dependencies = [
     { name = "loguru" },
     { name = "nicegui" },
     { name = "pytest" },
-    { name = "pytz" },
+    { name = "requests" },
 ]
 
 [package.metadata]
@@ -740,7 +740,7 @@ requires-dist = [
     { name = "loguru", specifier = ">=0.7.3" },
     { name = "nicegui", specifier = ">=2.16.1" },
     { name = "pytest", specifier = ">=8.3.5" },
-    { name = "pytz", specifier = ">=2025.2" },
+    { name = "requests", specifier = ">=2.32.3" },
 ]
 
 [[package]]

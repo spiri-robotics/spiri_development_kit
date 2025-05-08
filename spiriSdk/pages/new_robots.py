@@ -3,33 +3,9 @@ import os
 from spiriSdk.pages.styles import styles
 from spiriSdk.pages.header import header
 import yaml
-
-
-robots = [1, 2, 3]
-
-ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
-ROBOTS_DIR = os.path.join(ROOT_DIR, 'robots')
-
-# Get the list of robots dynamically from the robots folder
-robots = [folder for folder in os.listdir(ROBOTS_DIR) if os.path.isdir(os.path.join(ROBOTS_DIR, folder))]
-
-def ensure_options_yaml():
-    robots = []
-    for folder in os.listdir(ROBOTS_DIR):
-        folder_path = os.path.join(ROBOTS_DIR, folder)
-        if os.path.isdir(folder_path):
-            robots.append(folder)  # Add to the robots list
-            options_path = os.path.join(folder_path, 'options.yaml')
-            if not os.path.exists(options_path):
-                # Create a default options.yaml file
-                default_options = {
-                    'name': folder,
-                    'type': 'default',
-                    'enabled': True,
-                }
-                with open(options_path, 'w') as yaml_file:
-                    yaml.dump(default_options, yaml_file)
-    return robots
+import re
+from pathlib import Path
+from spiriSdk.utils.new_robot_utils import ensure_options_yaml, ROBOTS_DIR, save_robot_config
 
 robots = ensure_options_yaml()
 
@@ -37,10 +13,16 @@ robots = ensure_options_yaml()
 async def new_robots():
     await styles()
 
-    selected_robot = None
-    selected_additions = ['gimbal']
+    selected_robot = {'name': None}
+    selected_additions = ["gimbal"]
+    selected_options = {}
+
+    def on_select(robot_name: str):
+        selected_robot['name'] = robot_name
+        display_robot_options(robot_name)
     
     def display_robot_options(robot_name):
+        ui.notify(f'Selected Robot: {robot_name}, Selected Addition: {addition}' for addition in selected_additions)
         options_path = os.path.join(ROBOTS_DIR, robot_name, 'options.yaml')
         if not os.path.exists(options_path):
             ui.notify(f"No options.yaml found for {robot_name}")
@@ -62,9 +44,13 @@ async def new_robots():
                 if option_type == 'bool':
                     with ui.row():
                         switch_label = ui.label(str(option.get('value', False))).classes('text-body2')
+                        def toggle_switch(e):
+                            switch_label.set_text(f"{e.value}")
+                            selected_options[key] = e.value
+                            print(f"Switch {key} changed to {e.value}")
                         switch = ui.switch(
                             value=option.get('value', False),
-                            on_change=lambda e, k=key, lbl=switch_label: lbl.set_text(f"{e.value}")
+                            on_change=lambda e: toggle_switch(e),
                         )
                         switch.label = key
                 elif option_type == 'int':
@@ -79,7 +65,7 @@ async def new_robots():
                         with ui.select(
                             options=int_options,
                             value=current_value,
-                            on_change=lambda e, k=key: print(f"{k} changed: {e.value}")
+                            on_change=(lambda e, k=key: selected_options.update({k: e.value}))
                         ) as dropdown:
                             dropdown.label = key
                     else:
@@ -87,26 +73,29 @@ async def new_robots():
                         ui.input(
                             label=f"{key} (integer)",
                             value=str(current_value),
-                            on_change=lambda e, k=key: print(f"{k} changed: {e.value}")
+                            on_change=(lambda e, k=key: selected_options.update({k: e.value}))
                         )
                 elif option_type == 'text':
-                    ui.input(key, value=option.get('value', ''), on_change=lambda e, k=key: ui.label(f"{k} changed: {e.value}"))
+                    ui.input(key, value=option.get('value', ''), on_change=(lambda e, k=key: selected_options.update({k: e.value})))
                 elif option_type == 'dropdown':
                     # Ensure the dropdown options are a list
                     dropdown_options = option.get('options', [])
                     if isinstance(dropdown_options, list):
                         with ui.dropdown_button(f"{key}: {option.get('value', '')}", auto_close=True):
                             for item in dropdown_options:
-                                ui.item(item, on_click=lambda _, i=item, k=key: print(f"{k} selected: {i}"))
+                                ui.item(item, on_change=(lambda e, k=key: selected_options.update({k: e.value})))
                     else:
                         ui.label(f"Invalid dropdown options for {key}").classes('text-body2')
                 else:
-                    ui.input(key, value=option.get('value', ''), on_change=lambda e, k=key: print(f"{k} changed: {e.value}"))
-    
-    ui.label('New Robot').classes('text-h5')
+                    ui.input(key, value=option.get('value', ''), on_change=(lambda e, k=key: selected_options.update({k: e.value})))
+        
+    with ui.card():
+        ui.label('New Robot').classes('text-h5')
+        ui.label("Select new robot type")
+        with ui.dropdown_button("Choose Robot Here", color='secondary', auto_close=True) as dropdown:
+            for robot in robots:
+                ui.item(robot, on_click=lambda _, r=robot: on_select(r))
 
-    ui.select([f'{robot}' for robot in robots], label='Select robot type', on_change=lambda e: display_robot_options(e.value)).classes('w-52')
+        options_container = ui.column()
 
-    options_container = ui.column()
-
-    ui.button('Add Robot', on_click=lambda: ui.notify(f'Robot {selected_robot} added!')).classes('q-mt-md')
+        ui.button('Add Robot', color='secondary', on_click=lambda: save_robot_config(selected_robot['name'], selected_options)).classes('q-mt-md')
