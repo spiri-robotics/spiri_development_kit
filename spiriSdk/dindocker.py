@@ -120,6 +120,7 @@ class DockerInDocker:
             "docker-compose",
             "-H", docker_host,
             "-f", paths['compose_file'],
+            "--project-directory", paths['host_path'],
             "up", "-d"
         ], check=True, env=env)
 
