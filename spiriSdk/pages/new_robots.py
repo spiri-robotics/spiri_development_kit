@@ -26,7 +26,7 @@ def ensure_options_yaml():
                 compose_file = os.path.join(folder_path, "docker-compose.yaml")
                 if not os.path.exists(compose_file):
                     ui.notify("docker-compose.yaml not found!", type="error")
-                    return
+                    return robots
         
                 compose_text = compose_file.read_text()
                 variables = set(re.findall(r'\$\{([A-Z_][A-Z0-9_]*)\}', compose_text))
@@ -52,6 +52,10 @@ async def new_robots():
 
     selected_robot = {'name': None}
     selected_additions = ["gimbal"]
+
+    def on_select(robot_name: str):
+        selected_robot['name'] = robot_name
+        display_robot_options(robot_name)
     
     def display_robot_options(robot_name):
         ui.notify(f'Selected Robot: {robot_name}, Selected Addition: {addition}' for addition in selected_additions)
