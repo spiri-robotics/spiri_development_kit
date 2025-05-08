@@ -1,5 +1,6 @@
 from nicegui import ui
 import os
+from spiriSdk.pages.styles import styles
 from spiriSdk.pages.header import header
 import yaml
 import re
@@ -47,13 +48,10 @@ def ensure_options_yaml():
 robots = ensure_options_yaml()
 
 async def new_robots():
+    await styles()
+
     selected_robot = {'name': None}
     selected_additions = ["gimbal"]
-
-    def on_select(robot_name: str):
-        selected_robot['name'] = robot_name
-        dropdown.label = robot_name
-        display_robot_options(robot_name)
     
     def display_robot_options(robot_name):
         ui.notify(f'Selected Robot: {robot_name}, Selected Addition: {addition}' for addition in selected_additions)
