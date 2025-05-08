@@ -151,6 +151,13 @@ if __name__ == "__main__":
     print(f"Running compose file: {compose_path}")
     daemon.run_compose(compose_path)
     
+    # Verify directory was created
+    test_dir = Path("./robot_data/dind_test/whoami/test")
+    if test_dir.exists():
+        print(f"✓ Directory created: {test_dir}")
+    else:
+        print(f"✗ Directory not found: {test_dir}")
+    
     # List running containers
     print("Running containers:")
     for container in client.containers.list():
