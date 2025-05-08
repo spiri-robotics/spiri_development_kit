@@ -36,27 +36,35 @@ async def new_robots():
         # Display options dynamically
         with options_container:
             ui.label(f"Options for {robot_name}").classes('text-h5')
+
             for key, option in options.get('x-spiri-options', {}).items():
                 ui.label(key).classes('text-h6')
                 ui.label(option.get('help-text', '')).classes('text-body2')
                 option_type = option.get('type', 'text')
+                current_value = option.get('value', '')
+
                 if option_type == 'bool':
                     with ui.row():
                         switch_label = ui.label(str(option.get('value', False))).classes('text-body2')
-                        def toggle_switch(e):
+                        def toggle_switch(k, e):
                             switch_label.set_text(f"{e.value}")
-                            selected_options[key] = e.value
-                            print(f"Switch {key} changed to {e.value}")
+                            return lambda e: selected_options.update({k: e.value})
                         switch = ui.switch(
                             value=option.get('value', False),
-                            on_change=lambda e: toggle_switch(e),
+                            on_change=lambda e: toggle_switch(key, e),
                         )
-                        switch.label = key
+
                 elif option_type == 'int':
                     min_val = option.get('min')
                     max_val = option.get('max')
                     step = option.get('step', 1) or 1
                     current_value = option.get('value', 0)
+
+                    def make_int_input(k):
+                        return lambda e: selected_options.update({k: int(e.value) if e.value.isdigit() else 0})
+                    
+                    def int_input_change(k):
+                        return lambda e: selected_options.update({k: int(e.value)})
 
                     if min_val is not None and max_val is not None:
                         # Generate dropdown choices from min to max using step
@@ -64,18 +72,29 @@ async def new_robots():
                         with ui.select(
                             options=int_options,
                             value=current_value,
-                            on_change=(lambda e, k=key: selected_options.update({k: e.value}))
+                            on_change=int_input_change(key)
                         ) as dropdown:
                             dropdown.label = key
                     else:
                         # Fallback: no min/max, use input box
                         ui.input(
-                            label=f"{key} (integer)",
+                            label=f"{key} (int)",
                             value=str(current_value),
-                            on_change=(lambda e, k=key: selected_options.update({k: e.value}))
+                            on_change=make_int_input(key)
                         )
+
+                elif option_type == 'float':
+                    def make_float_input(k):
+                        return lambda e: selected_options.update({k: float(e.value) if e.value else 0.0})
+                    ui.input(
+                        label=f"{key} (float)",
+                        value=str(current_value),
+                        on_change=make_float_input(key)
+                    )
+
                 elif option_type == 'text':
                     ui.input(key, value=option.get('value', ''), on_change=(lambda e, k=key: selected_options.update({k: e.value})))
+                
                 elif option_type == 'dropdown':
                     # Ensure the dropdown options are a list
                     dropdown_options = option.get('options', [])
@@ -85,6 +104,7 @@ async def new_robots():
                                 ui.item(item, on_change=(lambda e, k=key: selected_options.update({k: e.value})))
                     else:
                         ui.label(f"Invalid dropdown options for {key}").classes('text-body2')
+                
                 else:
                     ui.input(key, value=option.get('value', ''), on_change=(lambda e, k=key: selected_options.update({k: e.value})))
         
