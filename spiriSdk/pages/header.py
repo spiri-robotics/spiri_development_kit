@@ -1,7 +1,7 @@
 from nicegui import ui
 from datetime import datetime
 import subprocess
-import pytz
+
 
 def get_battery_status():
     """Fetch battery percentage and charging status."""
