@@ -53,8 +53,10 @@ services:
     volumes:
       - ./test:/test
 """
-    # Write to temp file
-    compose_path = Path(os.environ['SDK_ROOT']) / "docker-compose.yaml"
+    # Create whoami directory and write compose file
+    whoami_dir = Path(os.environ['SDK_ROOT']) / "whoami"
+    whoami_dir.mkdir(parents=True, exist_ok=True)
+    compose_path = whoami_dir / "docker-compose.yaml"
     with open(compose_path, 'w') as f:
         f.write(compose_content)
     
