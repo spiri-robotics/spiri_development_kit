@@ -55,7 +55,7 @@ async def tools():
             with ui.dropdown_button('worlds', auto_close=True, color='#20788a').classes('text-lg text-center'):
                 await find_worlds()
                 for dir, name in worlds.items():
-                    ui.item(name, on_click=lambda: run_world(dir, name, world_auto_run.value))
+                    ui.item(name, on_click=lambda dir=dir, name=name: run_world(dir, name, world_auto_run.value))
     await styles()
     await header()
     with ui.grid(columns=3):
