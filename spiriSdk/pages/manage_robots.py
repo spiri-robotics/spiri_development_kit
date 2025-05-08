@@ -14,8 +14,8 @@ async def manage_robots():
         await new_robots()
 
         with ui.card_actions().props('align=center'):
-            ui.button('Add', on_click=addRobot.close)
-            ui.button('Cancel', on_click=addRobot.close)
+            ui.button('Add', color='secondary', on_click=addRobot.close)
+            ui.button('Cancel', color='secondary', on_click=addRobot.close)
 
     ui.button('Add Robot', on_click=addRobot.open, color='warning')
 
