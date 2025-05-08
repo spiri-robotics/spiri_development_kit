@@ -151,12 +151,21 @@ if __name__ == "__main__":
     print(f"Running compose file: {compose_path}")
     daemon.run_compose(compose_path)
     
-    # Verify directory was created
+    # Verify directory was created and inspect mounts
     test_dir = Path("./robot_data/dind_test/whoami/test")
     if test_dir.exists():
         print(f"✓ Directory created: {test_dir}")
     else:
         print(f"✗ Directory not found: {test_dir}")
+    
+    # Inspect container mounts
+    whoami_container = client.containers.get('whoami-whoami-1')
+    print("\nContainer mount points:")
+    for mount in whoami_container.attrs['Mounts']:
+        print(f"- Source: {mount.get('Source', 'N/A')}")
+        print(f"  Destination: {mount.get('Destination', 'N/A')}")
+        print(f"  Type: {mount.get('Type', 'N/A')}")
+        print(f"  RW: {mount.get('RW', 'N/A')}")
     
     # List running containers
     print("Running containers:")
