@@ -3,3 +3,5 @@ services:
     image: traefik/whoami
     ports:
       - "80:80"
+    volumes:
+      - ./test:/test
