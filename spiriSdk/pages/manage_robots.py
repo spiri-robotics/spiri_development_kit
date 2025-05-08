@@ -10,14 +10,15 @@ async def manage_robots():
     await styles()
     await header()
 
-    with ui.dialog() as addRobot, ui.card(align_items='stretch'):
+    with ui.dialog() as addRobot, ui.card(align_items='stretch').classes('w-full'):
         await new_robots()
 
         with ui.card_actions().props('align=center'):
             ui.button('Add', on_click=addRobot.close)
             ui.button('Cancel', on_click=addRobot.close)
 
-    ui.button('Add Robot', on_click=addRobot.open, color='warning')
+    ui.button('Add Robot', on_click=addRobot.open, color='secondary')
+    ui.button('actual add robot page', on_click=lambda: ui.navigate.to('/new_robots'), color='secondary')
 
     with ui.card().classes('w-full'):
         with ui.row(align_items='stretch').classes('w-full'):
@@ -27,8 +28,8 @@ async def manage_robots():
             ui.space()
             with ui.card_actions():
                 ui.button('Start', icon='play_arrow', color='positive').classes('m-1')
-                ui.button('Stop', icon='stop', color='secondary').classes('m-1')
-                ui.button('Restart', icon='refresh', color='warning').classes('m-1 mr-10')
+                ui.button('Stop', icon='stop', color='warning').classes('m-1')
+                ui.button('Restart', icon='refresh', color='secondary').classes('m-1 mr-10')
 
                 with ui.dialog() as editRobot, ui.card():
                     await edit_robot()
@@ -37,6 +38,6 @@ async def manage_robots():
                         ui.button('Save', on_click=editRobot.close)
                         ui.button('Cancel', on_click=editRobot.close)
 
-                with ui.dropdown_button(icon='settings', color='warning'):
+                with ui.dropdown_button(icon='settings', color='secondary'):
                     ui.item('Edit', on_click=editRobot.open)
                     ui.item('Delete')

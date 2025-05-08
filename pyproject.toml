@@ -9,5 +9,6 @@ dependencies = [
     "loguru>=0.7.3",
     "nicegui>=2.16.1",
     "pytest>=8.3.5",
+    "pytz>=2025.2",
 ]
 
