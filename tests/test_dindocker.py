@@ -3,6 +3,7 @@ import requests
 import time
 import os
 import tempfile
+import shutil
 from pathlib import Path
 from spiriSdk.dindocker import DockerInDocker
 
@@ -11,13 +12,22 @@ import tempfile
 @pytest.fixture
 def dind():
     """Fixture that provides a DockerInDocker instance and cleans up after."""
-    with tempfile.TemporaryDirectory() as temp_dir:
+    # Create temp dir with relaxed permissions
+    temp_dir = tempfile.mkdtemp()
+    os.chmod(temp_dir, 0o777)  # Make writable by all
+    
+    try:
         # Set SDK_ROOT to our temp directory
         os.environ['SDK_ROOT'] = temp_dir
         with DockerInDocker(container_name="pytest_dind") as dind:
             yield dind
-        # Clean up environment
+    finally:
+        # Clean up environment and temp dir
         os.environ.pop('SDK_ROOT', None)
+        try:
+            shutil.rmtree(temp_dir)
+        except:
+            pass  # Best effort cleanup
 
 def test_dind_startup(dind):
     """Test basic Docker-in-Docker container startup."""
@@ -35,9 +45,9 @@ def test_compose_operations(dind):
     compose_path = "robots/webapp-example/services/whoami/docker-compose.yaml"
     dind.run_compose(compose_path)
 
-    # Verify directory was created
-    test_dir = Path("./robot_data/pytest_dind/whoami/test")
-    assert test_dir.exists(), "Compose should create expected directory"
+    # Verify directory was created in the temp location
+    test_dir = Path(os.environ['SDK_ROOT']) / "robot_data/pytest_dind/whoami/test"
+    assert test_dir.exists(), f"Compose should create expected directory at {test_dir}"
 
     # Verify container is running
     client = dind.get_client()
