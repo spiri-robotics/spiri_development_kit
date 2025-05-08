@@ -44,7 +44,13 @@ class DockerInDocker:
                 detach=True,
                 remove=True,
                 environment={'DOCKER_TLS_CERTDIR': ''},
-                publish_all_ports=True
+                publish_all_ports=True,
+                volumes={
+                    str(self.robot_data_root): {
+                        'bind': '/data',
+                        'mode': 'rw'
+                    }
+                }
             )
         except Exception as e:
             raise RuntimeError(f"Failed to start container: {str(e)}")
