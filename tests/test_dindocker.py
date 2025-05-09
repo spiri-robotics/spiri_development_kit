@@ -6,6 +6,7 @@ import tempfile
 import shutil
 import docker
 from pathlib import Path
+from loguru import logger
 from spiriSdk.dindocker import DockerInDocker
 
 def get_dind_containers(name_prefix="dind_"):
@@ -47,10 +48,11 @@ services:
         # Clean up environment and temp dir
         os.environ.pop('SDK_ROOT', None)
         try:
-            # Try to remove with elevated permissions if needed
-            subprocess.run(['sudo', 'rm', '-rf', temp_dir], check=False)
+            # Try normal removal - if this fails due to permissions, we can ignore it
+            # since it's just test temp data and will be cleaned up by system eventually
+            shutil.rmtree(temp_dir)
         except Exception as e:
-            print(f"Warning: Failed to clean up temp dir {temp_dir}: {e}")
+            logger.warning(f"Could not clean up temp dir {temp_dir} - this is non-critical and can be ignored")
 
 def test_dind_startup(dind):
     """Test basic Docker-in-Docker container startup."""
