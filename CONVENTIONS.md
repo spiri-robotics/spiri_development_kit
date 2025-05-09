@@ -1,0 +1,3 @@
+ - Use `uv` to run command. `uv add requests`, `uv run python -m spiriSdk.main`, etc.
+ - We prefer to use pathlib.
+ - We use loguru for logging
