@@ -17,7 +17,7 @@ class RobotContainer:
             with ui.card().classes('w-full'):
                 with ui.row(align_items='stretch').classes('w-full'):
                     with ui.card_section():
-                        ui.label(f'bob').classes('mb-5')
+                        ui.label(f'{robotName}').classes('mb-5')
                         ui.label(f'active').classes('mt-5')
                     ui.space()
                     with ui.card_actions():
