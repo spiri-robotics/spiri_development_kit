@@ -8,7 +8,7 @@ dependencies = [
     "aiodocker>=0.24.0",
     "docker>=7.1.0",
     "loguru>=0.7.3",
-    "nicegui>=2.16.1",
+    "nicegui==2.16.0",
     "pytest>=8.3.5",
     "requests>=2.32.3",
 ]
