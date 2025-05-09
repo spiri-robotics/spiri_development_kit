@@ -169,10 +169,23 @@ class DockerInDocker:
         compose_path = Path(compose_file)
         service_name = compose_path.parent.name
         
-        # Ensure host directory exists with proper permissions
+        # Ensure parent directory exists with proper permissions first
+        self.robot_data_root.mkdir(parents=True, exist_ok=True)
+        os.chmod(str(self.robot_data_root), 0o777)  # Make parent writable
+        
+        # Then create service directory
         host_path = self.robot_data_root / service_name
-        host_path.mkdir(parents=True, exist_ok=True)
-        os.chmod(host_path, 0o777)  # Make writable by all
+        try:
+            host_path.mkdir(exist_ok=True)
+            os.chmod(str(host_path), 0o777)
+        except PermissionError:
+            # If we still can't create, try with relaxed umask
+            old_umask = os.umask(0)
+            try:
+                host_path.mkdir(exist_ok=True)
+                os.chmod(str(host_path), 0o777)
+            finally:
+                os.umask(old_umask)
 
         return {
             "host_path": str(host_path),

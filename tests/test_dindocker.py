@@ -19,8 +19,12 @@ def get_dind_containers(name_prefix="dind_"):
 def dind():
     """Fixture that provides a DockerInDocker instance and cleans up after."""
     # Create temp dir with relaxed permissions
-    temp_dir = tempfile.mkdtemp()
-    os.chmod(temp_dir, 0o777)  # Make writable by all
+    old_umask = os.umask(0)
+    try:
+        temp_dir = tempfile.mkdtemp()
+        os.chmod(temp_dir, 0o777)  # Make writable by all
+    finally:
+        os.umask(old_umask)
     
     try:
         # Set SDK_ROOT to our temp directory
