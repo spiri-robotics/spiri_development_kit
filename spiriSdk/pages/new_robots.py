@@ -21,13 +21,10 @@ async def new_robots():
         selected_robot['name'] = robot_name
         display_robot_options(robot_name, selected_additions, selected_options, options_container)
     
-    with ui.card():
-        ui.label('New Robot').classes('text-h5')
-        ui.label("Select new robot type")
-        with ui.dropdown_button("Choose Robot Here", color='secondary', auto_close=True) as dropdown:
-            for robot in robots:
-                ui.item(robot, on_click=lambda _, r=robot: on_select(r))
+    ui.label('New Robot').classes('text-h5')
+    ui.select([f'{robot}' for robot in robots], label='Select robot type', on_change=lambda e: on_select(e.value)).classes('w-full')
 
     options_container = ui.column()
 
     ui.button('Add Robot', color='secondary', on_click=lambda: save_robot_config(selected_robot['name'], selected_options)).classes('q-mt-md')
+    ui.button('back to manage page', color='secondary', on_click=lambda: ui.navigate.to('/manage_robots'))

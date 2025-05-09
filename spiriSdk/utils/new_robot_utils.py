@@ -74,10 +74,13 @@ async def save_robot_config(robot_type, selected_options):
     ui.notify(f"Saved config.env for {folder_name}")
 
 def display_robot_options(robot_name, selected_additions, selected_options, options_container):
-        ui.notify(f'Selected Robot: {robot_name}, Selected Addition: {addition}' for addition in selected_additions)
+        #ui.notify(f'Selected Robot: {robot_name}, Selected Addition: {addition}' for addition in selected_additions)
         options_path = os.path.join(ROBOTS_DIR, robot_name, 'options.yaml')
         if not os.path.exists(options_path):
             ui.notify(f"No options.yaml found for {robot_name}")
+            options_container.clear()
+            with options_container:
+                ui.label(f'No options.yaml found for {robot_name}')
             return
 
         with open(options_path, 'r') as yaml_file:

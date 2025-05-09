@@ -4,16 +4,20 @@ from spiriSdk.pages.styles import styles
 class RobotContainer:
 
     def __init__(self) -> None:
-        self.card = None
+        self.main = None
         self.daemons = []
+        self.cards = []
 
 
     def add_card(self, robotName, editRobot, bigCard, addRobot) -> None:
         addRobot.close()
         self.daemons.append(robotName)
         print(self.daemons)
-        self.card = bigCard
-        with self.card:
+
+        #newCard = RobotCard(bigCard, robotName, addRobot, editRobot)
+        #self.cards.append(newCard)
+        self.main = bigCard
+        with self.main:
             with ui.card().classes('w-full'):
                 with ui.row(align_items='stretch').classes('w-full'):
                     with ui.card_section():
@@ -27,16 +31,21 @@ class RobotContainer:
 
                         with ui.dropdown_button(icon='settings', color='secondary'):
                             ui.item('Edit', on_click=editRobot.open)
-                            ui.item('Delete')
+                            ui.item('Delete', on_click=lambda: self.remove_card(robotName, bigCard))
 
-    def remove_card(self, robotName) -> None:
-        self.card.delete(robotName)
+    def remove_card(self, robotName, bigCard) -> None:
+        self.main = bigCard
+        self.daemons.remove(robotName)
 
     def display(self, addRobot, bigCard) -> None:
-        self.card = bigCard
-        with self.card:
+        self.main = bigCard
+        with self.main:
             ui.button('Add Robot', on_click=addRobot.open, color='secondary')
             ui.button('actual add robot page', on_click=lambda: ui.navigate.to('/new_robots'), color='secondary')
+
+# class RobotCard:
+#     def __init__(self, bigCard, robotName, addRobot, editRobot) -> None:
+#         self.
 
 
 container = RobotContainer()

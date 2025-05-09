@@ -11,7 +11,7 @@ async def manage_robots():
     await styles()
     await header()
     
-    bigCard = ui.card().classes('w-full p-0 shadow-none')
+    bigCard = ui.card()#.classes('w-full p-0 shadow-none')
 
     with ui.dialog() as editRobot, ui.card():
         await edit_robot()
@@ -28,4 +28,3 @@ async def manage_robots():
             ui.button('Add', color='secondary', on_click=lambda: container.add_card('[some variable]', editRobot, bigCard, addRobot))
 
     container.display(addRobot, bigCard)
-    ui.button('Add label to card', on_click=lambda: container.add_card('bob', editRobot, bigCard))
