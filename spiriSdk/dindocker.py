@@ -12,6 +12,7 @@ import atexit
 import subprocess
 import time
 import os
+import uuid
 from pathlib import Path
 from typing import Optional, Dict, Any
 from loguru import logger
@@ -41,15 +42,8 @@ class DockerInDocker:
         """
         # Generate unique container name if not specified
         if container_name is None:
-            import inspect
-            import os
-            # Get the name of the calling test function
-            test_name = "unknown"
-            for frame in inspect.stack():
-                if frame.function.startswith('test_'):
-                    test_name = frame.function
-                    break
-            container_name = f"dind_{test_name}_{os.getpid()}"
+            import uuid
+            container_name = f"dind_{uuid.uuid4().hex[:8]}"
         self.client = docker.from_env()
         self.image_name = image_name
         self.container_name = container_name
