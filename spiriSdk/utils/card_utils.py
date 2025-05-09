@@ -45,7 +45,7 @@ class RobotContainer:
 
 # class RobotCard:
 #     def __init__(self, bigCard, robotName, addRobot, editRobot) -> None:
-#         self.
+#         self.name = robotName
 
 
 container = RobotContainer()

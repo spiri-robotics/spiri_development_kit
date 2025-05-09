@@ -9,9 +9,9 @@ source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiohttp" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/f2/d7/30104dfac550ae6570d4dce24c2cbf2ddefd4937c9e861641314abfd8abb/aiodocker-0.24.0.tar.gz", hash = "sha256:661a6f9a479951f11f793031dcd5d55337e232c4ceaee69d51ceb885e5f16fac", size = 135482 }
+sdist = { url = "https://files.pythonhosted.org/packages/f2/d7/30104dfac550ae6570d4dce24c2cbf2ddefd4937c9e861641314abfd8abb/aiodocker-0.24.0.tar.gz", hash = "sha256:661a6f9a479951f11f793031dcd5d55337e232c4ceaee69d51ceb885e5f16fac", size = 135482, upload-time = "2024-11-21T02:23:59.642Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/0c/5b/2bb8b632041e314a0a917ade80382ca6a8f331f12c7eb409e59cd0485cc9/aiodocker-0.24.0-py3-none-any.whl", hash = "sha256:2199b7b01f8ce68f9cabab7910ecb26192f6f3494163f1ccffe527b4c3875689", size = 34849 },
+    { url = "https://files.pythonhosted.org/packages/0c/5b/2bb8b632041e314a0a917ade80382ca6a8f331f12c7eb409e59cd0485cc9/aiodocker-0.24.0-py3-none-any.whl", hash = "sha256:2199b7b01f8ce68f9cabab7910ecb26192f6f3494163f1ccffe527b4c3875689", size = 34849, upload-time = "2024-11-21T02:23:58.053Z" },
 ]
 
 [[package]]
@@ -444,7 +444,7 @@ wheels = [
 
 [[package]]
 name = "nicegui"
-version = "2.16.1"
+version = "2.16.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiofiles" },
@@ -472,9 +472,9 @@ dependencies = [
     { name = "wait-for2" },
     { name = "watchfiles" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/da/3e/2026b89e1a424baf052810dbdae0d9ff5004de624428653455eb42629703/nicegui-2.16.1.tar.gz", hash = "sha256:81cf4c4880edcd721a538a71ee5f5f4841d5e14bfc293fad4763489de296c11e", size = 13094521, upload-time = "2025-05-05T19:24:26.712Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/a8/44/cc37ca713f4a788e045750d91b18837041330c2f0c5115344a2ac0a61ee6/nicegui-2.16.0.tar.gz", hash = "sha256:63862668cc75503bdd8968cf635076b5fa2e71fb2b81bd7d1474733a94c45437", size = 13094538, upload-time = "2025-05-02T09:02:33.364Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/fc/60/8235202bbf274e37e68d530f7721a7190b8c0aeba04798716e66ef9a77f3/nicegui-2.16.1-py3-none-any.whl", hash = "sha256:5898a8b0a30b6ea32f446dd055c8baa99f3cb8d7e33d60cf0b7568b6ae6d985a", size = 13475586, upload-time = "2025-05-05T19:24:24.275Z" },
+    { url = "https://files.pythonhosted.org/packages/38/02/3abd5e49e5272c11b78bafbbfa77e01fb6fad738811ed405c131fb8a3a58/nicegui-2.16.0-py3-none-any.whl", hash = "sha256:37dd8ad263817c39b374b21e2a553d4e97a98e4c9371fe51443f8e01aa4debcd", size = 13475580, upload-time = "2025-05-02T09:02:29.894Z" },
 ]
 
 [[package]]
@@ -684,15 +684,6 @@ asyncio-client = [
 ]
 
 [[package]]
-name = "pytz"
-version = "2025.2"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/f8/bf/abbd3cdfb8fbc7fb3d4d38d320f2441b1e7cbe29be4f23797b4a2b5d8aac/pytz-2025.2.tar.gz", hash = "sha256:360b9e3dbb49a209c21ad61809c7fb453643e048b38924c765813546746e81c3", size = 320884, upload-time = "2025-03-25T02:25:00.538Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/81/c4/34e93fe5f5429d7570ec1fa436f1986fb1f00c3e0f43a589fe2bbcd22c3f/pytz-2025.2-py2.py3-none-any.whl", hash = "sha256:5ddf76296dd8c44c26eb8f4b6f35488f3ccbf6fbbd7adee0b7262d43f0ec2f00", size = 509225, upload-time = "2025-03-25T02:24:58.468Z" },
-]
-
-[[package]]
 name = "pywin32"
 version = "310"
 source = { registry = "https://pypi.org/simple" }
@@ -752,7 +743,7 @@ requires-dist = [
     { name = "aiodocker", specifier = ">=0.24.0" },
     { name = "docker", specifier = ">=7.1.0" },
     { name = "loguru", specifier = ">=0.7.3" },
-    { name = "nicegui", specifier = ">=2.16.1" },
+    { name = "nicegui", specifier = "==2.16.0" },
     { name = "pytest", specifier = ">=8.3.5" },
     { name = "requests", specifier = ">=2.32.3" },
 ]
