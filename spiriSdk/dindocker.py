@@ -31,13 +31,25 @@ class DockerInDocker:
             dind.run_compose("path/to/compose.yaml")
     """
 
-    def __init__(self, image_name: str = "docker:dind", container_name: str = "dind"):
+    def __init__(self, image_name: str = "docker:dind", container_name: str = None):
         """Initialize the Docker-in-Docker manager.
 
         Args:
             image_name: Docker image to use (default: docker:dind)
-            container_name: Unique name for this container instance
+            container_name: Optional unique name for this container instance.
+                           If None, will use "dind_<test_name>_<pid>"
         """
+        # Generate unique container name if not specified
+        if container_name is None:
+            import inspect
+            import os
+            # Get the name of the calling test function
+            test_name = "unknown"
+            for frame in inspect.stack():
+                if frame.function.startswith('test_'):
+                    test_name = frame.function
+                    break
+            container_name = f"dind_{test_name}_{os.getpid()}"
         self.client = docker.from_env()
         self.image_name = image_name
         self.container_name = container_name
