@@ -68,3 +68,26 @@ def test_compose_operations(dind):
     client = dind.get_client()
     containers = client.containers.list()
     assert any('whoami-whoami-1' in c.name for c in containers), "whoami container should be running"
+
+def test_web_service(dind):
+    """Test the web service exposed by the compose file."""
+    compose_path = Path(os.environ['SDK_ROOT']) / "whoami/docker-compose.yaml"
+    dind.run_compose(str(compose_path))
+    
+    # Wait for service to be ready (max 30 seconds)
+    max_attempts = 30
+    last_exception = None
+    ip = dind.container_ip()
+    
+    for attempt in range(max_attempts):
+        try:
+            response = requests.get(f"http://{ip}", timeout=1)
+            if response.status_code == 200:
+                assert "Hostname:" in response.text, "Response should contain host information"
+                return  # Success!
+        except (requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout) as e:
+            last_exception = e
+            time.sleep(1)
+    
+    # If we get here, all attempts failed
+    pytest.fail(f"Service not ready after {max_attempts} attempts. Last error: {str(last_exception)}")
