@@ -209,18 +209,19 @@ class DockerInDocker:
             }
         )
 
-        # Run docker-compose with proper path mappings
+        # Run docker compose with proper path mappings
         subprocess.run(
             [
-                "docker-compose",
-                "-H",
+                "docker",
+                "compose",
+                "--host",
                 docker_host,
-                "-f",
+                "--file",
                 paths["compose_file"],
                 "--project-directory",
                 paths["project_dir"],
                 "up",
-                "-d",
+                "--detach",
             ],
             check=True,
             env=env,
