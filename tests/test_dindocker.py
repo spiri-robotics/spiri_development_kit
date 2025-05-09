@@ -4,8 +4,15 @@ import time
 import os
 import tempfile
 import shutil
+import docker
 from pathlib import Path
 from spiriSdk.dindocker import DockerInDocker
+
+def get_dind_containers(name="pytest_dind"):
+    """Helper to find any leftover dind containers from previous runs"""
+    client = docker.from_env()
+    return [c for c in client.containers.list(all=True) 
+            if c.name == name or f"{name}-dind" in c.name]
 
 @pytest.fixture
 def dind():
@@ -68,6 +75,19 @@ def test_compose_operations(dind):
     client = dind.get_client()
     containers = client.containers.list()
     assert any('whoami-whoami-1' in c.name for c in containers), "whoami container should be running"
+
+def test_cleanup_old_containers():
+    """Verify no old test containers remain from previous runs."""
+    leftover = get_dind_containers()
+    if leftover:
+        names = ", ".join([c.name for c in leftover])
+        pytest.fail(
+            f"Found {len(leftover)} leftover test containers: {names}\n"
+            "Please clean them up manually with:\n"
+            "  docker container rm -f pytest_dind pytest_dind-dind\n"
+            "Or to remove all stopped containers:\n"
+            "  docker container prune"
+        )
 
 def test_web_service(dind):
     """Test the web service exposed by the compose file."""
