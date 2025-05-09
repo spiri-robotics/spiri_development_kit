@@ -19,39 +19,13 @@ async def manage_robots():
             ui.button('Save', on_click=editRobot.close)
             ui.button('Cancel', on_click=editRobot.close)
 
-    def add_card():
-        addRobot.close()
-        with ui.card().classes('w-full'):
-            with ui.row(align_items='stretch').classes('w-full'):
-                with ui.card_section():
-                    ui.label('h').classes('mb-5')
-                    ui.label('[status]').classes('mt-5')
-                ui.space()
-                with ui.card_actions():
-                    ui.button('Start', icon='play_arrow', color='positive').classes('m-1')
-                    ui.button('Stop', icon='stop', color='warning').classes('m-1')
-                    ui.button('Restart', icon='refresh', color='secondary').classes('m-1 mr-10')
-
-                    with ui.dropdown_button(icon='settings', color='secondary'):
-                        ui.item('Edit', on_click=editRobot.open)
-                        ui.item('Delete')
-
-    with ui.dialog() as addRobot, ui.card(align_items='stretch').classes('w-full'):
-        await new_robots()
-
-        with ui.card_actions().props('align=center'):
-            ui.button('Cancel', color='secondary', on_click=addRobot.close)
-            ui.button('Add', color='secondary', on_click=add_card)
-       
-
-    ui.button('Add Robot', on_click=addRobot.open, color='secondary')
-    ui.button('actual add robot page', on_click=lambda: ui.navigate.to('/new_robots'), color='secondary')
-    ui.card().classes('w-full').tight().classes('w-full')
-
-    class RobotCard:
+    class RobotContainer:
 
         def __init__(self) -> None:
-            self.card = ui.card().tight().classes('w-full')
+            self.card = ui.card().classes('w-full p-0 shadow-none')
+            with self.card:
+                ui.button('Add Robot', on_click=addRobot.open, color='secondary')
+                ui.button('actual add robot page', on_click=lambda: ui.navigate.to('/new_robots'), color='secondary')
 
 
         def add_card(self) -> None:
@@ -71,5 +45,13 @@ async def manage_robots():
                                 ui.item('Edit', on_click=editRobot.open)
                                 ui.item('Delete')
 
-    card = RobotCard()
-    ui.button('Add label to card', on_click=card.add_card)
+    with ui.dialog() as addRobot, ui.card(align_items='stretch').classes('w-full'):
+        await new_robots()
+
+        with ui.card_actions().props('align=center'):
+            ui.button('Cancel', color='secondary', on_click=addRobot.close)
+            ui.button('Add', color='secondary', on_click=addRobot.close)
+            #ui.button('Add label to card', on_click=container.add_card)
+       
+    container = RobotContainer()
+    ui.button('Add label to card', on_click=container.add_card)
