@@ -1,7 +1,8 @@
 from nicegui import ui
 from spiriSdk.pages.styles import styles
 from spiriSdk.pages.header import header
-from spiriSdk.pages.new_robots import new_robots
+from spiriSdk.pages.new_robots import new_robots, selected_options, selected_additions, selected_robot
+from spiriSdk.utils.new_robot_utils import save_robot_config
 from spiriSdk.pages.edit_robot import edit_robot
 from spiriSdk.utils.card_utils import container
 
@@ -23,9 +24,13 @@ async def manage_robots():
     with ui.dialog() as addRobot, ui.card(align_items='stretch').classes('w-full'):
         await new_robots()
 
+        def add_robot():
+            save_robot_config(selected_robot["name"], selected_options)
+            return lambda: container.add_card('[some variable]', editRobot, bigCard, addRobot)
+
         with ui.card_actions().props('align=center'):
             ui.button('Cancel', color='secondary', on_click=addRobot.close)
-            ui.button('Add', color='secondary', on_click=lambda: container.add_card('[some variable]', editRobot, bigCard, addRobot))
+            ui.button('Add', color='secondary', on_click=add_robot)
 
     container.display(addRobot, bigCard)
     ui.button('Add label to card', on_click=lambda: container.add_card('bob', editRobot, bigCard))
