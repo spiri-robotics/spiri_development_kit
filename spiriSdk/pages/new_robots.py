@@ -9,6 +9,7 @@ from spiriSdk.utils.new_robot_utils import ensure_options_yaml, ROBOTS_DIR, save
 
 robots = ensure_options_yaml()
 
+@ui.page('/new_robots')
 async def new_robots():
     await styles()
 
@@ -27,6 +28,6 @@ async def new_robots():
             for robot in robots:
                 ui.item(robot, on_click=lambda _, r=robot: on_select(r))
 
-        options_container = ui.column()
+    options_container = ui.column()
 
-        ui.button('Add Robot', color='secondary', on_click=lambda: save_robot_config(selected_robot['name'], selected_options)).classes('q-mt-md')
+    ui.button('Add Robot', color='secondary', on_click=lambda: save_robot_config(selected_robot['name'], selected_options)).classes('q-mt-md')
