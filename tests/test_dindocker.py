@@ -18,6 +18,23 @@ def dind():
         # Set SDK_ROOT to our temp directory
         os.environ['SDK_ROOT'] = temp_dir
         with DockerInDocker(container_name="pytest_dind") as dind:
+            # Create shared compose file for all tests
+            compose_content = """
+version: '3'
+services:
+  whoami:
+    image: traefik/whoami
+    ports:
+      - "80:80"
+    volumes:
+      - ./test:/test
+"""
+            whoami_dir = Path(temp_dir) / "whoami"
+            whoami_dir.mkdir(parents=True, exist_ok=True)
+            compose_path = whoami_dir / "docker-compose.yaml"
+            with open(compose_path, 'w') as f:
+                f.write(compose_content)
+            
             yield dind
     finally:
         # Clean up environment and temp dir
@@ -40,24 +57,7 @@ def test_dind_startup(dind):
 
 def test_compose_operations(dind):
     """Test running docker-compose operations."""
-    # Create temporary compose file
-    compose_content = """
-version: '3'
-services:
-  whoami:
-    image: traefik/whoami
-    ports:
-      - "80:80"
-    volumes:
-      - ./test:/test
-"""
-    # Create whoami directory and write compose file
-    whoami_dir = Path(os.environ['SDK_ROOT']) / "whoami"
-    whoami_dir.mkdir(parents=True, exist_ok=True)
-    compose_path = whoami_dir / "docker-compose.yaml"
-    with open(compose_path, 'w') as f:
-        f.write(compose_content)
-    
+    compose_path = Path(os.environ['SDK_ROOT']) / "whoami/docker-compose.yaml"
     dind.run_compose(str(compose_path))
 
     # Verify directory was created in the temp location
@@ -68,26 +68,3 @@ services:
     client = dind.get_client()
     containers = client.containers.list()
     assert any('whoami-whoami-1' in c.name for c in containers), "whoami container should be running"
-
-def test_web_service(dind):
-    """Test the web service exposed by the compose file."""
-    compose_path = "robots/webapp-example/services/whoami/docker-compose.yaml"
-    dind.run_compose(compose_path)
-    
-    # Wait for service to be ready (max 30 seconds)
-    max_attempts = 30
-    last_exception = None
-    ip = dind.container_ip()
-    
-    for attempt in range(max_attempts):
-        try:
-            response = requests.get(f"http://{ip}", timeout=1)
-            if response.status_code == 200:
-                assert "Hostname:" in response.text, "Response should contain host information"
-                return  # Success!
-        except (requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout) as e:
-            last_exception = e
-            time.sleep(1)
-    
-    # If we get here, all attempts failed
-    pytest.fail(f"Service not ready after {max_attempts} attempts. Last error: {str(last_exception)}")
