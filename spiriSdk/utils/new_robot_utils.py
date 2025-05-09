@@ -71,7 +71,7 @@ async def save_robot_config(robot_type, selected_options):
     await run.io_bound(new_daemon.start, timeout=1000)
     daemons[folder_name] = new_daemon
 
-    ui.notify(f"Saved config.env for {folder_name}")
+    ui.notify(f"Saved config.env and started daemon for {folder_name}")
 
 def display_robot_options(robot_name, selected_additions, selected_options, options_container):
         ui.notify(f'Selected Robot: {robot_name}, Selected Addition: {addition}' for addition in selected_additions)
