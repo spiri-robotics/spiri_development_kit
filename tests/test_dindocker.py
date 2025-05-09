@@ -47,8 +47,9 @@ services:
         # Clean up environment and temp dir
         os.environ.pop('SDK_ROOT', None)
         try:
-            shutil.rmtree(temp_dir)
-        except (OSError, shutil.Error) as e:
+            # Try to remove with elevated permissions if needed
+            subprocess.run(['sudo', 'rm', '-rf', temp_dir], check=False)
+        except Exception as e:
             print(f"Warning: Failed to clean up temp dir {temp_dir}: {e}")
 
 def test_dind_startup(dind):
@@ -68,7 +69,12 @@ def test_compose_operations(dind):
     dind.run_compose(str(compose_path))
 
     # Verify directory was created in the temp location
-    test_dir = Path(os.environ['SDK_ROOT']) / "robot_data/pytest_dind/whoami/test"
+    test_dir = Path(os.environ['SDK_ROOT']) / f"robot_data/{dind.container_name}/whoami/test"
+    # Wait up to 5 seconds for directory to appear
+    for _ in range(5):
+        if test_dir.exists():
+            break
+        time.sleep(1)
     assert test_dir.exists(), f"Compose should create expected directory at {test_dir}"
 
     # Verify container is running

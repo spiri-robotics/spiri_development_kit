@@ -168,9 +168,14 @@ class DockerInDocker:
         """
         compose_path = Path(compose_file)
         service_name = compose_path.parent.name
+        
+        # Ensure host directory exists with proper permissions
+        host_path = self.robot_data_root / service_name
+        host_path.mkdir(parents=True, exist_ok=True)
+        os.chmod(host_path, 0o777)  # Make writable by all
 
         return {
-            "host_path": str(self.robot_data_root / service_name),
+            "host_path": str(host_path),
             "container_path": f"/data/{service_name}",
             "compose_file": str(compose_path),
             "project_dir": f"/data/{service_name}",  # Project dir in container
