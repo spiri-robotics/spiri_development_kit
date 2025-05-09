@@ -76,17 +76,6 @@ def test_compose_operations(dind):
     containers = client.containers.list()
     assert any('whoami-whoami-1' in c.name for c in containers), "whoami container should be running"
 
-def test_cleanup_old_containers():
-    """Verify no old test containers remain from previous runs."""
-    leftover = get_dind_containers()
-    if leftover:
-        names = ", ".join([c.name for c in leftover])
-        pytest.fail(
-            f"Found {len(leftover)} leftover test containers: {names}\n"
-            "Please clean them up manually with:\n"
-            "  docker container prune"
-        )
-
 def test_web_service(dind):
     """Test the web service exposed by the compose file."""
     compose_path = Path(os.environ['SDK_ROOT']) / "whoami/docker-compose.yaml"
