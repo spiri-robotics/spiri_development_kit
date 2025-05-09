@@ -210,12 +210,12 @@ class DockerInDocker:
         )
 
         # Run docker compose with proper path mappings
+        # Set DOCKER_HOST in environment instead of using --host flag
+        env["DOCKER_HOST"] = docker_host
         subprocess.run(
             [
                 "docker",
                 "compose",
-                "--host",
-                docker_host,
                 "--file",
                 paths["compose_file"],
                 "--project-directory",
