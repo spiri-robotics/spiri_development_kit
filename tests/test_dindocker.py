@@ -8,11 +8,11 @@ import docker
 from pathlib import Path
 from spiriSdk.dindocker import DockerInDocker
 
-def get_dind_containers(name="pytest_dind"):
+def get_dind_containers(name_prefix="dind_"):
     """Helper to find any leftover dind containers from previous runs"""
     client = docker.from_env()
     return [c for c in client.containers.list(all=True) 
-            if c.name == name or f"{name}-dind" in c.name]
+            if c.name.startswith(name_prefix)]
 
 @pytest.fixture
 def dind():
@@ -24,7 +24,7 @@ def dind():
     try:
         # Set SDK_ROOT to our temp directory
         os.environ['SDK_ROOT'] = temp_dir
-        with DockerInDocker(container_name="pytest_dind") as dind:
+        with DockerInDocker() as dind:
             # Create shared compose file for all tests
             compose_content = """
 version: '3'
@@ -84,8 +84,6 @@ def test_cleanup_old_containers():
         pytest.fail(
             f"Found {len(leftover)} leftover test containers: {names}\n"
             "Please clean them up manually with:\n"
-            "  docker container rm -f pytest_dind pytest_dind-dind\n"
-            "Or to remove all stopped containers:\n"
             "  docker container prune"
         )
 
