@@ -3,7 +3,7 @@ from spiriSdk.pages.styles import styles
 from spiriSdk.pages.header import header
 from spiriSdk.pages.new_robots import new_robots
 from spiriSdk.pages.edit_robot import edit_robot
-from spiriSdk.utils.card_utils import container
+from spiriSdk.utils.card_utils import RobotContainer
 
 
 @ui.page('/manage_robots')
@@ -12,6 +12,7 @@ async def manage_robots():
     await header()
     
     bigCard = ui.card()#.classes('w-full p-0 shadow-none')
+    container = RobotContainer(bigCard)
 
     with ui.dialog() as editRobot, ui.card():
         await edit_robot()
@@ -25,6 +26,8 @@ async def manage_robots():
 
         with ui.card_actions().props('align=center'):
             ui.button('Cancel', color='secondary', on_click=addRobot.close)
-            ui.button('Add', color='secondary', on_click=lambda: container.add_card('[some variable]', editRobot, bigCard, addRobot))
+            ui.button('Add', color='secondary', on_click=container.displayCards)
 
-    container.display(addRobot, bigCard)
+    container.displayAddButton(addRobot)
+
+    #container.display(addRobot, bigCard)

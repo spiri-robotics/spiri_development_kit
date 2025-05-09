@@ -3,14 +3,19 @@ from spiriSdk.utils.new_robot_utils import daemons
 
 class RobotContainer:
 
-    def __init__(self) -> None:
-        self.main = None
-        self.daemons = daemons.keys()
+    def __init__(self, bigCard) -> None:
+        self.destination = bigCard
+        self.daemons = ['thing1', 'thing2', 'thing3']
+
+    def displayAddButton(self, addRobot) -> None:
+        with self.destination:
+            ui.button('Add Robot', on_click=addRobot.open, color='secondary')
+            ui.button('actual add robot page', on_click=lambda: ui.navigate.to('/new_robots'), color='secondary')
 
 
-    def displayCards(self, bigCard) -> None:
-        self.main = bigCard
-        with self.main:
+    def displayCards(self) -> None:
+        self.destination.clear()
+        with self.destination:
             for robotName in self.daemons:
                 with ui.card().classes('w-[calc(50vw-24px)]'):
                     with ui.card_section():
@@ -24,7 +29,7 @@ class RobotContainer:
 
                         with ui.dropdown_button(icon='settings', color='secondary'):
                             ui.item('Edit', on_click=lambda: print("edit"))
-                            ui.item('Delete', on_click=lambda: self.remove_card(robotName, bigCard))
+                            ui.item('Delete', on_click=lambda: self.remove_card(robotName, self.destination))
 
 
     # def add_card(self, robotName, editRobot, bigCard, addRobot) -> None:
@@ -60,6 +65,3 @@ class RobotContainer:
         with self.main:
             ui.button('Add Robot', on_click=addRobot.open, color='secondary')
             ui.button('actual add robot page', on_click=lambda: ui.navigate.to('/new_robots'), color='secondary')
-
-
-container = RobotContainer()
