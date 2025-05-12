@@ -8,6 +8,7 @@ import docker
 from pathlib import Path
 from loguru import logger
 from spiriSdk.dindocker import DockerInDocker, DockerRegistryProxy
+from spiriSdk.dindocker import DockerInDocker, DockerRegistryProxy
 
 def get_dind_containers(name_prefix="dind_"):
     """Helper to find any leftover dind containers from previous runs"""
@@ -17,8 +18,10 @@ def get_dind_containers(name_prefix="dind_"):
 
 @pytest.fixture(scope="module")
 def registry_proxy():
-    """Fixture that provides a registry proxy instance if needed."""
-    return None  # Disabled by default
+    """Fixture that provides a registry proxy instance."""
+    proxy = DockerRegistryProxy()
+    yield proxy
+    proxy.cleanup()
 
 @pytest.fixture
 def dind(registry_proxy):
@@ -44,8 +47,6 @@ services:
       - "80:80"
     volumes:
       - ./test:/test
-    restart: unless-stopped
-    pull_policy: if_not_present  # Try to use local image first
 """
             whoami_dir = Path(temp_dir) / "whoami"
             whoami_dir.mkdir(parents=True, exist_ok=True)
@@ -114,10 +115,8 @@ def test_compose_operations(dind):
     else:
         assert False, "whoami container should be running"
 
-def test_registry_proxy_connectivity(dind, registry_proxy):
+def test_registry_proxy_connectivity(dind):
     """Test basic network connectivity between DinD and registry proxy."""
-    if registry_proxy is None:
-        pytest.skip("Registry proxy tests disabled")
     
     # Verify registry proxy is running
     assert dind.registry_proxy is not None
@@ -147,10 +146,8 @@ def test_registry_proxy_connectivity(dind, registry_proxy):
     except docker.errors.APIError as e:
         pytest.fail(f"Failed to ping registry proxy: {str(e)}")
 
-def test_cacert_injection(dind, registry_proxy):
+def test_cacert_injection(dind):
     """Test that the registry proxy CA cert was properly injected into DinD."""
-    if registry_proxy is None:
-        pytest.skip("Registry proxy tests disabled")
     
     # Verify registry proxy is running
     assert dind.registry_proxy is not None
@@ -168,6 +165,13 @@ def test_cacert_injection(dind, registry_proxy):
 
 def test_web_service(dind):
     """Test the web service exposed by the compose file."""
+    # First verify we can resolve Docker Hub
+    import socket
+    try:
+        socket.gethostbyname('registry-1.docker.io')
+    except socket.gaierror as e:
+        pytest.fail(f"Cannot resolve registry-1.docker.io: {str(e)}")
+
     # First verify we can resolve Docker Hub
     import socket
     try:
@@ -196,12 +200,9 @@ def test_web_service(dind):
     # If we get here, all attempts failed
     pytest.fail(f"Service not ready after {max_attempts} attempts. Last error: {str(last_exception)}")
 
-def test_registry_proxy_certificate(registry_proxy):
+def test_registry_proxy_certificate():
     """Test that the registry proxy generates a valid certificate."""
-    if registry_proxy is None:
-        pytest.skip("Registry proxy tests disabled")
-    
-    with registry_proxy:
+    with DockerRegistryProxy() as registry_proxy:
         # Get the certificate from fullchain.pem
         cert = registry_proxy.get_cacert()
         print(f"Got certificate: {cert[:100]}...")  # Print first 100 chars

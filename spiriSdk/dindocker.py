@@ -210,7 +210,7 @@ class DockerInDocker(Container):
     def __post_init__(self):
         """Initialize DinD-specific paths and settings."""
         super().__post_init__()
-        self.robot_data_root = self.sdk_root / "robot_data" / self.container_name
+        self.robot_data_root = self.sdk_root / "data" / self.container_name
         self.robot_data_root.mkdir(parents=True, exist_ok=True)
         self.volumes.update({
             str(self.robot_data_root): {"bind": "/data", "mode": "rw"}

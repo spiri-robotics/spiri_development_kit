@@ -443,7 +443,7 @@ wheels = [
 
 [[package]]
 name = "nicegui"
-version = "2.16.0"
+version = "2.15.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiofiles" },
@@ -451,7 +451,6 @@ dependencies = [
     { name = "certifi" },
     { name = "docutils" },
     { name = "fastapi" },
-    { name = "h11" },
     { name = "httpx" },
     { name = "ifaddr" },
     { name = "itsdangerous" },
@@ -468,12 +467,11 @@ dependencies = [
     { name = "urllib3" },
     { name = "uvicorn", extra = ["standard"] },
     { name = "vbuild" },
-    { name = "wait-for2" },
     { name = "watchfiles" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/a8/44/cc37ca713f4a788e045750d91b18837041330c2f0c5115344a2ac0a61ee6/nicegui-2.16.0.tar.gz", hash = "sha256:63862668cc75503bdd8968cf635076b5fa2e71fb2b81bd7d1474733a94c45437", size = 13094538 }
+sdist = { url = "https://files.pythonhosted.org/packages/65/4e/6e6ab26320c5b5c992c5879de58d08d59decadf59a274bf88cbc89de88d3/nicegui-2.15.0.tar.gz", hash = "sha256:0b63bcf9634744d285aa618f74c4d57ea7264fd8f8a9e331cf10d528ba37355c", size = 16036134 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/38/02/3abd5e49e5272c11b78bafbbfa77e01fb6fad738811ed405c131fb8a3a58/nicegui-2.16.0-py3-none-any.whl", hash = "sha256:37dd8ad263817c39b374b21e2a553d4e97a98e4c9371fe51443f8e01aa4debcd", size = 13475580 },
+    { url = "https://files.pythonhosted.org/packages/5e/48/a302bfeddd0948cccb028716204baa1dc1cfd38d6d6016e42168ddd66295/nicegui-2.15.0-py3-none-any.whl", hash = "sha256:0e401108447ae0e6b0a77c1de2611b67c4508f095a6f34d98a4640a2e17e2a08", size = 16485380 },
 ]
 
 [[package]]
@@ -742,7 +740,7 @@ requires-dist = [
     { name = "aiodocker", specifier = ">=0.24.0" },
     { name = "docker", specifier = ">=7.1.0" },
     { name = "loguru", specifier = ">=0.7.3" },
-    { name = "nicegui", specifier = "==2.16.0" },
+    { name = "nicegui", specifier = "==2.15.0" },
     { name = "pytest", specifier = ">=8.3.5" },
     { name = "requests", specifier = ">=2.32.3" },
 ]
@@ -859,12 +857,6 @@ sdist = { url = "https://files.pythonhosted.org/packages/22/be/f0c6204a36440bbcc
 wheels = [
     { url = "https://files.pythonhosted.org/packages/a6/3d/7b22abbdb059d551507275a2815bc2b1974e3b9f6a13781c1eac9e858965/vbuild-0.8.2-py2.py3-none-any.whl", hash = "sha256:d76bcc976a1c53b6a5776ac947606f9e7786c25df33a587ebe33ed09dd8a1076", size = 9371 },
 ]
-
-[[package]]
-name = "wait-for2"
-version = "0.3.2"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/91/26/430de0d8aaf5aad9f23e83484e35a37a1426a33c2dd356b0d2a45d2fb552/wait_for2-0.3.2.tar.gz", hash = "sha256:93863026dc35f3471104ecf7de1f4a0b31f4c8b12a2241c0d6ee26dcc0c2092a", size = 16673 }
 
 [[package]]
 name = "watchfiles"
