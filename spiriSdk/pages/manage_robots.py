@@ -10,7 +10,6 @@ from spiriSdk.utils.card_utils import RobotContainer
 async def manage_robots():
     await styles()
     await header()
-    await init_daemons(daemons)
     
     bigCard = ui.card()#.classes('w-full p-0 shadow-none')
     container = RobotContainer(bigCard)
