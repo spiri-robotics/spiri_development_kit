@@ -444,7 +444,6 @@ wheels = [
 [[package]]
 name = "nicegui"
 version = "2.16.0"
-version = "2.16.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiofiles" },
