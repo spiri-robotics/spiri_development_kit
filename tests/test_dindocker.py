@@ -7,7 +7,8 @@ import shutil
 import docker
 from pathlib import Path
 from loguru import logger
-from spiriSdk.dindocker import DockerInDocker
+from spiriSdk.dindocker import DockerInDocker, DockerRegistryProxy
+from spiriSdk.dindocker import DockerInDocker, DockerRegistryProxy
 
 def get_dind_containers(name_prefix="dind_"):
     """Helper to find any leftover dind containers from previous runs"""
@@ -15,8 +16,15 @@ def get_dind_containers(name_prefix="dind_"):
     return [c for c in client.containers.list(all=True) 
             if c.name.startswith(name_prefix)]
 
+@pytest.fixture(scope="module")
+def registry_proxy():
+    """Fixture that provides a registry proxy instance."""
+    proxy = DockerRegistryProxy()
+    yield proxy
+    proxy.cleanup()
+
 @pytest.fixture
-def dind():
+def dind(registry_proxy):
     """Fixture that provides a DockerInDocker instance and cleans up after."""
     # Create temp dir with relaxed permissions
     old_umask = os.umask(0)
@@ -29,13 +37,12 @@ def dind():
     try:
         # Set SDK_ROOT to our temp directory
         os.environ['SDK_ROOT'] = temp_dir
-        with DockerInDocker() as dind:
+        with DockerInDocker(registry_proxy=registry_proxy) as dind:
             # Create shared compose file for all tests
             compose_content = """
-version: '3'
 services:
   whoami:
-    image: traefik/whoami
+    image: traefik/whoami:v1.10.1  # Use specific version tag
     ports:
       - "80:80"
     volumes:
@@ -46,6 +53,14 @@ services:
             compose_path = whoami_dir / "docker-compose.yaml"
             with open(compose_path, 'w') as f:
                 f.write(compose_content)
+            
+            # Try to pre-pull the test image to avoid timeouts during test
+            try:
+                client = dind.get_client()
+                client.images.pull("traefik/whoami:v1.10.1")
+                logger.info("Successfully pre-pulled test image")
+            except Exception as e:
+                logger.warning(f"Could not pre-pull test image: {e}")
             
             yield dind
     finally:
@@ -71,11 +86,18 @@ def test_dind_startup(dind):
 
 def test_compose_operations(dind):
     """Test running docker-compose operations."""
+    # First verify we can resolve Docker Hub
+    import socket
+    try:
+        socket.gethostbyname('registry-1.docker.io')
+    except socket.gaierror as e:
+        pytest.fail(f"Cannot resolve registry-1.docker.io: {str(e)}")
+
     compose_path = Path(os.environ['SDK_ROOT']) / "whoami/docker-compose.yaml"
     dind.run_compose(str(compose_path))
 
     # Verify directory was created in the temp location
-    test_dir = Path(os.environ['SDK_ROOT']) / f"robot_data/{dind.container_name}/whoami/test"
+    test_dir = Path(os.environ['SDK_ROOT']) / f"data/{dind.container_name}/whoami/test"
     # Wait up to 5 seconds for directory to appear
     for _ in range(5):
         if test_dir.exists():
@@ -83,13 +105,80 @@ def test_compose_operations(dind):
         time.sleep(1)
     assert test_dir.exists(), f"Compose should create expected directory at {test_dir}"
 
-    # Verify container is running
+    # Verify container is running (with retry)
     client = dind.get_client()
-    containers = client.containers.list()
-    assert any('whoami-whoami-1' in c.name for c in containers), "whoami container should be running"
+    for _ in range(10):  # Wait up to 10 seconds
+        containers = client.containers.list()
+        if any('whoami-whoami-1' in c.name for c in containers):
+            break
+        time.sleep(1)
+    else:
+        assert False, "whoami container should be running"
+
+def test_registry_proxy_connectivity(dind):
+    """Test basic network connectivity between DinD and registry proxy."""
+    
+    # Verify registry proxy is running
+    assert dind.registry_proxy is not None
+    assert dind.registry_proxy.container is not None
+    assert dind.registry_proxy.container.status == "running"
+    
+    # Get proxy IP
+    proxy_ip = dind.registry_proxy.container_ip()
+    
+    # Verify proxy can resolve Docker Hub
+    try:
+        output = dind.registry_proxy.container.exec_run("nslookup registry-1.docker.io")
+        assert output.exit_code == 0, f"DNS lookup failed with exit code {output.exit_code}"
+        output_text = output.output.decode()
+        assert "Address:" in output_text, f"Expected DNS resolution output, got: {output_text}"
+    except docker.errors.APIError as e:
+        pytest.fail(f"Failed to resolve registry-1.docker.io from proxy: {str(e)}")
+    
+    # Simple ping test from DinD to proxy
+    try:
+        output = dind.container.exec_run(f"ping -c 1 {proxy_ip}")
+        assert output.exit_code == 0, f"Ping failed with exit code {output.exit_code}"
+        output_text = output.output.decode()
+        assert ("1 packets transmitted, 1 received" in output_text or 
+                "1 packets transmitted, 1 packets received" in output_text), \
+               f"Expected ping success output, got: {output_text}"
+    except docker.errors.APIError as e:
+        pytest.fail(f"Failed to ping registry proxy: {str(e)}")
+
+def test_cacert_injection(dind):
+    """Test that the registry proxy CA cert was properly injected into DinD."""
+    
+    # Verify registry proxy is running
+    assert dind.registry_proxy is not None
+    
+    # Get the expected CA cert from the proxy
+    expected_cert = dind.registry_proxy.get_cacert()
+    
+    # Check the cert exists in the DinD container
+    result = dind.container.exec_run("cat /usr/local/share/ca-certificates/registry-ca.crt")
+    assert result.exit_code == 0, "Failed to read CA cert from DinD container"
+    injected_cert = result.output.decode().strip()
+    
+    # Verify cert contents match
+    assert injected_cert == expected_cert, "CA cert in DinD container doesn't match proxy cert"
 
 def test_web_service(dind):
     """Test the web service exposed by the compose file."""
+    # First verify we can resolve Docker Hub
+    import socket
+    try:
+        socket.gethostbyname('registry-1.docker.io')
+    except socket.gaierror as e:
+        pytest.fail(f"Cannot resolve registry-1.docker.io: {str(e)}")
+
+    # First verify we can resolve Docker Hub
+    import socket
+    try:
+        socket.gethostbyname('registry-1.docker.io')
+    except socket.gaierror as e:
+        pytest.fail(f"Cannot resolve registry-1.docker.io: {str(e)}")
+
     compose_path = Path(os.environ['SDK_ROOT']) / "whoami/docker-compose.yaml"
     dind.run_compose(str(compose_path))
     
@@ -110,3 +199,19 @@ def test_web_service(dind):
     
     # If we get here, all attempts failed
     pytest.fail(f"Service not ready after {max_attempts} attempts. Last error: {str(last_exception)}")
+
+def test_registry_proxy_certificate():
+    """Test that the registry proxy generates a valid certificate."""
+    with DockerRegistryProxy() as registry_proxy:
+        # Get the certificate from fullchain.pem
+        cert = registry_proxy.get_cacert()
+        print(f"Got certificate: {cert[:100]}...")  # Print first 100 chars
+        
+        # Basic validation of the certificate
+        assert cert.startswith("-----BEGIN CERTIFICATE-----"), "Certificate should start with PEM header"
+        assert "-----END CERTIFICATE-----" in cert, "Certificate should end with PEM footer"
+        assert len(cert) > 100, "Certificate should be more than just headers"
+        
+        # Verify the certificate is stable across multiple calls
+        cert2 = registry_proxy.get_cacert()
+        assert cert == cert2, "Certificate should be stable across multiple calls"
