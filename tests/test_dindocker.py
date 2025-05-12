@@ -75,7 +75,7 @@ def test_compose_operations(dind):
     dind.run_compose(str(compose_path))
 
     # Verify directory was created in the temp location
-    test_dir = Path(os.environ['SDK_ROOT']) / f"robot_data/{dind.container_name}/whoami/test"
+    test_dir = Path(os.environ['SDK_ROOT']) / f"data/{dind.container_name}/whoami/test"
     # Wait up to 5 seconds for directory to appear
     for _ in range(5):
         if test_dir.exists():
