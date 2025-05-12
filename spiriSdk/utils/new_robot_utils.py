@@ -93,6 +93,9 @@ def display_robot_options(robot_name, selected_additions, selected_options, opti
         options_path = os.path.join(ROBOTS_DIR, robot_name, 'options.yaml')
         if not os.path.exists(options_path):
             ui.notify(f"No options.yaml found for {robot_name}")
+            options_container.clear()
+            with options_container:
+                ui.label(f'No options.yaml found for {robot_name}')
             return
 
         with open(options_path, 'r') as yaml_file:

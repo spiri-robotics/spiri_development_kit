@@ -1,5 +1,6 @@
 from nicegui import ui
 from spiriSdk.utils.new_robot_utils import daemons
+from spiriSdk.utils.new_robot_utils import daemons
 
 class RobotContainer:
 
@@ -27,8 +28,11 @@ class RobotContainer:
                         ui.button('Restart', icon='refresh', color='secondary').classes('m-1 mr-10')
 
                         with ui.dropdown_button(icon='settings', color='secondary'):
-                            ui.item('Edit', on_click=lambda: print("edit"))
-                            ui.item('Delete', on_click=lambda: self.remove_card(robotName, self.destination))
+                            ui.item('Edit', on_click=editRobot.open)
+                            ui.item('Delete')
+
+    def remove_card(self, robotName) -> None:
+        self.card.delete(robotName)
 
     def display(self, addRobot, bigCard) -> None:
         self.main = bigCard
