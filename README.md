@@ -1,7 +1,10 @@
 
-## Quickstart
+## Prerequisites
 
-Make sure uv and docker are installed
+- Install `uv`: https://docs.astral.sh/uv/getting-started/installation/
+- Install `docker`: https://docs.docker.com/engine/install/
+
+## Quickstart
 
 ```bash
 uv run python -m spiriSdk.main #Run the main code
