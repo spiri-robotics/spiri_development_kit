@@ -27,7 +27,7 @@ async def manage_robots():
         async def add_robot():
             await save_robot_config(selected_robot, selected_options)
             addRobot.close()
-            return lambda: container.add_card('[some variable]', editRobot, bigCard, addRobot)
+            return lambda: container.add_card('[some variable]', editRobot, destination, addRobot)
 
         with ui.card_actions().props('align=center'):
             ui.button('Cancel', color='secondary', on_click=addRobot.close)
