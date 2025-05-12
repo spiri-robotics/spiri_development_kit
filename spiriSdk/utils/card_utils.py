@@ -11,9 +11,11 @@ class RobotContainer:
             ui.button('Add Robot', on_click=addRobot.open, color='secondary')
             ui.button('actual add robot page', on_click=lambda: ui.navigate.to('/new_robots'), color='secondary')
 
-    def displayCards(self, editRobot) -> None:
+    def displayCards(self, addRobot, editRobot) -> None:
+        addRobot.close()
         self.destination.clear()
         with self.destination:
+            self.displayAddButton(addRobot)
             for robotName in daemons:
                 with ui.card().classes('w-[calc(50vw-24px)]'):
                     with ui.card_section():

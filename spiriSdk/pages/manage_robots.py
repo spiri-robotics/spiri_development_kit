@@ -11,8 +11,8 @@ async def manage_robots():
     await styles()
     await header()
     
-    bigCard = ui.card()#.classes('w-full p-0 shadow-none')
-    container = RobotContainer(bigCard)
+    destination = ui.card().classes('w-full p-0 shadow-none')
+    container = RobotContainer(destination)
 
     with ui.dialog() as editRobot, ui.card():
         await edit_robot()
