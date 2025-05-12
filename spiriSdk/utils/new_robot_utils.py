@@ -23,7 +23,7 @@ async def init_daemons(daemons: dict) -> dict:
             daemons[robot_name] = DockerInDocker("docker:dind", robot_name)
 
     for daemon in daemons.values():
-        await run.io_bound(daemon.start)
+        await run.io_bound(daemon.ensure_started)
 
     return daemons
 
@@ -85,7 +85,7 @@ async def save_robot_config(robot_type, selected_options):
             f.write(f"{key}={value}\n")
 
     new_daemon = DockerInDocker(image_name="docker:dind", container_name=folder_name)
-    await run.io_bound(new_daemon.start)
+    await run.io_bound(new_daemon.ensure_started)
     daemons[folder_name] = new_daemon
 
     ui.notify(f"Saved config.env and started daemon for {folder_name}")
