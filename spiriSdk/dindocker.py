@@ -51,7 +51,7 @@ class DockerInDocker:
 
         # Set up paths - use SDK_ROOT if available, otherwise current directory
         sdk_root = os.environ.get("SDK_ROOT", ".")
-        self.robot_data_root = Path(sdk_root) / "robot_data" / container_name
+        self.robot_data_root = Path(sdk_root) / "data" / container_name
 
         # Ensure cleanup on exit
         atexit.register(self.cleanup)

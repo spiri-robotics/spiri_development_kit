@@ -6,11 +6,19 @@ from pathlib import Path
 import uuid
 from spiriSdk.dindocker import DockerInDocker
 from nicegui import run
-from spiriSdk.utils.card_utils import container
 
 ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 ROBOTS_DIR = os.path.join(ROOT_DIR, 'robots')
+
+async def init_daemons(daemons):
+    daemons = {robot_name : DockerInDocker("docker:dind", robot_name) for robot_name in \
+            os.listdir(ROBOTS_DIR)if os.path.isdir(os.path.join(ROBOTS_DIR, robot_name))}
+    for daemon in daemons: 
+        await run.io_bound(daemon[daemon].start)
+    return daemons
+
 daemons = {}
+init_daemons(daemons)
 
 # Get the list of robots dynamically from the robots folder
 robots = [folder for folder in os.listdir(ROBOTS_DIR) if os.path.isdir(os.path.join(ROBOTS_DIR, folder))]
@@ -68,7 +76,7 @@ async def save_robot_config(robot_type, selected_options):
             f.write(f"{key}={value}\n")
 
     new_daemon = DockerInDocker(image_name="docker:dind", container_name=folder_name)
-    await run.io_bound(new_daemon.start, timeout=1000)
+    await run.io_bound(new_daemon.start)
     daemons[folder_name] = new_daemon
 
     ui.notify(f"Saved config.env and started daemon for {folder_name}")
@@ -80,6 +88,7 @@ async def delete_robot(robot_name):
     os.rmdir(robot_path)
 
 def display_robot_options(robot_name, selected_additions, selected_options, options_container):
+        print(daemons)
         ui.notify(f'Selected Robot: {robot_name}, Selected Addition: {addition}' for addition in selected_additions)
         options_path = os.path.join(ROBOTS_DIR, robot_name, 'options.yaml')
         if not os.path.exists(options_path):
