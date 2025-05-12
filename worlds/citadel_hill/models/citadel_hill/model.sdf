@@ -1,0 +1,27 @@
+<?xml version="1.0" ?>
+<sdf version='1.6'>
+  <model name='citadel_hill'>
+  <pose>0 0 0 0 0 0</pose>
+  <static>true</static>
+  
+  <link name='base_citadel'>
+      <visual name='base_visual'>
+        <!-- <pose frame=''>300 200 10 1.5 0 3</pose>-->
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+	    <uri>model://worlds/citadel_hill/models/citadel_hill/meshes/citadel.dae</uri>
+          </mesh>
+        </geometry>
+      </visual>
+      <collision name='base_collision'>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+	    <uri>model://worlds/citadel_hill/models/citadel_hill/meshes/citadel.dae</uri>
+          </mesh>
+        </geometry>
+      </collision>
+    </link>
+  </model>
+</sdf>
