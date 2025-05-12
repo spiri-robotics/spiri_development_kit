@@ -3,8 +3,8 @@ from spiriSdk.utils.new_robot_utils import daemons
 
 class RobotContainer:
 
-    def __init__(self, bigCard) -> None:
-        self.destination = bigCard
+    def __init__(self, destination) -> None:
+        self.destination = destination
         self.daemons = ['thing1', 'thing2', 'thing3']
 
     def displayAddButton(self, addRobot) -> None:
@@ -13,9 +13,11 @@ class RobotContainer:
             ui.button('actual add robot page', on_click=lambda: ui.navigate.to('/new_robots'), color='secondary')
 
 
-    def displayCards(self) -> None:
+    def displayCards(self, addRobot) -> None:
+        addRobot.close()
         self.destination.clear()
         with self.destination:
+            self.displayAddButton(addRobot)
             for robotName in self.daemons:
                 with ui.card().classes('w-[calc(50vw-24px)]'):
                     with ui.card_section():

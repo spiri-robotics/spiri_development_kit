@@ -11,8 +11,8 @@ async def manage_robots():
     await styles()
     await header()
     
-    bigCard = ui.card()#.classes('w-full p-0 shadow-none')
-    container = RobotContainer(bigCard)
+    destination = ui.card().classes('w-full p-0 shadow-none')
+    container = RobotContainer(destination)
 
     with ui.dialog() as editRobot, ui.card():
         await edit_robot()
@@ -26,7 +26,7 @@ async def manage_robots():
 
         with ui.card_actions().props('align=center'):
             ui.button('Cancel', color='secondary', on_click=addRobot.close)
-            ui.button('Add', color='secondary', on_click=container.displayCards)
+            ui.button('Add', color='secondary', on_click=lambda: container.displayCards(addRobot))
 
     container.displayAddButton(addRobot)
 
