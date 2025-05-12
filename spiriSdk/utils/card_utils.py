@@ -5,7 +5,7 @@ class RobotContainer:
 
     def __init__(self, destination) -> None:
         self.destination = destination
-        self.daemons = ['thing1', 'thing2', 'thing3']
+        self.daemons = daemons.keys()
 
     def displayAddButton(self, addRobot) -> None:
         with self.destination:
@@ -15,6 +15,7 @@ class RobotContainer:
 
     def displayCards(self, addRobot) -> None:
         addRobot.close()
+        print(self.daemons)
         self.destination.clear()
         with self.destination:
             self.displayAddButton(addRobot)
