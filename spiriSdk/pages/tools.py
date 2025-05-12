@@ -1,6 +1,7 @@
 from nicegui import ui, binding, app, run
 from spiriSdk.pages.styles import styles
 from spiriSdk.pages.header import header
+from spiriSdk.utils.gazebo_models import Robot
 import time
 import docker
 import subprocess
@@ -13,9 +14,11 @@ applications = {
     'rvis2': ['rviz2']
 }
 
-worlds = {
+robots = []
 
-}
+worlds = {}
+
+running_worlds = [['','']]
 
 def launch_app(command):
     try:
@@ -41,9 +44,24 @@ async def run_world(dir, name, auto_run):
             cmd = ['gz', 'sim', '-r', f'./worlds/{dir}/worlds/{name}']
         else:
             cmd = ['gz', 'sim', f'./worlds/{dir}/worlds/{name}']
+        running_worlds.clear()
+        running_worlds.append([dir, name])
+
         launch_app(cmd)
+        return None
+        
     except FileNotFoundError:
         print(f"File not found: {name}. Make sure it is installed and available in the PATH.")
+
+async def prep_bot(world=None):
+    if world is None:
+        world = running_worlds[0][0]
+    robot_number = len(robots) + 1 
+    mu = Robot('spiri_mu', robot_number)
+    robots.append(mu)
+    await mu.launch_robot(world)
+    print(f"Robot {mu.name}{mu.number} added to the world '{world}'")
+    return None
 
 @ui.page('/tools')
 async def tools():
@@ -52,17 +70,18 @@ async def tools():
             ui.label('World Start Time State').props('class="text-lg text-center"')
             world_auto_run = ui.toggle(['Running', 'Paused'], value='Paused')
         with ui.card().props('').classes('rounded-lg'):
-            with ui.dropdown_button('worlds', auto_close=True, color='#20788a').classes('text-lg text-center'):
+            with ui.dropdown_button('worlds', auto_close=True).classes('text-lg text-center'):
                 await find_worlds()
                 for dir, name in worlds.items():
-                    ui.item(name, on_click=lambda: run_world(dir, name, world_auto_run.value))
+                    ui.item(name, on_click=lambda dir=dir, name=name: run_world(dir, name, world_auto_run.value))
     await styles()
     await header()
     with ui.grid(columns=3):
         for app_name, command in applications.items():
             with ui.button(on_click=lambda cmd=command: launch_app(cmd), color='warning').classes('rounded-1/2'):   # old color for all 3: color='#20788a'
                 ui.label(app_name).classes('text-lg text-center')
-        with ui.button(on_click=gz_dialog.open, color='#20788a').classes('rounded-1/2'):
+        with ui.button(on_click=gz_dialog.open, color='warning').classes('rounded-1/2'):
             ui.label('Launch Gazebo').classes('text-lg text-center')
+        ui.button("add mu", on_click=lambda: prep_bot(), color='warning').classes('text-lg rounded-1/2')
             
         
