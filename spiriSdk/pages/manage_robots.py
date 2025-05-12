@@ -34,5 +34,3 @@ async def manage_robots():
             ui.button('Add', color='secondary', on_click=add_robot)
 
     container.displayAddButton(addRobot)
-
-    #container.display(addRobot, bigCard)
