@@ -12,6 +12,7 @@ import atexit
 import subprocess
 import time
 import os
+import uuid
 from pathlib import Path
 from typing import Optional, Dict, Any
 from loguru import logger
@@ -31,13 +32,18 @@ class DockerInDocker:
             dind.run_compose("path/to/compose.yaml")
     """
 
-    def __init__(self, image_name: str = "docker:dind", container_name: str = "dind"):
+    def __init__(self, image_name: str = "docker:dind", container_name: str = None):
         """Initialize the Docker-in-Docker manager.
 
         Args:
             image_name: Docker image to use (default: docker:dind)
-            container_name: Unique name for this container instance
+            container_name: Optional unique name for this container instance.
+                           If None, will use "dind_<test_name>_<pid>"
         """
+        # Generate unique container name if not specified
+        if container_name is None:
+            import uuid
+            container_name = f"dind_{uuid.uuid4().hex[:8]}"
         self.client = docker.from_env()
         self.image_name = image_name
         self.container_name = container_name
@@ -162,9 +168,10 @@ class DockerInDocker:
         """
         compose_path = Path(compose_file)
         service_name = compose_path.parent.name
+        host_path = self.robot_data_root / service_name
 
         return {
-            "host_path": str(self.robot_data_root / service_name),
+            "host_path": str(host_path),
             "container_path": f"/data/{service_name}",
             "compose_file": str(compose_path),
             "project_dir": f"/data/{service_name}",  # Project dir in container
@@ -202,18 +209,19 @@ class DockerInDocker:
             }
         )
 
-        # Run docker-compose with proper path mappings
+        # Run docker compose with proper path mappings
+        # Set DOCKER_HOST in environment instead of using --host flag
+        env["DOCKER_HOST"] = docker_host
         subprocess.run(
             [
-                "docker-compose",
-                "-H",
-                docker_host,
-                "-f",
+                "docker",
+                "compose",
+                "--file",
                 paths["compose_file"],
                 "--project-directory",
                 paths["project_dir"],
                 "up",
-                "-d",
+                "--detach",
             ],
             check=True,
             env=env,
