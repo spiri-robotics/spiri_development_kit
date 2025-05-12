@@ -9,16 +9,16 @@ from nicegui import run
 
 ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 ROBOTS_DIR = os.path.join(ROOT_DIR, 'robots')
+DATA_DIR = os.path.join(ROOT_DIR, 'data')
 
 async def init_daemons(daemons):
     daemons = {robot_name : DockerInDocker("docker:dind", robot_name) for robot_name in \
-            os.listdir(ROBOTS_DIR)if os.path.isdir(os.path.join(ROBOTS_DIR, robot_name))}
+            os.listdir(DATA_DIR)if os.path.isdir(os.path.join(DATA_DIR, robot_name))}
     for daemon in daemons: 
-        await run.io_bound(daemon[daemon].start)
+        await run.io_bound(daemons[daemon].start)
     return daemons
 
 daemons = {}
-init_daemons(daemons)
 
 # Get the list of robots dynamically from the robots folder
 robots = [folder for folder in os.listdir(ROBOTS_DIR) if os.path.isdir(os.path.join(ROBOTS_DIR, folder))]
