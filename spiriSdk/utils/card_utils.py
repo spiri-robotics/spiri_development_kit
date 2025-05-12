@@ -1,13 +1,12 @@
 from nicegui import ui
 from spiriSdk.utils.new_robot_utils import delete_robot
-global daemons
+from spiriSdk import main
 
 class RobotContainer:
 
     def __init__(self, destination) -> None:
         self.destination = destination
-        
-        self.daemons = daemons.keys()
+        self.daemonList = None
 
     def displayAddButton(self, addRobot) -> None:
         with self.destination:
@@ -17,11 +16,12 @@ class RobotContainer:
 
     def displayCards(self, addRobot, editRobot) -> None:
         addRobot.close()
-        print(self.daemons)
+        self.daemonList = main.daemons.keys()
+        print(self.daemonList)
         self.destination.clear()
         with self.destination:
             self.displayAddButton(addRobot)
-            for robotName in self.daemons:
+            for robotName in self.daemonList:
                 with ui.card().classes('w-full'):
                     with ui.card_section():
                         ui.label(f'{robotName}').classes('mb-5')
@@ -32,16 +32,16 @@ class RobotContainer:
                         ui.button('Stop', icon='stop', color='warning').classes('m-1')
                         ui.button('Restart', icon='refresh', color='secondary').classes('m-1 mr-10')
 
-                        def delete():
-                            self.remove_card(robotName)
-                            delete_robot()
+                        # def delete():
+                        #     self.remove_card(robotName)
+                        #     delete_robot()
 
                         with ui.dropdown_button(icon='settings', color='secondary'):
                             ui.item('Edit', on_click=editRobot.open)
-                            ui.item('Delete', on_click=delete)
+                            ui.item('Delete', on_click=None)
 
-    def remove_card(self, robotName) -> None:
-        self.destination.delete(robotName)
+    # def remove_card(self, robotName) -> None:
+    #     self.destination.delete(robotName)
 
     def display(self, addRobot, bigCard) -> None:
         self.main = bigCard

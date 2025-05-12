@@ -14,6 +14,8 @@ DATA_DIR = os.path.join(ROOT_DIR, 'data')
 async def init_daemons(daemons: dict) -> dict:
     print("Initializing daemons...")
     if daemons:  # If it's already populated, do nothing
+        print("Daemons already initialized.")
+        print(daemons)
         return daemons
     
     daemons = {}
@@ -25,6 +27,7 @@ async def init_daemons(daemons: dict) -> dict:
     for daemon in daemons.values():
         await run.io_bound(daemon.start)
 
+    print(daemons)
     return daemons
 
 daemons = None
