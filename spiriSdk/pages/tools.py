@@ -14,9 +14,11 @@ applications = {
     'rvis2': ['rviz2']
 }
 
-worlds = {
+robots = []
 
-}
+worlds = {}
+
+running_worlds = [['','']]
 
 def launch_app(command):
     try:
@@ -42,15 +44,24 @@ async def run_world(dir, name, auto_run):
             cmd = ['gz', 'sim', '-r', f'./worlds/{dir}/worlds/{name}']
         else:
             cmd = ['gz', 'sim', f'./worlds/{dir}/worlds/{name}']
+        running_worlds.clear()
+        running_worlds.append([dir, name])
+
         launch_app(cmd)
+        return None
+        
     except FileNotFoundError:
         print(f"File not found: {name}. Make sure it is installed and available in the PATH.")
 
-async def prep_bot(world="citadel_hill"):
-    mu = Robot('spiri_mu')
+async def prep_bot(world=None):
+    if world is None:
+        world = running_worlds[0][0]
+    robot_number = len(robots) + 1 
+    mu = Robot('spiri_mu', robot_number)
+    robots.append(mu)
     await mu.launch_robot(world)
+    print(f"Robot {mu.name}{mu.number} added to the world '{world}'")
     return None
-
 
 @ui.page('/tools')
 async def tools():
@@ -71,6 +82,6 @@ async def tools():
                 ui.label(app_name).classes('text-lg text-center')
         with ui.button(on_click=gz_dialog.open, color='warning').classes('rounded-1/2'):
             ui.label('Launch Gazebo').classes('text-lg text-center')
-        ui.button(on_click=lambda: prep_bot(), color='warning').classes('rounded-1/2')
+        ui.button("add mu", on_click=lambda: prep_bot(), color='warning').classes('text-lg rounded-1/2')
             
         
