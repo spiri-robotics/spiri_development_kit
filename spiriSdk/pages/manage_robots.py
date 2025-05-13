@@ -1,17 +1,18 @@
 from nicegui import ui
 from spiriSdk.pages.styles import styles
 from spiriSdk.pages.header import header
-from spiriSdk.pages.new_robots import new_robots
+from spiriSdk.pages import new_robots #, selected_options, selected_robot
+from spiriSdk.utils.new_robot_utils import save_robot_config, init_daemons
 from spiriSdk.pages.edit_robot import edit_robot
-from spiriSdk.utils.card_utils import container
-
+from spiriSdk.utils.card_utils import RobotContainer
 
 @ui.page('/manage_robots')
 async def manage_robots():
     await styles()
     await header()
     
-    bigCard = ui.card().classes('w-full p-0 shadow-none')
+    destination = ui.card().classes('w-full p-0 shadow-none')
+    container = RobotContainer(destination)
 
     with ui.dialog() as editRobot, ui.card():
         await edit_robot()
@@ -21,11 +22,17 @@ async def manage_robots():
             ui.button('Cancel', on_click=editRobot.close)
             
     with ui.dialog() as addRobot, ui.card(align_items='stretch').classes('w-full'):
-        await new_robots()
+        await new_robots.new_robots()
+
+        async def add_robot():
+            addRobot.close()
+            await save_robot_config(new_robots.selected_robot, new_robots.selected_options)
+            container.displayCards(addRobot, editRobot)
 
         with ui.card_actions().props('align=center'):
             ui.button('Cancel', color='secondary', on_click=addRobot.close)
-            ui.button('Add', color='secondary', on_click=lambda: container.add_card('[some variable]', editRobot, bigCard, addRobot))
+            ui.button('Add', color='secondary', on_click=add_robot)
 
-    container.display(addRobot, bigCard)
-    ui.button('Add label to card', on_click=lambda: container.add_card('bob', editRobot, bigCard))
+    container.displayAddButton(addRobot)
+
+    #container.display(addRobot, bigCard)
