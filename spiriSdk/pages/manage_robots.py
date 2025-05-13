@@ -5,7 +5,6 @@ from spiriSdk.pages.new_robots import new_robots, selected_options, selected_rob
 from spiriSdk.utils.new_robot_utils import save_robot_config
 from spiriSdk.pages.edit_robot import edit_robot
 from spiriSdk.utils.card_utils import RobotContainer
-from spiriSdk.utils.daemon_utils import init_daemons, daemons
 
 @ui.page('/manage_robots')
 async def manage_robots():

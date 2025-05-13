@@ -33,6 +33,8 @@ class RobotContainer:
                         ui.button('Stop', icon='stop', color='warning').classes('m-1')
                         ui.button('Restart', icon='refresh', color='secondary').classes('m-1 mr-10')
 
+                        ui.button("Add robot to world", on_click=lambda: prep_bot(robotName)).classes('m-1 mr-10')
+
                         def delete():
                             delete_robot()
                             self.displayCards() 
