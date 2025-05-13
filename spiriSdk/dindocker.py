@@ -122,6 +122,21 @@ class Container:
         if not ip:
             raise RuntimeError("Container has no IP address assigned")
         return ip
+    
+    def get_status(self) -> str:
+        """Get the current status of the container."""
+        try:
+            if self.container is None:
+                containers = self.client.containers.list(all=True, filters={"name": self.container_name})
+                if containers:
+                    self.container = containers[0]
+                else:
+                    return "not created"
+            
+            self.container.reload()  # Refresh state from Docker
+            return self.container.status  # e.g., "running", "exited", "paused"
+        except Exception as e:
+            return f"error: {e}"
 
     def cleanup(self) -> None:
         """Clean up container resources."""

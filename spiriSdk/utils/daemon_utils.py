@@ -1,5 +1,5 @@
 import os
-from spiriSdk.dindocker import DockerInDocker  
+from spiriSdk.dindocker import DockerInDocker
 from nicegui import run, ui
 
 ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
@@ -9,9 +9,7 @@ daemons = {}
 
 async def init_daemons() -> dict:
     global daemons
-    print("Initializing daemons...")
-    if daemons:  # If it's already populated, do nothing
-        return daemons
+    print("Initializing Daemons...")
     
     daemons = {}
 
@@ -34,15 +32,21 @@ async def on_shutdown():
         await run.io_bound(daemon.cleanup)
     daemons.clear()
 
-def start_container(robot_name: str):
-    run.io_bound(daemons[robot_name].ensure_started)
+async def start_container(robot_name: str):
+    await daemons[robot_name].ensure_started()
     ui.notify(f"Container {robot_name} started.")
 
-def stop_container(robot_name: str):
-    run.io_bound(daemons[robot_name].container.stop)
+async def stop_container(robot_name: str):
+    await daemons[robot_name].stop()
     ui.notify(f"Container {robot_name} stopped.")
 
-def restart_container(robot_name: str):
-    stop_container(robot_name)
-    start_container(robot_name)
+async def restart_container(robot_name: str):
+    await stop_container(robot_name)
+    await start_container(robot_name)
     ui.notify(f"Container {robot_name} restarted.")
+
+async def display_daemon_status(robot_name: str):
+    print(f"Fetching status for {robot_name}")
+    daemons = await init_daemons()
+    print(f"Daemon initialized: {daemons.get(robot_name)}")
+    return daemons[robot_name].get_status()
