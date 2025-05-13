@@ -27,7 +27,7 @@ async def manage_robots():
         async def add_robot():
             await save_robot_config(selected_robot, selected_options)
             addRobot.close()
-            container.displayCards()   
+            await container.displayCards()   
             ui.notify(f"Robot {selected_robot} added successfully!")
 
         with ui.card_actions().props('align=center'):
@@ -38,4 +38,4 @@ async def manage_robots():
     container.assignEditRobot(editRobot)
     container.displayAddButton()
 
-    container.displayCards() 
+    await container.displayCards() 
