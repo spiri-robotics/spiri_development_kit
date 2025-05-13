@@ -15,13 +15,13 @@ class RobotContainer:
             ui.button('Add Robot', on_click=self.addRobot.open, color='secondary')
             ui.button('actual add robot page', on_click=lambda: ui.navigate.to('/new_robots'), color='secondary')
 
-    def displayCards(self) -> None:
-        print("Displaying cards...")
-        self.addRobot.close()
+    def displayCards(self, addRobot) -> None:
+        addRobot.close()
+        print(self.daemons)
         self.destination.clear()
         with self.destination:
-            self.displayAddButton()
-            for robotName in daemons:
+            self.displayAddButton(addRobot)
+            for robotName in self.daemons:
                 with ui.card().classes('w-[calc(50vw-24px)]'):
                     with ui.card_section():
                         ui.label(f'{robotName}').classes('mb-5')
@@ -31,8 +31,6 @@ class RobotContainer:
                         ui.button('Start', icon='play_arrow', color='positive').classes('m-1')
                         ui.button('Stop', icon='stop', color='warning').classes('m-1')
                         ui.button('Restart', icon='refresh', color='secondary').classes('m-1 mr-10')
-
-                        ui.button("Add to World", icon='add', color='secondary').classes('m-1 mr-10').on_click(lambda: prep_bot(robotName))
 
                         def delete():
                             delete_robot()

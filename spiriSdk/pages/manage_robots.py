@@ -24,7 +24,7 @@ async def manage_robots():
             ui.button('Cancel', on_click=editRobot.close)
             
     with ui.dialog() as addRobot, ui.card(align_items='stretch').classes('w-full'):
-        await new_robots()
+        await new_robots.new_robots()
 
         async def add_robot():
             await save_robot_config(selected_robot, selected_options)
