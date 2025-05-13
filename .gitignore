@@ -175,8 +175,7 @@ cython_debug/
 .pypirc
 .aider*
 
-#Robots temporary files
-data/
+
 
 #Cache files
 cache/
