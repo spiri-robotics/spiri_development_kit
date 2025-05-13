@@ -1,5 +1,5 @@
 from nicegui import ui
-from spiriSdk.utils.daemon_utils import init_daemons
+from spiriSdk.utils.daemon_utils import daemons
 from spiriSdk.utils.new_robot_utils import delete_robot
 from spiriSdk.pages.tools import prep_bot
 
@@ -16,14 +16,13 @@ class RobotContainer:
             ui.button('actual add robot page', on_click=lambda: ui.navigate.to('/new_robots'), color='secondary')
 
     async def displayCards(self) -> None:
-        daemons = await init_daemons()  # fetch up-to-date daemons dict
-        daemonNames = daemons.keys()
-        print(daemonNames)
+        names = daemons.keys()
+        print(names)
         self.addRobot.close()
         self.destination.clear()
         with self.destination:
             self.displayAddButton()
-            for robotName in daemonNames:
+            for robotName in names:
                 with ui.card().classes('w-full'):
                     with ui.row(align_items='stretch').classes('w-full'):
                         with ui.card_section():
@@ -37,9 +36,9 @@ class RobotContainer:
 
                             ui.button("Add robot to world", on_click=lambda: prep_bot(robotName)).classes('m-1 mr-10')
 
-                            async def delete():
-                                if await delete_robot(robotName):
-                                    ui.notify(f'{robotName} deleted')
+                            async def delete(n):
+                                if await delete_robot(n):
+                                    ui.notify(f'{n} deleted')
                                 else:
                                     ui.notify('error deleting robot')
 
@@ -47,7 +46,7 @@ class RobotContainer:
 
                             with ui.dropdown_button(icon='settings', color='secondary'):
                                 ui.item('Edit', on_click=self.editRobot.open)
-                                ui.item('Delete', on_click=delete)
+                                ui.item('Delete', on_click=lambda n=robotName: delete(n))
 
     def assignAddRobot(self, addRobot) -> None:
         self.addRobot = addRobot

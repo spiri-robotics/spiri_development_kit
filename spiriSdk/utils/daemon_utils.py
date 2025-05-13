@@ -22,7 +22,7 @@ async def init_daemons() -> dict:
     for daemon in daemons.values():
         await run.io_bound(daemon.ensure_started)
 
-    print(daemons.keys())
+    #print(daemons.keys())
 
     return daemons
 
