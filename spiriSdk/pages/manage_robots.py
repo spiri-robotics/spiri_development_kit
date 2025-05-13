@@ -31,8 +31,7 @@ async def manage_robots():
 
         with ui.card_actions().props('align=center'):
             ui.button('Cancel', color='secondary', on_click=addRobot.close)
-            ui.button('Add (elena)', color='secondary', on_click=lambda: container.displayCards(addRobot, editRobot))
-            ui.button('Add (alice)', color='secondary', on_click=add_robot)
+            ui.button('Add', color='secondary', on_click=add_robot)
 
     container.displayAddButton(addRobot)
 

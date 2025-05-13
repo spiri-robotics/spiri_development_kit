@@ -23,22 +23,23 @@ class RobotContainer:
             self.displayAddButton(addRobot)
             for robotName in self.daemonList:
                 with ui.card().classes('w-full'):
-                    with ui.card_section():
-                        ui.label(f'{robotName}').classes('mb-5')
-                        ui.label(f'active').classes('mt-5')
-                    ui.space()
-                    with ui.card_actions():
-                        ui.button('Start', icon='play_arrow', color='positive').classes('m-1')
-                        ui.button('Stop', icon='stop', color='warning').classes('m-1')
-                        ui.button('Restart', icon='refresh', color='secondary').classes('m-1 mr-10')
+                    with ui.row(align_items='stretch').classes('w-full'):
+                        with ui.card_section():
+                            ui.label(f'{robotName}').classes('mb-5')
+                            ui.label(f'active').classes('mt-5')
+                        ui.space()
+                        with ui.card_actions():
+                            ui.button('Start', icon='play_arrow', color='positive').classes('m-1')
+                            ui.button('Stop', icon='stop', color='warning').classes('m-1')
+                            ui.button('Restart', icon='refresh', color='secondary').classes('m-1 mr-10')
 
-                        # def delete():
-                        #     self.remove_card(robotName)
-                        #     delete_robot()
+                            # def delete():
+                            #     self.remove_card(robotName)
+                            #     delete_robot()
 
-                        with ui.dropdown_button(icon='settings', color='secondary'):
-                            ui.item('Edit', on_click=editRobot.open)
-                            ui.item('Delete', on_click=None)
+                            with ui.dropdown_button(icon='settings', color='secondary'):
+                                ui.item('Edit', on_click=editRobot.open)
+                                ui.item('Delete', on_click=None)
 
     # def remove_card(self, robotName) -> None:
     #     self.destination.delete(robotName)
