@@ -6,7 +6,7 @@ from pathlib import Path
 import uuid
 from spiriSdk.dindocker import DockerInDocker
 from nicegui import run
-from spiriSdk.utils.daemon_utils import daemons
+from spiriSdk.utils.daemon_utils import daemons, init_daemons
 import shutil
 
 ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
@@ -27,7 +27,7 @@ def ensure_options_yaml():
                 services_path = Path(folder_path) / "services"
                 if not services_path.exists():
                     ui.notify(f"Services folder not found under {folder_path}", type="error")
-                    continue               
+                    continue
                 service_folders = [p for p in services_path.iterdir() if p.is_dir()]
                 if not service_folders:
                     ui.notify(f"No service folder found under {services_path}", type="error")
@@ -75,13 +75,13 @@ async def save_robot_config(robot_type, selected_options):
 
 async def delete_robot(robot_name) -> bool:
     robot_path = os.path.join(ROOT_DIR, "data", robot_name)
+    daemons = await init_daemons()
     daemon = daemons.pop(robot_name)
     daemon.cleanup()
     shutil.rmtree(robot_path)
     return True
 
 def display_robot_options(robot_name, selected_additions, selected_options, options_container):
-        print(daemons)
         ui.notify(f'Selected Robot: {robot_name}, Selected Addition: {addition}' for addition in selected_additions)
         options_path = os.path.join(ROBOTS_DIR, robot_name, 'options.yaml')
         if not os.path.exists(options_path):
