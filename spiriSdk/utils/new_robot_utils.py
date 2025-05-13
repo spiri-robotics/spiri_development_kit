@@ -6,6 +6,7 @@ from pathlib import Path
 import uuid
 from spiriSdk.dindocker import DockerInDocker
 from nicegui import run
+from spiriSdk.utils.daemon_utils import daemons
 
 ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 ROBOTS_DIR = os.path.join(ROOT_DIR, 'robots')
@@ -26,8 +27,6 @@ async def init_daemons(daemons: dict) -> dict:
         await run.io_bound(daemon.ensure_started)
 
     return daemons
-
-daemons = None
 
 # Get the list of robots dynamically from the robots folder
 robots = [folder for folder in os.listdir(ROBOTS_DIR) if os.path.isdir(os.path.join(ROBOTS_DIR, folder))]

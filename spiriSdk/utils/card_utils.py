@@ -1,22 +1,25 @@
 from nicegui import ui
-from spiriSdk.utils.new_robot_utils import daemons, delete_robot
+from spiriSdk.utils.daemon_utils import daemons
+from spiriSdk.utils.new_robot_utils import delete_robot
 from spiriSdk.pages.tools import prep_bot
 
 class RobotContainer:
 
-    def __init__(self, bigCard) -> None:
+    def __init__(self, bigCard, addRobot, editRobot) -> None:
         self.destination = bigCard
+        self.addRobot = addRobot
+        self.editRobot = editRobot
 
-    def displayAddButton(self, addRobot) -> None:
+    def displayAddButton(self) -> None:
         with self.destination:
-            ui.button('Add Robot', on_click=addRobot.open, color='secondary')
+            ui.button('Add Robot', on_click=self.addRobot.open, color='secondary')
             ui.button('actual add robot page', on_click=lambda: ui.navigate.to('/new_robots'), color='secondary')
 
-    def displayCards(self, addRobot, editRobot) -> None:
-        addRobot.close()
+    def displayCards(self) -> None:
+        self.addRobot.close()
         self.destination.clear()
         with self.destination:
-            self.displayAddButton(addRobot)
+            self.displayAddButton()
             for robotName in daemons:
                 with ui.card().classes('w-[calc(50vw-24px)]'):
                     with ui.card_section():
@@ -31,9 +34,15 @@ class RobotContainer:
                         ui.button("Add to World", icon='add', color='secondary').classes('m-1 mr-10').on_click(lambda: prep_bot(robotName))
 
                         def delete():
-                            self.remove_card(robotName)
                             delete_robot()
+                            self.displayCards() 
 
                         with ui.dropdown_button(icon='settings', color='secondary'):
-                            ui.item('Edit', on_click=editRobot.open)
+                            ui.item('Edit', on_click=self.editRobot.open)
                             ui.item('Delete', on_click=delete)
+
+    def assignAddRobot(self, addRobot) -> None:
+        self.addRobot = addRobot
+
+    def assignEditRobot(self, editRobot) -> None:
+        self.editRobot = editRobot
