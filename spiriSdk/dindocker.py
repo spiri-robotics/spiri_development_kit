@@ -52,9 +52,21 @@ class Container:
         if self.container is not None:
             # Container already running
             return
-
-        logger.info(f"Starting container {self.container_name} using image {self.image_name}")
+        
         try:
+            # Check if a container with the same name already exists
+            existing_containers = self.client.containers.list(all=True, filters={"name": self.container_name})
+            if existing_containers:
+                self.container = existing_containers[0]
+                if self.container.status == "running":
+                    logger.info(f"Container {self.container_name} is already running.")
+                    return
+                else:
+                    logger.info(f"Starting existing container {self.container_name}.")
+                    self.container.start()
+                    return
+            logger.info(f"Starting container {self.container_name} using image {self.image_name}")
+        
             self.container = self.client.containers.run(
                 image=self.image_name,
                 name=self.container_name,

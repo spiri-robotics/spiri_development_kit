@@ -1,8 +1,8 @@
 from nicegui import ui
 from spiriSdk.pages.styles import styles
 from spiriSdk.pages.header import header
-from spiriSdk.pages import new_robots #, selected_options, selected_robot
-from spiriSdk.utils.new_robot_utils import save_robot_config, init_daemons
+from spiriSdk.pages.new_robots import new_robots, selected_options, selected_robot
+from spiriSdk.utils.new_robot_utils import save_robot_config
 from spiriSdk.pages.edit_robot import edit_robot
 from spiriSdk.utils.card_utils import RobotContainer
 
@@ -12,7 +12,7 @@ async def manage_robots():
     await header()
     
     destination = ui.card().classes('w-full p-0 shadow-none')
-    container = RobotContainer(destination)
+    container = RobotContainer(destination, None, None)
 
     with ui.dialog() as editRobot, ui.card():
         await edit_robot()
@@ -22,16 +22,20 @@ async def manage_robots():
             ui.button('Cancel', on_click=editRobot.close)
             
     with ui.dialog() as addRobot, ui.card(align_items='stretch').classes('w-full'):
-        await new_robots.new_robots()
+        await new_robots()
 
         async def add_robot():
+            await save_robot_config(selected_robot, selected_options)
             addRobot.close()
-            await save_robot_config(new_robots.selected_robot, new_robots.selected_options)
-            container.displayCards(addRobot, editRobot)
+            await container.displayCards()   
+            ui.notify(f"Robot {selected_robot} added successfully!")
 
         with ui.card_actions().props('align=center'):
             ui.button('Cancel', color='secondary', on_click=addRobot.close)
             ui.button('Add', color='secondary', on_click=add_robot)
 
-    container.displayAddButton(addRobot)
-    container.displayCards(addRobot, editRobot)
+    container.assignAddRobot(addRobot)
+    container.assignEditRobot(editRobot)
+    container.displayAddButton()
+
+    await container.displayCards() 
