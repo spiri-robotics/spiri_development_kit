@@ -36,7 +36,7 @@ daemons = None
 # Get the list of robots dynamically from the robots folder
 robots = [folder for folder in os.listdir(ROBOTS_DIR) if os.path.isdir(os.path.join(ROBOTS_DIR, folder))]
 
-daemons = {'key1':'value1'}
+daemons = {}
 
 def ensure_options_yaml():
     robots = []
