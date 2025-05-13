@@ -7,7 +7,8 @@ DATA_DIR = os.path.join(ROOT_DIR, 'data')
 
 daemons = {}
 
-async def init_daemons(daemons: dict) -> dict:
+async def init_daemons() -> dict:
+    global daemons
     print("Initializing daemons...")
     if daemons:  # If it's already populated, do nothing
         return daemons
@@ -27,7 +28,7 @@ async def init_daemons(daemons: dict) -> dict:
 
 async def on_startup():
     global daemons
-    daemons = await init_daemons(daemons or {})
+    daemons = await init_daemons()
 
 async def on_shutdown():
     for daemon in daemons.values():
