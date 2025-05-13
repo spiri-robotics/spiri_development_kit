@@ -1,5 +1,5 @@
-from nicegui import ui
-from spiriSdk.utils.daemon_utils import daemons
+from nicegui import ui, run
+from spiriSdk.utils.daemon_utils import init_daemons, stop_container, start_container, restart_container, display_daemon_status
 from spiriSdk.utils.new_robot_utils import delete_robot
 from spiriSdk.pages.tools import prep_bot
 
@@ -16,6 +16,7 @@ class RobotContainer:
             ui.button('actual add robot page', on_click=lambda: ui.navigate.to('/new_robots'), color='secondary')
 
     async def displayCards(self) -> None:
+        daemons = await init_daemons()
         names = daemons.keys()
         print(names)
         self.addRobot.close()
@@ -27,12 +28,14 @@ class RobotContainer:
                     with ui.row(align_items='stretch').classes('w-full'):
                         with ui.card_section():
                             ui.label(f'{robotName}').classes('mb-5')
-                            ui.label(f'active').classes('mt-5')
+                            label_status = ui.label('Status: Loading...').classes('text-sm text-gray-500')
+                            status = await display_daemon_status(robotName)
+                            label_status.text = f'Status: {status}'
                         ui.space()
                         with ui.card_actions():
-                            ui.button('Start', icon='play_arrow', color='positive').classes('m-1')
-                            ui.button('Stop', icon='stop', color='warning').classes('m-1')
-                            ui.button('Restart', icon='refresh', color='secondary').classes('m-1 mr-10')
+                            ui.button('Start', on_click=lambda n=robotName: start_container(n), icon='play_arrow', color='positive').classes('m-1')
+                            ui.button('Stop', on_click=lambda n=robotName: stop_container(n), icon='stop', color='warning').classes('m-1')
+                            ui.button('Restart', on_click=lambda n=robotName: restart_container(n), icon='refresh', color='secondary').classes('m-1 mr-10')
 
                             ui.button("Add robot to world", on_click=lambda: prep_bot(robotName)).classes('m-1 mr-10')
 
