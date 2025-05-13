@@ -7,6 +7,7 @@ import uuid
 from spiriSdk.dindocker import DockerInDocker
 from nicegui import run
 from spiriSdk.utils.daemon_utils import daemons
+import shutil
 
 ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 ROBOTS_DIR = os.path.join(ROOT_DIR, 'robots')
@@ -72,11 +73,12 @@ async def save_robot_config(robot_type, selected_options):
 
     ui.notify(f"Saved config.env and started daemon for {folder_name}")
 
-async def delete_robot(robot_name):
+async def delete_robot(robot_name) -> bool:
     robot_path = os.path.join(ROOT_DIR, "data", robot_name)
     daemon = daemons.pop(robot_name)
     daemon.cleanup()
-    os.rmdir(robot_path)
+    shutil.rmtree(robot_path)
+    return True
 
 def display_robot_options(robot_name, selected_additions, selected_options, options_container):
         print(daemons)

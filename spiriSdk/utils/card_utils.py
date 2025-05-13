@@ -17,31 +17,37 @@ class RobotContainer:
 
     async def displayCards(self) -> None:
         daemons = await init_daemons()  # fetch up-to-date daemons dict
-        print(daemons.keys())
+        daemonNames = daemons.keys()
+        print(daemonNames)
         self.addRobot.close()
         self.destination.clear()
         with self.destination:
             self.displayAddButton()
-            for robotName in daemons:
-                with ui.card().classes('w-[calc(50vw-24px)]'):
-                    with ui.card_section():
-                        ui.label(f'{robotName}').classes('mb-5')
-                        ui.label(f'active').classes('mt-5')
-                    ui.space()
-                    with ui.card_actions():
-                        ui.button('Start', icon='play_arrow', color='positive').classes('m-1')
-                        ui.button('Stop', icon='stop', color='warning').classes('m-1')
-                        ui.button('Restart', icon='refresh', color='secondary').classes('m-1 mr-10')
+            for robotName in daemonNames:
+                with ui.card().classes('w-full'):
+                    with ui.row(align_items='stretch').classes('w-full'):
+                        with ui.card_section():
+                            ui.label(f'{robotName}').classes('mb-5')
+                            ui.label(f'active').classes('mt-5')
+                        ui.space()
+                        with ui.card_actions():
+                            ui.button('Start', icon='play_arrow', color='positive').classes('m-1')
+                            ui.button('Stop', icon='stop', color='warning').classes('m-1')
+                            ui.button('Restart', icon='refresh', color='secondary').classes('m-1 mr-10')
 
-                        ui.button("Add robot to world", on_click=lambda: prep_bot(robotName)).classes('m-1 mr-10')
+                            ui.button("Add robot to world", on_click=lambda: prep_bot(robotName)).classes('m-1 mr-10')
 
-                        async def delete():
-                            delete_robot()
-                            await self.displayCards() 
+                            async def delete():
+                                if await delete_robot(robotName):
+                                    ui.notify(f'{robotName} deleted')
+                                else:
+                                    ui.notify('error deleting robot')
 
-                        with ui.dropdown_button(icon='settings', color='secondary'):
-                            ui.item('Edit', on_click=self.editRobot.open)
-                            ui.item('Delete', on_click=delete)
+                                await self.displayCards()
+
+                            with ui.dropdown_button(icon='settings', color='secondary'):
+                                ui.item('Edit', on_click=self.editRobot.open)
+                                ui.item('Delete', on_click=delete)
 
     def assignAddRobot(self, addRobot) -> None:
         self.addRobot = addRobot
