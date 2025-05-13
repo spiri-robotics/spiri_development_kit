@@ -9,9 +9,6 @@ daemons = {}
 
 async def init_daemons() -> dict:
     global daemons
-    print("Initializing daemons...")
-    if daemons:  # If it's already populated, do nothing
-        return daemons
     
     daemons = {}
 
@@ -21,8 +18,6 @@ async def init_daemons() -> dict:
 
     for daemon in daemons.values():
         await run.io_bound(daemon.ensure_started)
-
-    #print(daemons.keys())
 
     return daemons
 

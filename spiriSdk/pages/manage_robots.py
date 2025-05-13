@@ -38,4 +38,4 @@ async def manage_robots():
     container.assignEditRobot(editRobot)
     container.displayAddButton()
 
-    await container.displayCards() 
+    await container.displayCards()
