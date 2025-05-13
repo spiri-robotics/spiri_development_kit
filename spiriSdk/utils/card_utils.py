@@ -18,7 +18,6 @@ class RobotContainer:
     async def displayCards(self) -> None:
         daemons = await init_daemons()  # fetch up-to-date daemons dict
         print(daemons.keys())
-        print(daemons.keys())
         self.addRobot.close()
         self.destination.clear()
         with self.destination:
