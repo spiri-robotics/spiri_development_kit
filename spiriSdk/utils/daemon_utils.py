@@ -21,6 +21,8 @@ async def init_daemons(daemons: dict) -> dict:
     for daemon in daemons.values():
         await run.io_bound(daemon.ensure_started)
 
+    print(daemons.keys())
+
     return daemons
 
 async def on_startup():

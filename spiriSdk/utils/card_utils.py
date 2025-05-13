@@ -16,6 +16,7 @@ class RobotContainer:
             ui.button('actual add robot page', on_click=lambda: ui.navigate.to('/new_robots'), color='secondary')
 
     def displayCards(self) -> None:
+        print("Displaying cards...")
         self.addRobot.close()
         self.destination.clear()
         with self.destination:
