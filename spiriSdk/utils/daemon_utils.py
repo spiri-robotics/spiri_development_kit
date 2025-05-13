@@ -1,6 +1,6 @@
 import os
 from spiriSdk.dindocker import DockerInDocker  
-from nicegui import run
+from nicegui import run, ui
 
 ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 DATA_DIR = os.path.join(ROOT_DIR, 'data')
@@ -22,8 +22,6 @@ async def init_daemons() -> dict:
     for daemon in daemons.values():
         await run.io_bound(daemon.ensure_started)
 
-    #print(daemons.keys())
-
     return daemons
 
 async def on_startup():
@@ -31,6 +29,20 @@ async def on_startup():
     daemons = await init_daemons()
 
 async def on_shutdown():
+    daemons = await init_daemons()
     for daemon in daemons.values():
         await run.io_bound(daemon.cleanup)
     daemons.clear()
+
+def start_container(robot_name: str):
+    run.io_bound(daemons[robot_name].ensure_started)
+    ui.notify(f"Container {robot_name} started.")
+
+def stop_container(robot_name: str):
+    run.io_bound(daemons[robot_name].container.stop)
+    ui.notify(f"Container {robot_name} stopped.")
+
+def restart_container(robot_name: str):
+    stop_container(robot_name)
+    start_container(robot_name)
+    ui.notify(f"Container {robot_name} restarted.")
