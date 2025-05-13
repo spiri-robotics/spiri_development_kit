@@ -10,23 +10,6 @@ from spiriSdk.utils.daemon_utils import daemons
 
 ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 ROBOTS_DIR = os.path.join(ROOT_DIR, 'robots')
-DATA_DIR = os.path.join(ROOT_DIR, 'data')
-
-async def init_daemons(daemons: dict) -> dict:
-    print("Initializing daemons...")
-    if daemons:  # If it's already populated, do nothing
-        return daemons
-    
-    daemons = {}
-
-    for robot_name in os.listdir(DATA_DIR):
-        if os.path.isdir(os.path.join(DATA_DIR, robot_name)):
-            daemons[robot_name] = DockerInDocker("docker:dind", robot_name)
-
-    for daemon in daemons.values():
-        await run.io_bound(daemon.ensure_started)
-
-    return daemons
 
 # Get the list of robots dynamically from the robots folder
 robots = [folder for folder in os.listdir(ROBOTS_DIR) if os.path.isdir(os.path.join(ROBOTS_DIR, folder))]
