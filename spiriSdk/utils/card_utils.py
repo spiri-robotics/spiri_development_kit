@@ -1,7 +1,7 @@
 from nicegui import ui
 from spiriSdk.utils.daemon_utils import daemons, init_daemons
 from spiriSdk.utils.new_robot_utils import delete_robot
-from spiriSdk.pages.tools import prep_bot
+from spiriSdk.pages.tools import tools, prep_bot
 
 class RobotContainer:
 
@@ -10,10 +10,12 @@ class RobotContainer:
         self.addRobot = addRobot
         self.editRobot = editRobot
 
-    def displayAddButton(self) -> None:
+    async def displayButtons(self) -> None:
         with self.destination:
-            ui.button('Add Robot', on_click=self.addRobot.open, color='secondary')
-            ui.button('actual add robot page', on_click=lambda: ui.navigate.to('/new_robots'), color='secondary')
+            with ui.row().classes('justify-items-stretch w-full'):
+                ui.button('Add Robot', on_click=self.addRobot.open, color='secondary').classes('text-base')
+                ui.space()
+                await tools()
 
     async def displayCards(self) -> None:
         daemons = await init_daemons()  # fetch up-to-date daemons dict
@@ -21,7 +23,7 @@ class RobotContainer:
         self.addRobot.close()
         self.destination.clear()
         with self.destination:
-            self.displayAddButton()
+            await self.displayButtons()
             for robotName in names:
                 with ui.card().classes('w-full'):
                     with ui.row(align_items='stretch').classes('w-full'):
