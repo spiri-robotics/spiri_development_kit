@@ -25,10 +25,8 @@ def on_select(robot_name: str):
         display_robot_options(robot_name, selected_additions, selected_options, options_container)
         return selected_robot
 
-@ui.page('/new_robots')
-async def new_robots():
-    await styles()
-    
+@ui.refreshable
+def display_fields():
     ui.label('New Robot').classes('text-h5')
     with ui.row().classes('w-full'):
         global nameInput
@@ -39,8 +37,24 @@ async def new_robots():
     global options_container
     options_container = ui.column()
     
-    ui.button('back to manage page', color='secondary', on_click=lambda: ui.navigate.to('/'))
+    ui.button('back to manage page', color='secondary', on_click=lambda: ui.navigate.to('/')).classes('text-base')
+
+@ui.page('/new_robots')
+async def new_robots():
+    await styles()
+    
+    display_fields()
+    # ui.label('New Robot').classes('text-h5')
+    # with ui.row().classes('w-full'):
+    #     global nameInput
+    #     global typeInput
+    #     nameInput = ui.input('Robot Name', placeholder='eg. drone #3, front door camera, etc.').classes('w-[calc(50%-8px)]')
+    #     typeInput = ui.select([f'{robot}' for robot in robots], label='Select robot type', on_change=lambda e: on_select(e.value)).classes('w-[calc(50%-8px)]')
+
+    # global options_container
+    # options_container = ui.column()
+    
+    # ui.button('back to manage page', color='secondary', on_click=lambda: ui.navigate.to('/')).classes('text-base')
 
 async def clear_fields():
-    nameInput.clear()
-    typeInput.clear()
+    display_fields.refresh()

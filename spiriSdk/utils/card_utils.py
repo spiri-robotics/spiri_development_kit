@@ -28,8 +28,8 @@ class RobotContainer:
                 with ui.card().classes('w-full'):
                     with ui.row(align_items='stretch').classes('w-full'):
                         with ui.card_section():
-                            ui.label(f'{robotName}').classes('mb-5')
-                            label_status = ui.label('Status: Loading...').classes('text-sm text-gray-500')
+                            ui.label(f'{robotName}').classes('mb-5 text-lg font-semibold text-gray-900 dark:text-gray-100')
+                            label_status = ui.label('Status: Loading...').classes('text-sm text-gray-600 dark:text-gray-300')
 
                             async def update_status(name, label):
                                 status = await display_daemon_status(name)
@@ -61,7 +61,7 @@ class RobotContainer:
                             ui.button('Stop', on_click=make_stop, icon='stop', color='warning').classes('m-1')
                             ui.button('Restart', on_click=make_restart, icon='refresh', color='secondary').classes('m-1 mr-10')
 
-                            ui.button("Add robot to world", on_click=lambda: prep_bot(robotName)).classes('m-1 mr-10')
+                            ui.button("Add robot to world", on_click=lambda: prep_bot(), color='secondary').classes('m-1 mr-10')
 
                             async def delete(n):
                                 if await delete_robot(n):

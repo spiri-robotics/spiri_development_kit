@@ -13,7 +13,7 @@ async def home():
     await styles()
     await header()
     
-    destination = ui.card().classes('w-full p-0 shadow-none')
+    destination = ui.card().classes('w-full p-0 shadow-none dark:bg-[#212428]')
     container = RobotContainer(destination, None, None)
 
     with ui.dialog() as editRobot, ui.card():
@@ -22,7 +22,7 @@ async def home():
         with ui.card_actions().props('align=stretch'):
             ui.button('Save', on_click=editRobot.close)
             ui.button('Cancel', on_click=editRobot.close)
-            
+
     with ui.dialog() as addRobot, ui.card(align_items='stretch').classes('w-full'):
         await new_robots()
 
@@ -40,8 +40,8 @@ async def home():
             ui.notify(f"Robot {selected_robot} added successfully!")
 
         with ui.card_actions().props('align=center'):
-            ui.button('Cancel', color='secondary', on_click=addRobot.close)
-            ui.button('Add', color='secondary', on_click=lambda e: add_robot(e.sender))
+            ui.button('Cancel', color='secondary', on_click=addRobot.close).classes('text-base')
+            ui.button('Add', color='secondary', on_click=lambda e: add_robot(e.sender)).classes('text-base')
 
     container.assignAddRobot(addRobot)
     container.assignEditRobot(editRobot)

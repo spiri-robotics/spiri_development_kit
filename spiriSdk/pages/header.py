@@ -95,7 +95,7 @@ def wifi_icon(signal):
 
 async def header():
 
-    with ui.header().classes('content-center'):
+    with ui.header().classes('content-center border-b-4 border-[#274c77]'):
         ui.button('actual add robot page', on_click=lambda: ui.navigate.to('/new_robots'), color='secondary').classes('text-base')
         ui.space()
 
