@@ -53,10 +53,13 @@ class Container:
         Raises:
             RuntimeError: If container fails to start
         """
+
+        print(self.container)
         
         try:
             # Check if a container with the same name already exists
             if self.container is None:
+                print(f"Container name: {self.container_name}")
                 existing_containers = self.client.containers.list(all=True, filters={"name": self.container_name})
                 if existing_containers:
                     self.container = existing_containers[0]
@@ -86,14 +89,19 @@ class Container:
                         docker_args["entrypoint"] = self.entrypoint
 
                     self.container = self.client.containers.run(**docker_args)
-            else:   
-                self.container.reload()
-                if self.container.status != "running":
-                    logger.info(f"Starting container {self.container_name}...")
-                    self.container.start()
-                else:
-                    logger.info(f"Container {self.container_name} is already running.")
-                    return
+            else:
+                try:
+                    self.container.reload()
+                    if self.container.status != "running":
+                        print(f"Starting container {self.container_name}...")
+                        self.container.start()
+                    else:
+                        print(f"Container {self.container_name} is already running.")
+                        return
+                except docker.errors.NotFound:
+                    print(f"Container {self.container_name} not found (probably auto-removed). Recreating...")
+                    self.container = None
+                    return self.ensure_started()  # retry from beginning
         except Exception as e:
             raise RuntimeError(f"Failed to start container: {str(e)}")
 

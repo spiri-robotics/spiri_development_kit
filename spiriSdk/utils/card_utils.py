@@ -49,13 +49,14 @@ class RobotContainer:
                         ui.space()
                         with ui.card_actions():
                             def make_stop(robot=robotName):
-                                stop_container(robot)
+                                daemons[robot].container.stop()
 
                             def make_start(robot=robotName):
                                 start_container(robot)
 
                             def make_restart(robot=robotName):
-                                restart_container(robot)
+                                make_stop(robot)
+                                make_start(robot)
                             ui.button('Start', on_click=make_start, icon='play_arrow', color='positive').classes('m-1')
                             ui.button('Stop', on_click=make_stop, icon='stop', color='warning').classes('m-1')
                             ui.button('Restart', on_click=make_restart, icon='refresh', color='secondary').classes('m-1 mr-10')

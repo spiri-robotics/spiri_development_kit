@@ -28,6 +28,8 @@ async def on_shutdown():
     daemons.clear()
 
 def start_container(robot_name: str):
+    print(f"Starting container for {robot_name}...")
+    print(f"type of daemon: {type(daemons[robot_name])}")
     daemons[robot_name].ensure_started()
     ui.notify(f"Container {robot_name} started.")
 
