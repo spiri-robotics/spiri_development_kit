@@ -1,7 +1,7 @@
 from nicegui import ui, run
 from spiriSdk.utils.daemon_utils import daemons, stop_container, start_container, restart_container, display_daemon_status
 from spiriSdk.utils.new_robot_utils import delete_robot
-from spiriSdk.pages.tools import prep_bot
+from spiriSdk.pages.tools import tools, prep_bot
 import asyncio
 
 class RobotContainer:
@@ -11,18 +11,19 @@ class RobotContainer:
         self.addRobot = addRobot
         self.editRobot = editRobot
 
-    def displayAddButton(self) -> None:
+    async def displayButtons(self) -> None:
         with self.destination:
-            ui.button('Add Robot', on_click=self.addRobot.open, color='secondary')
-            ui.button('actual add robot page', on_click=lambda: ui.navigate.to('/new_robots'), color='secondary')
+            with ui.row().classes('justify-items-stretch w-full'):
+                ui.button('Add Robot', on_click=self.addRobot.open, color='secondary').classes('text-base')
+                ui.space()
+                await tools()
 
     async def displayCards(self) -> None:
         names = daemons.keys()
-        print(names)
         self.addRobot.close()
         self.destination.clear()
         with self.destination:
-            self.displayAddButton()
+            await self.displayButtons()
             for robotName in names:
                 with ui.card().classes('w-full'):
                     with ui.row(align_items='stretch').classes('w-full'):
@@ -65,10 +66,9 @@ class RobotContainer:
                             async def delete(n):
                                 if await delete_robot(n):
                                     ui.notify(f'{n} deleted')
+                                    await self.displayCards()
                                 else:
                                     ui.notify('error deleting robot')
-
-                                await self.displayCards()
 
                             with ui.dropdown_button(icon='settings', color='secondary'):
                                 ui.item('Edit', on_click=self.editRobot.open)
