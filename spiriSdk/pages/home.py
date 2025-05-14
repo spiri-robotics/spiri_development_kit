@@ -26,14 +26,9 @@ async def home():
         await new_robots()
 
         async def add_robot():
-            await save_robot_config(selected_robot, selected_options)
-            addRobot.close()
-            await container.displayCards()   
-            ui.notify(f"Robot {selected_robot} added successfully!")
-
-        with ui.card_actions().props('align=center'):
-            ui.button('Cancel', color='secondary', on_click=addRobot.close)
-            ui.button('Add', color='secondary', on_click=add_robot)
+            with ui.card_actions().props('align=center'):
+                ui.button('Cancel', color='secondary', on_click=addRobot.close)
+                ui.button('Add', color='secondary', on_click=add_robot)
 
     container.assignAddRobot(addRobot)
     container.assignEditRobot(editRobot)

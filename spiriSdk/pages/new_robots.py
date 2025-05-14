@@ -27,8 +27,8 @@ async def new_robots():
     
     ui.label('New Robot').classes('text-h5')
     with ui.row().classes('w-full'):
-        ui.input('Robot Name', placeholder='Enter robot name').classes('w-[400px]')
-        ui.select([f'{robot}' for robot in robots], label='Select robot type', on_change=lambda e: on_select(e.value)).classes('w-[400px]')
+        ui.input('Robot Name', placeholder='eg. drone #3, front door camera, etc.').classes('w-[calc(50%-8px)]')
+        ui.select([f'{robot}' for robot in robots], label='Select robot type', on_change=lambda e: on_select(e.value)).classes('w-[calc(50%-8px)]')
 
     options_container = ui.column()
 
