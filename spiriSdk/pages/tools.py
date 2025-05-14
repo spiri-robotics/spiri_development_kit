@@ -1,7 +1,10 @@
+from functools import partial
 from nicegui import ui, binding, app, run
 from spiriSdk.pages.styles import styles
 from spiriSdk.pages.header import header
 from spiriSdk.utils.gazebo_models import Robot
+from spiriSdk.utils.gazebo_worlds import World
+from spiriSdk.utils.gazebo_worlds import find_worlds
 import time
 import docker
 import subprocess
@@ -15,67 +18,72 @@ applications = {
 }
 
 robots = []
-
 worlds = {}
-
 running_worlds = [['','']]
+selected_dir = {'empty_world': 'empty_world.world'}
 
-def launch_app(command):
+def launch_app(command): 
+    """Run command to start applications with the exception of gazebo"""
     try:
         subprocess.Popen(command)
     except FileNotFoundError:
         print(f"Command not found: {command}. Make sure it is installed and available in the PATH.")
 
-async def find_worlds(p = Path('./worlds')):
-    try:
-        for subdir in p.iterdir():
-            world_in_dir = []
-            if subdir.is_dir():
-                for world in subdir.rglob('*.world'):
-                    worlds.update({subdir.name:world.name})
-        print(worlds)
-    except FileNotFoundError:
-        print(f"Directory not found: {p}. Make sure it exists.")
-        return []
+async def prep_bot(world_spawn: str =None) -> None: 
+    """Create a new robot and add it to the world"""
+    if world_spawn is None:
+        #Tells the robot which world to add it to. Will eventually be changed to a list of running worlds
+        world_spawn = running_worlds[0][0] 
+    robot_number = len(robots) + 1
 
-async def run_world(dir, name, auto_run):
-    try:
-        if auto_run == 'Running':
-            cmd = ['gz', 'sim', '-r', f'./worlds/{dir}/worlds/{name}']
-        else:
-            cmd = ['gz', 'sim', f'./worlds/{dir}/worlds/{name}']
-        running_worlds.clear()
-        running_worlds.append([dir, name])
-
-        launch_app(cmd)
-        return None
-        
-    except FileNotFoundError:
-        print(f"File not found: {name}. Make sure it is installed and available in the PATH.")
-
-async def prep_bot(world=None):
-    if world is None:
-        world = running_worlds[0][0]
-    robot_number = len(robots) + 1 
-    mu = Robot('spiri_mu', robot_number)
+    mu = Robot('spiri_mu_', robot_number)
+    
     robots.append(mu)
-    await mu.launch_robot(world)
-    print(f"Robot {mu.name}{mu.number} added to the world '{world}'")
+    
+    await mu.launch_robot(world_spawn)
+    print(f"Robot {mu.name}{mu.number} added to the world '{world_spawn}'")
     return None
+
+def select_world(dir) -> World: 
+    """Might look dumb but allows the ui selection element to return a world object"""
+    return World(dir, worlds[dir])
 
 @ui.page('/tools')
 async def tools():
+    
+    worlds = await find_worlds() #Sets worlds to the dict of gazebo worlds found in the worlds directory
+    
     with ui.dialog() as gz_dialog, ui.card():
+    
         with ui.card().props('').classes('rounded-lg'):
             ui.label('World Start Time State').props('class="text-lg text-center"')
-            world_auto_run = ui.toggle(['Running', 'Paused'], value='Paused')
+
+            #variable to tell the world time whether to initially run or not
+            world_auto_run = ui.toggle(['Running', 'Paused'], value='Paused') 
+    
         with ui.card().props('').classes('rounded-lg'):
-            with ui.dropdown_button('worlds', auto_close=True).classes('text-lg text-center'):
-                await find_worlds()
-                for dir, name in worlds.items():
-                    ui.item(name, on_click=lambda dir=dir, name=name: run_world(dir, name, world_auto_run.value))
+            w = ui.select(list(worlds.keys()))
+            
+            async def start_and_close(): 
+                """function to combine starting the world and closing the dialog"""
+                selected = w.value
+                selected_world = worlds[selected]
+                print(f"Selected world: {selected_world.get_name()}")
+                running_worlds.clear()
+
+                # Set running_worlds to the world that was selected as well as start running the gazebo simulation
+                running_worlds.append(await selected_world.run_world(world_auto_run.value)) 
+                
+                gz_dialog.close()
+            
+            ui.button('Start World', 
+                      on_click=start_and_close,
+                      color='warning'
+                      ).classes('rounded-1/2')
+    
     await styles()
     await header()
+
     with ui.grid(columns=3):
         for app_name, command in applications.items():
             with ui.button(on_click=lambda cmd=command: launch_app(cmd), color='warning').classes('rounded-1/2'):   # old color for all 3: color='#20788a'
