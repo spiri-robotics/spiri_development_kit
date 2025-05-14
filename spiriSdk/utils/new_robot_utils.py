@@ -69,12 +69,12 @@ async def save_robot_config(robot_type, selected_options):
 
     new_daemon = DockerInDocker(image_name="docker:dind", container_name=folder_name)
     await run.io_bound(new_daemon.ensure_started)
+    daemons[folder_name] = new_daemon
 
     ui.notify(f"Saved config.env and started daemon for {folder_name}")
 
 async def delete_robot(robot_name) -> bool:
     robot_path = os.path.join(ROOT_DIR, "data", robot_name)
-    daemons = await init_daemons()
     daemon = daemons.pop(robot_name)
     daemon.cleanup()
     shutil.rmtree(robot_path)

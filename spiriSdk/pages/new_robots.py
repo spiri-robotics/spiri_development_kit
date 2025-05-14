@@ -12,11 +12,11 @@ selected_options = {}
 selected_robot = None
 selected_additions = []
 
-@ui.page('/new_robots')
-async def new_robots():
-    await styles()
+nameInput = None
+typeInput = None
+options_container = None
 
-    def on_select(robot_name: str):
+def on_select(robot_name: str):
         selected_robot = robot_name
         selected_additions.clear()
         selected_options.clear()
@@ -24,14 +24,23 @@ async def new_robots():
         selected_additions.append(robot_name)
         display_robot_options(robot_name, selected_additions, selected_options, options_container)
         return selected_robot
+
+@ui.page('/new_robots')
+async def new_robots():
+    await styles()
     
     ui.label('New Robot').classes('text-h5')
     with ui.row().classes('w-full'):
-        ui.input('Robot Name', placeholder='eg. drone #3, front door camera, etc.').classes('w-[calc(50%-8px)]')
-        ui.select([f'{robot}' for robot in robots], label='Select robot type', on_change=lambda e: on_select(e.value)).classes('w-[calc(50%-8px)]')
+        global nameInput
+        global typeInput
+        nameInput = ui.input('Robot Name', placeholder='eg. drone #3, front door camera, etc.').classes('w-[calc(50%-8px)]')
+        typeInput = ui.select([f'{robot}' for robot in robots], label='Select robot type', on_change=lambda e: on_select(e.value)).classes('w-[calc(50%-8px)]')
 
+    global options_container
     options_container = ui.column()
-
-    #Old add button: ui.button('Add Robot', color='secondary', on_click=lambda: save_robot_config(selected_robot, selected_options)).classes('q-mt-md')
     
     ui.button('back to manage page', color='secondary', on_click=lambda: ui.navigate.to('/'))
+
+async def clear_fields():
+    nameInput.clear()
+    typeInput.clear()
