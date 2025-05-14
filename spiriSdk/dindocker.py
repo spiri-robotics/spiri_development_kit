@@ -11,7 +11,6 @@ import uuid
 from pathlib import Path
 from typing import Optional, Dict, Any
 from loguru import logger
-import json
 
 
 from dataclasses import dataclass, field
@@ -64,10 +63,10 @@ class Container:
                 if existing_containers:
                     self.container = existing_containers[0]
                     if self.container.status == "running":
-                        logger.info(f"Container {self.container_name} is already running.")
+                        print(f"Container {self.container_name} is already running.")
                         return
                     else:
-                        logger.info(f"Starting existing container {self.container_name}.")
+                        print(f"Starting existing container {self.container_name}.")
                         self.container.start()
                         return
                 else:
@@ -99,6 +98,10 @@ class Container:
                         print(f"Container {self.container_name} is already running.")
                         return
                 except docker.errors.NotFound:
+                    print(f"Container {self.container_name} not found (probably auto-removed). Recreating...")
+                    self.container = None
+                    return self.ensure_started()  # retry from beginning
+        except docker.errors.NotFound:
                     print(f"Container {self.container_name} not found (probably auto-removed). Recreating...")
                     self.container = None
                     return self.ensure_started()  # retry from beginning

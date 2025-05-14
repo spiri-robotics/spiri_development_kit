@@ -27,19 +27,19 @@ async def on_shutdown():
         await run.io_bound(daemon.cleanup)
     daemons.clear()
 
-def start_container(robot_name: str):
+async def start_container(robot_name: str):
     print(f"Starting container for {robot_name}...")
     print(f"type of daemon: {type(daemons[robot_name])}")
-    daemons[robot_name].ensure_started()
+    await run.io_bound(daemons[robot_name].ensure_started)
     ui.notify(f"Container {robot_name} started.")
 
 def stop_container(robot_name: str):
     daemons[robot_name].container.stop()
     ui.notify(f"Container {robot_name} stopped.")
 
-def restart_container(robot_name: str):
+async def restart_container(robot_name: str):
     stop_container(robot_name)
-    start_container(robot_name)
+    await start_container(robot_name)
     ui.notify(f"Container {robot_name} restarted.")
 
 async def display_daemon_status(robot_name):
