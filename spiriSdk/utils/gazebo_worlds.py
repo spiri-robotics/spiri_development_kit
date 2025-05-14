@@ -4,6 +4,7 @@ import os
 
 
 async def find_worlds(p: str = Path('./worlds')) -> dict:
+    """Find all worlds in the given directory."""
     worlds = {'empty_world': World('empty_world.world', 'empty_world')}
     try:
         for subdir in p.iterdir():
@@ -25,7 +26,9 @@ class World:
 
     def get_name(self) -> str:
         return self.name
+    
     async def run_world(self, auto_run: str = '') -> list:
+        """Run world in Gazebo simulator."""
         print(f"Running world: {self.name}")
         try:
             if auto_run == 'Running':

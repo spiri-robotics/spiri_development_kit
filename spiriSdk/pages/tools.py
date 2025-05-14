@@ -12,14 +12,16 @@ import asyncio
 import spiriSdk.icons as icons
 from pathlib import Path
 
+#Commands to run applications
 applications = {
     'rqt': ['rqt'],
     'rvis2': ['rviz2']
 }
 
+#Arrays to hold temporary information for page such as robots and worlds
 robots = []
 worlds = {}
-running_worlds = [['','']]
+running_worlds = [['empty_world','empty_world.world']]
 selected_dir = {'empty_world': 'empty_world.world'}
 
 def launch_app(command): 
@@ -29,14 +31,16 @@ def launch_app(command):
     except FileNotFoundError:
         print(f"Command not found: {command}. Make sure it is installed and available in the PATH.")
 
-async def prep_bot(world_spawn: str =None) -> None: 
-    """Create a new robot and add it to the world"""
+async def prep_bot(robot_name: str ='mu') -> None: 
+    """Create a new robot and send it to launch function to be added to the world"""
+    world_spawn = None
     if world_spawn is None:
+
         #Tells the robot which world to add it to. Will eventually be changed to a list of running worlds
         world_spawn = running_worlds[0][0] 
     robot_number = len(robots) + 1
 
-    mu = Robot('spiri_mu_', robot_number)
+    mu = Robot(robot_name, robot_number)
     
     robots.append(mu)
     
@@ -50,8 +54,9 @@ def select_world(dir) -> World:
 
 @ui.page('/tools')
 async def tools():
-    
-    worlds = await find_worlds() #Sets worlds to the dict of gazebo worlds found in the worlds directory
+
+    #Sets worlds to the dict of gazebo worlds found in the worlds directory
+    worlds = await find_worlds() 
     
     with ui.dialog() as gz_dialog, ui.card():
     
@@ -59,10 +64,10 @@ async def tools():
             ui.label('World Start Time State').props('class="text-lg text-center"')
 
             #variable to tell the world time whether to initially run or not
-            world_auto_run = ui.toggle(['Running', 'Paused'], value='Paused') 
+            world_auto_run = ui.toggle(['Running', 'Paused'], value='Paused') .props('class="text-lg text-center"')
     
         with ui.card().props('').classes('rounded-lg'):
-            w = ui.select(list(worlds.keys()))
+            w = ui.select(list(worlds.keys()), value='empty_world').props('class="text-lg text-center"')
             
             async def start_and_close(): 
                 """function to combine starting the world and closing the dialog"""
@@ -79,7 +84,7 @@ async def tools():
             ui.button('Start World', 
                       on_click=start_and_close,
                       color='warning'
-                      ).classes('rounded-1/2')
+                      ).props('class="text-lg text-center"').classes('rounded-1/2')
     
     await styles()
     await header()
