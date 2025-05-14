@@ -12,7 +12,6 @@ daemons = {}
 async def init_daemons() -> dict:
     global daemons
     print("Initializing Daemons...")
-
     for robot_name in os.listdir(DATA_DIR):
         if os.path.isdir(os.path.join(DATA_DIR, robot_name)):
             daemons[robot_name] = DockerInDocker("docker:dind", robot_name)
@@ -30,7 +29,6 @@ async def on_shutdown():
 
 async def start_container(robot_name: str):
     print(f"Starting container for {robot_name}...")
-    print(f"type of daemon: {type(daemons[robot_name])}")
     await run.io_bound(daemons[robot_name].ensure_started)
     ui.notify(f"Container {robot_name} started.")
 

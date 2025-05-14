@@ -1,6 +1,8 @@
 x-spiri-sdk-doc: |
   Runs the core services for a simulated Spiri Mu  
 
+x-spiri-sdk-autostart: True
+
 services:
   ardupilot:
     image: git.spirirobotics.com/spiri/ardupilot:spiri-master

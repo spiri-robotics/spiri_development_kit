@@ -18,7 +18,6 @@ class RobotContainer:
 
     async def displayCards(self) -> None:
         names = daemons.keys()
-        print(names)
         self.addRobot.close()
         self.destination.clear()
         with self.destination:
@@ -27,8 +26,8 @@ class RobotContainer:
                 with ui.card().classes('w-full'):
                     with ui.row(align_items='stretch').classes('w-full'):
                         with ui.card_section():
-                            ui.label(f'{robotName}').classes('mb-5')
-                            label_status = ui.label('Status: Loading...').classes('text-sm text-gray-500')
+                            ui.label(f'{robotName}').classes('text- mb-5')
+                            label_status = ui.label('Status: Loading...').classes('text-sm text-gray-200')
 
                             async def update_status(name, label):
                                 status = await display_daemon_status(name)
@@ -73,7 +72,18 @@ class RobotContainer:
                             with ui.dropdown_button(icon='settings', color='secondary'):
                                 ui.item('Edit', on_click=self.editRobot.open)
                                 ui.item('Delete', on_click=lambda n=robotName: delete(n))
-
+                    with ui.row().classes('w-full'):
+                        with ui.card_section():
+                            command = f"Docker services command: unix:///tmp/dind-sockets/{robotName}.socket"
+                            def copy_text(robot=robotName):
+                                command = f"Docker services command: unix:///tmp/dind-sockets/{robot}.socket"
+                                ui.run_javascript(f'''
+                                    navigator.clipboard.writeText("{command}");
+                                ''')
+                                ui.notify("Copied to clipboard!")
+                            ui.label(command).classes('text-sm text-gray-200')
+                        ui.button("Copy to Clipboard", on_click=copy_text, color='secondary').classes('m-1 mr-10')
+                            
     def assignAddRobot(self, addRobot) -> None:
         self.addRobot = addRobot
 
