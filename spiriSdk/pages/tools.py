@@ -1,7 +1,10 @@
+from functools import partial
 from nicegui import ui, binding, app, run
 from spiriSdk.pages.styles import styles
 from spiriSdk.pages.header import header
 from spiriSdk.utils.gazebo_models import Robot
+from spiriSdk.utils.gazebo_worlds import World
+from spiriSdk.utils.gazebo_worlds import find_worlds
 import time
 import docker
 import subprocess
@@ -20,38 +23,13 @@ worlds = {}
 
 running_worlds = [['','']]
 
+selected_dir = {'empty_world': 'empty_world.world'}
+
 def launch_app(command):
     try:
         subprocess.Popen(command)
     except FileNotFoundError:
         print(f"Command not found: {command}. Make sure it is installed and available in the PATH.")
-
-async def find_worlds(p = Path('./worlds')):
-    try:
-        for subdir in p.iterdir():
-            world_in_dir = []
-            if subdir.is_dir():
-                for world in subdir.rglob('*.world'):
-                    worlds.update({subdir.name:world.name})
-        print(worlds)
-    except FileNotFoundError:
-        print(f"Directory not found: {p}. Make sure it exists.")
-        return []
-
-async def run_world(dir, name, auto_run):
-    try:
-        if auto_run == 'Running':
-            cmd = ['gz', 'sim', '-r', f'./worlds/{dir}/worlds/{name}']
-        else:
-            cmd = ['gz', 'sim', f'./worlds/{dir}/worlds/{name}']
-        running_worlds.clear()
-        running_worlds.append([dir, name])
-
-        launch_app(cmd)
-        return None
-        
-    except FileNotFoundError:
-        print(f"File not found: {name}. Make sure it is installed and available in the PATH.")
 
 async def prep_bot(world=None):
     if world is None:
@@ -63,17 +41,31 @@ async def prep_bot(world=None):
     print(f"Robot {mu.name}{mu.number} added to the world '{world}'")
     return None
 
+def select_world(dir):
+    return World(dir, worlds[dir])
+
 @ui.page('/tools')
 async def tools():
+    worlds = await find_worlds()
     with ui.dialog() as gz_dialog, ui.card():
         with ui.card().props('').classes('rounded-lg'):
             ui.label('World Start Time State').props('class="text-lg text-center"')
             world_auto_run = ui.toggle(['Running', 'Paused'], value='Paused')
         with ui.card().props('').classes('rounded-lg'):
-            with ui.dropdown_button('worlds', auto_close=True).classes('text-lg text-center'):
-                await find_worlds()
-                for dir, name in worlds.items():
-                    ui.item(name, on_click=lambda dir=dir, name=name: run_world(dir, name, world_auto_run.value))
+            w = ui.select(
+                list(worlds.keys())
+            )
+            async def start_and_close():
+                selected = w.value
+                print(selected)
+                selected_world = World(worlds[selected], selected)
+                running_worlds.clear()
+                running_worlds.append(await selected_world.run_world(world_auto_run.value))
+                gz_dialog.close()
+            ui.button('Start World', 
+                      on_click=start_and_close,
+                      color='warning'
+                      ).classes('rounded-1/2')
     await styles()
     await header()
     with ui.grid(columns=3):
