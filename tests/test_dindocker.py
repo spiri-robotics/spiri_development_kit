@@ -215,3 +215,21 @@ def test_registry_proxy_certificate():
         # Verify the certificate is stable across multiple calls
         cert2 = registry_proxy.get_cacert()
         assert cert == cert2, "Certificate should be stable across multiple calls"
+
+def test_socket_creation(dind):
+    """Test that the Docker socket is created in the specified directory."""
+    # Get the socket path from the container's command
+    socket_name = f"{dind.container_name}.socket"
+    socket_path = dind.socket_dir / socket_name
+    
+    # Verify socket exists on host
+    assert socket_path.exists(), f"Socket file {socket_path} should exist on host"
+    assert socket_path.is_socket(), f"{socket_path} should be a socket file"
+    
+    # Verify socket exists in container
+    result = dind.container.exec_run(f"ls -la /dind-sockets/{socket_name}")
+    assert result.exit_code == 0, f"Failed to list socket in container: {result.output.decode()}"
+    
+    # Verify socket permissions (should be 666)
+    host_perms = oct(socket_path.stat().st_mode)[-3:]
+    assert host_perms == '666', f"Socket should have 666 permissions, got {host_perms}"
