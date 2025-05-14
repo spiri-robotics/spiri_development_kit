@@ -86,10 +86,8 @@ async def tools():
 
     with ui.grid(columns=3):
         for app_name, command in applications.items():
-            with ui.button(on_click=lambda cmd=command: launch_app(cmd), color='warning').classes('rounded-1/2'):   # old color for all 3: color='#20788a'
-                ui.label(app_name).classes('text-lg text-center')
-        with ui.button(on_click=gz_dialog.open, color='warning').classes('rounded-1/2'):
-            ui.label('Launch Gazebo').classes('text-lg text-center')
-        ui.button("add mu", on_click=lambda: prep_bot(), color='warning').classes('text-lg rounded-1/2')
+            ui.button(f'{app_name}', on_click=lambda cmd=command: launch_app(cmd), color='secondary').classes('text-base')  # old color for all 3: color='#20788a'
+        ui.button('Launch Gazebo', on_click=gz_dialog.open, color='secondary').classes('text-base')
+        ui.button('Add Mu', on_click=lambda: prep_bot(), color='secondary').classes('text-base')
             
         
