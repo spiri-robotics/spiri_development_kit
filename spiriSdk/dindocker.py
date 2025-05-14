@@ -16,6 +16,8 @@ import json
 
 from dataclasses import dataclass, field
 
+CURRENT_PRIMARY_GROUP = os.getgid()
+
 @dataclass
 class Container:
     """Base container management class with common functionality."""
@@ -31,6 +33,8 @@ class Container:
     ports: Dict[str, Optional[int]] = field(default_factory=dict)
     ready_timeout: int = field(default=30)
     sdk_root: Path = field(default_factory=lambda: Path(os.environ.get("SDK_ROOT", ".")).resolve())
+    command: Optional[str] = field(default=None)
+    entrypoint: Optional[str] = field(default=None)
 
     def __post_init__(self):
         """Register cleanup handler after initialization."""
@@ -67,16 +71,22 @@ class Container:
                     return
             logger.info(f"Starting container {self.container_name} using image {self.image_name}")
         
-            self.container = self.client.containers.run(
-                image=self.image_name,
-                name=self.container_name,
-                privileged=self.privileged,
-                detach=True,
-                remove=self.auto_remove,
-                environment=self.environment,
-                ports=self.ports,
-                volumes=self.volumes,
-            )
+            docker_args = {
+                "image": self.image_name,
+                "name": self.container_name,
+                "privileged": self.privileged,
+                "detach": True,
+                "remove": self.auto_remove,
+                "environment": self.environment,
+                "ports": self.ports,
+                "volumes": self.volumes,
+            }
+            if self.command is not None:
+                docker_args["command"] = self.command
+            if self.entrypoint is not None:
+                docker_args["entrypoint"] = self.entrypoint
+
+            self.container = self.client.containers.run(**docker_args)
         except Exception as e:
             raise RuntimeError(f"Failed to start container: {str(e)}")
 
@@ -201,11 +211,13 @@ class DockerInDocker(Container):
     """
 
     image_name: str = "docker:dind"
+    socket_dir: Path = field(default_factory=lambda: Path("/tmp/dind-sockets"))
+
     container_name: str = field(default_factory=lambda: f"dind_{uuid.uuid4().hex[:8]}")
     privileged: bool = field(default=True, init=False)
     environment: Dict[str, str] = field(
         default_factory=lambda: {
-            "DOCKER_TLS_CERTDIR": ""
+           #"DOCKER_TLS_CERTDIR": ""
 
                                  
             },  # Disable TLS
@@ -224,9 +236,18 @@ class DockerInDocker(Container):
         super().__post_init__()
         self.robot_data_root = self.sdk_root / "data" / self.container_name
         self.robot_data_root.mkdir(parents=True, exist_ok=True)
+        
+        # Create socket directory if it doesn't exist
+        self.socket_dir.mkdir(mode=0o777, parents=True, exist_ok=True)
+
+        
         self.volumes.update({
-            str(self.robot_data_root): {"bind": "/data", "mode": "rw"}
+            str(self.robot_data_root): {"bind": "/data", "mode": "rw"},
+            str(self.socket_dir): {"bind": "/dind-sockets", "mode": "rw"}
         })
+        self.command = [
+            f'--host=unix:///dind-sockets/{self.container_name}.socket'
+        ]
 
 
     def ensure_started(self) -> None:
@@ -234,6 +255,12 @@ class DockerInDocker(Container):
         if self.container is not None:
             # Container already running
             return
+
+        # Debug: Verify volumes before starting
+        logger.debug(f"Volume mounts before start: {self.volumes}")
+        if not self.socket_dir.exists():
+            logger.error(f"Host directory {self.socket_dir} does not exist!")
+            self.socket_dir.mkdir(mode=0o777, parents=True, exist_ok=True)
             
         if self.registry_proxy:
             self.registry_proxy.ensure_started()
@@ -257,7 +284,8 @@ class DockerInDocker(Container):
             })
 
         super().ensure_started()  # Use base class implementation
-        
+
+
         if self.registry_proxy:
             # Update CA certificates in the DinD container
             self.container.exec_run("update-ca-certificates")
@@ -266,10 +294,12 @@ class DockerInDocker(Container):
         logger.debug("Checking Docker daemon readiness...")
         for attempt in range(self.ready_timeout):
             try:
-                client = docker.DockerClient(
-                    base_url=f"tcp://{self.container_ip()}:2375"
-                )
-                client.ping()
+                # Set ownership and permissions of socket file inside container
+                socket_path = f"/dind-sockets/{self.container_name}.socket"
+                self.container.exec_run(f"chown :{CURRENT_PRIMARY_GROUP} /dind-sockets/{self.container_name}.socket")
+                self.container.exec_run(f"chmod 666 /dind-sockets/{self.container_name}.socket")
+                
+                self.get_client().ping()
                 logger.success("Docker-in-Docker container started successfully")
                 return
             except Exception as e:
@@ -283,7 +313,8 @@ class DockerInDocker(Container):
         """Get a Docker client connected to this DinD container."""
         if self.container is None:
             raise RuntimeError("Container not running")
-        return docker.DockerClient(base_url=f"tcp://{self.container_ip()}:2375")
+        return docker.DockerClient(base_url=f"unix:///tmp/dind-sockets/{self.container_name}.socket")
+        #return docker.DockerClient(base_url=f"tcp://{self.container_ip()}:2375")
 
     def _prepare_service_paths(self, compose_file: str) -> Dict[str, Any]:
         """Prepare path mappings for a compose file service.
@@ -319,8 +350,8 @@ class DockerInDocker(Container):
         
         paths = self._prepare_service_paths(compose_file)
         client = self.get_client()
-        docker_host = client.api.base_url.replace("http://", "tcp://")
-
+        docker_host = f"unix://{self.socket_dir}/{self.container_name}.socket"
+        logger.debug(f"Docker host: {docker_host}")
         env = os.environ.copy()
         env.update({
             "DOCKER_HOST": docker_host,
