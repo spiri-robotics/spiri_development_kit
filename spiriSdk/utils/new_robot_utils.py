@@ -27,7 +27,7 @@ def ensure_options_yaml():
                 services_path = Path(folder_path) / "services"
                 if not services_path.exists():
                     ui.notify(f"Services folder not found under {folder_path}", type="error")
-                    continue               
+                    continue
                 service_folders = [p for p in services_path.iterdir() if p.is_dir()]
                 if not service_folders:
                     ui.notify(f"No service folder found under {services_path}", type="error")
@@ -81,7 +81,6 @@ async def delete_robot(robot_name) -> bool:
     return True
 
 def display_robot_options(robot_name, selected_additions, selected_options, options_container):
-    print(daemons)
     ui.notify(f'Selected Robot: {robot_name}, Selected Addition: {addition}' for addition in selected_additions)
     options_path = os.path.join(ROBOTS_DIR, robot_name, 'options.yaml')
     if not os.path.exists(options_path):

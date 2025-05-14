@@ -10,4 +10,4 @@ favicon = """
 app.on_startup(on_startup)
 app.on_shutdown(on_shutdown)
 
-ui.run(title='Spiri SDK', favicon=favicon, reload=True, dark=None, port=8197, show=False)
+ui.run(title='Spiri SDK', favicon=favicon, reload=True, dark=None, port=8197, show=True)
