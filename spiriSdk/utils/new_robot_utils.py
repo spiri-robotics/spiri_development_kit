@@ -6,7 +6,7 @@ from pathlib import Path
 import uuid
 from spiriSdk.dindocker import DockerInDocker
 from nicegui import run
-from spiriSdk.utils.daemon_utils import daemons, init_daemons
+from spiriSdk.utils.daemon_utils import daemons
 import shutil
 
 ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
@@ -75,7 +75,6 @@ async def save_robot_config(robot_type, selected_options):
 
 async def delete_robot(robot_name) -> bool:
     robot_path = os.path.join(ROOT_DIR, "data", robot_name)
-    daemons = await init_daemons()
     daemon = daemons.pop(robot_name)
     daemon.cleanup()
     shutil.rmtree(robot_path)
