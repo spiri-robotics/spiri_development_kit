@@ -1,6 +1,7 @@
 import os
 from spiriSdk.dindocker import DockerInDocker
 from nicegui import run, ui
+import docker
 
 ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 DATA_DIR = os.path.join(ROOT_DIR, 'data')
@@ -39,7 +40,12 @@ def restart_container(robot_name: str):
     start_container(robot_name)
     ui.notify(f"Container {robot_name} restarted.")
 
-async def display_daemon_status(robot_name: str):
-    print(f"Fetching status for {robot_name}")
-    print(f"Daemon initialized: {daemons.get(robot_name)}")
-    return daemons[robot_name].get_status()
+async def display_daemon_status(robot_name):
+    try:
+        container = daemons[robot_name].container
+        container.reload()
+        return container.status
+    except docker.errors.NotFound:
+        return 'stopped'
+    except Exception as e:
+        return f'error: {str(e)}'

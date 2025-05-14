@@ -53,40 +53,47 @@ class Container:
         Raises:
             RuntimeError: If container fails to start
         """
-        if self.container is not None:
-            # Container already running
-            return
         
         try:
             # Check if a container with the same name already exists
-            existing_containers = self.client.containers.list(all=True, filters={"name": self.container_name})
-            if existing_containers:
-                self.container = existing_containers[0]
-                if self.container.status == "running":
+            if self.container is None:
+                existing_containers = self.client.containers.list(all=True, filters={"name": self.container_name})
+                if existing_containers:
+                    self.container = existing_containers[0]
+                    if self.container.status == "running":
+                        logger.info(f"Container {self.container_name} is already running.")
+                        return
+                    else:
+                        logger.info(f"Starting existing container {self.container_name}.")
+                        self.container.start()
+                        return
+                else:
+                    logger.info(f"Starting container {self.container_name} using image {self.image_name}")
+                
+                    docker_args = {
+                        "image": self.image_name,
+                        "name": self.container_name,
+                        "privileged": self.privileged,
+                        "detach": True,
+                        "remove": self.auto_remove,
+                        "environment": self.environment,
+                        "ports": self.ports,
+                        "volumes": self.volumes,
+                    }
+                    if self.command is not None:
+                        docker_args["command"] = self.command
+                    if self.entrypoint is not None:
+                        docker_args["entrypoint"] = self.entrypoint
+
+                    self.container = self.client.containers.run(**docker_args)
+            else:   
+                self.container.reload()
+                if self.container.status != "running":
+                    logger.info(f"Starting container {self.container_name}...")
+                    self.container.start()
+                else:
                     logger.info(f"Container {self.container_name} is already running.")
                     return
-                else:
-                    logger.info(f"Starting existing container {self.container_name}.")
-                    self.container.start()
-                    return
-            logger.info(f"Starting container {self.container_name} using image {self.image_name}")
-        
-            docker_args = {
-                "image": self.image_name,
-                "name": self.container_name,
-                "privileged": self.privileged,
-                "detach": True,
-                "remove": self.auto_remove,
-                "environment": self.environment,
-                "ports": self.ports,
-                "volumes": self.volumes,
-            }
-            if self.command is not None:
-                docker_args["command"] = self.command
-            if self.entrypoint is not None:
-                docker_args["entrypoint"] = self.entrypoint
-
-            self.container = self.client.containers.run(**docker_args)
         except Exception as e:
             raise RuntimeError(f"Failed to start container: {str(e)}")
 
@@ -132,21 +139,6 @@ class Container:
         if not ip:
             raise RuntimeError("Container has no IP address assigned")
         return ip
-    
-    def get_status(self) -> str:
-        """Get the current status of the container."""
-        try:
-            if self.container is None:
-                containers = self.client.containers.list(all=True, filters={"name": self.container_name})
-                if containers:
-                    self.container = containers[0]
-                else:
-                    return "not created"
-            
-            self.container.reload()  # Refresh state from Docker
-            return self.container.status  # e.g., "running", "exited", "paused"
-        except Exception as e:
-            return f"error: {e}"
 
     def cleanup(self) -> None:
         """Clean up container resources."""

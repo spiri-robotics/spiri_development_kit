@@ -30,22 +30,22 @@ class RobotContainer:
                             ui.label(f'{robotName}').classes('mb-5')
                             label_status = ui.label('Status: Loading...').classes('text-sm text-gray-500')
 
-                            async def update_status(name=robotName, label=label_status):
+                            async def update_status(name, label):
                                 status = await display_daemon_status(name)
                                 label.text = f'Status: {status}'
 
                             # Initial status
-                            await update_status()
+                            await update_status(robotName, label_status)
 
                             # Periodic update
-                            def start_polling():
+                            def start_polling(name, label):
                                 async def polling_loop():
                                     while True:
-                                        await update_status()
+                                        await update_status(name, label)
                                         await asyncio.sleep(5)
                                 asyncio.create_task(polling_loop())
 
-                            start_polling()
+                            start_polling(robotName, label_status)
                         ui.space()
                         with ui.card_actions():
                             def make_stop(robot=robotName):
