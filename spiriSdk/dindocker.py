@@ -53,40 +53,52 @@ class Container:
         Raises:
             RuntimeError: If container fails to start
         """
-        if self.container is not None:
-            # Container already running
-            return
         
         try:
             # Check if a container with the same name already exists
-            existing_containers = self.client.containers.list(all=True, filters={"name": self.container_name})
-            if existing_containers:
-                self.container = existing_containers[0]
-                if self.container.status == "running":
-                    logger.info(f"Container {self.container_name} is already running.")
-                    return
+            if self.container is None:
+                existing_containers = self.client.containers.list(all=True, filters={"name": self.container_name})
+                if existing_containers:
+                    self.container = existing_containers[0]
+                    if self.container.status == "running":
+                        logger.info(f"Container {self.container_name} is already running.")
+                        return
+                    else:
+                        logger.info(f"Starting existing container {self.container_name}.")
+                        self.container.start()
+                        return
                 else:
-                    logger.info(f"Starting existing container {self.container_name}.")
-                    self.container.start()
-                    return
-            logger.info(f"Starting container {self.container_name} using image {self.image_name}")
-        
-            docker_args = {
-                "image": self.image_name,
-                "name": self.container_name,
-                "privileged": self.privileged,
-                "detach": True,
-                "remove": self.auto_remove,
-                "environment": self.environment,
-                "ports": self.ports,
-                "volumes": self.volumes,
-            }
-            if self.command is not None:
-                docker_args["command"] = self.command
-            if self.entrypoint is not None:
-                docker_args["entrypoint"] = self.entrypoint
+                    logger.info(f"Starting container {self.container_name} using image {self.image_name}")
+                
+                    docker_args = {
+                        "image": self.image_name,
+                        "name": self.container_name,
+                        "privileged": self.privileged,
+                        "detach": True,
+                        "remove": self.auto_remove,
+                        "environment": self.environment,
+                        "ports": self.ports,
+                        "volumes": self.volumes,
+                    }
+                    if self.command is not None:
+                        docker_args["command"] = self.command
+                    if self.entrypoint is not None:
+                        docker_args["entrypoint"] = self.entrypoint
 
-            self.container = self.client.containers.run(**docker_args)
+                    self.container = self.client.containers.run(**docker_args)
+            else:
+                try:
+                    self.container.reload()
+                    if self.container.status != "running":
+                        logger.info(f"Starting container {self.container_name}...")
+                        self.container.start()
+                    else:
+                        logger.info(f"Container {self.container_name} is already running.")
+                        return
+                except docker.errors.NotFound:
+                    logger.warning(f"Container {self.container_name} not found (probably auto-removed). Recreating...")
+                    self.container = None
+                    return self.ensure_started()  # retry from beginning
         except Exception as e:
             raise RuntimeError(f"Failed to start container: {str(e)}")
 
@@ -252,10 +264,6 @@ class DockerInDocker(Container):
 
     def ensure_started(self) -> None:
         """Start the Docker-in-Docker container with specialized configuration."""
-        if self.container is not None:
-            # Container already running
-            return
-
         # Debug: Verify volumes before starting
         logger.debug(f"Volume mounts before start: {self.volumes}")
         if not self.socket_dir.exists():
