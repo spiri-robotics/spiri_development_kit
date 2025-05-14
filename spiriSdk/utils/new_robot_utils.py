@@ -4,7 +4,7 @@ import yaml
 import re
 from pathlib import Path
 import uuid
-from spiriSdk.dindocker import DockerInDocker
+from spiriSdk.docker.dindocker import DockerInDocker
 from nicegui import run
 from spiriSdk.utils.daemon_utils import daemons
 import shutil

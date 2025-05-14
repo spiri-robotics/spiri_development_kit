@@ -1,5 +1,5 @@
 from nicegui import ui
-from spiriSdk.dindocker import DockerInDocker
+from spiriSdk.docker.dindocker import DockerInDocker
 from spiriSdk.pages import home, manage_robots, new_robots, tools
 from spiriSdk.utils.daemon_utils import on_startup, on_shutdown
 from nicegui import app
