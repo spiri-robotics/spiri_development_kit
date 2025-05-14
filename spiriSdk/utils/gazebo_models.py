@@ -14,6 +14,7 @@ class Robot:
         return f"Robot(name={self.name}, image={self.image}, options={self.options})"
     
     async def launch_robot(self, world_spawn: str = None) -> None:
+        """Launch the robot in the Gazebo simulator."""
         pose = self.position
         ROS2_CMD = f"ros2 run ros_gz_sim create -world {world_spawn} -file /robots/spiri-mu/models/spiri_mu/model.sdf -name {self.name + str(self.number)} -x {pose[0]} -y {pose[1]} -z {pose[2]}"
         ros2_gz_create_proc = subprocess.Popen(
