@@ -87,7 +87,6 @@ async def tools():
                       ).props('class="text-lg text-center"').classes('rounded-1/2')
     
     await styles()
-    await header()
 
     with ui.grid(columns=3):
         for app_name, command in applications.items():
