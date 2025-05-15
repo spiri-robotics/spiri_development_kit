@@ -102,25 +102,25 @@ def display_robot_options(robot_name, selected_additions, selected_options, opti
 
     # Display options dynamically
     with options_container:
-        ui.label(f"Options for {robot_name}").classes('text-h5')
+        #ui.label(f"Options for {robot_name}").classes('text-h5')
 
         for key, option in options.get('x-spiri-options', {}).items():
-            ui.label(key).classes('text-h6')
+            #ui.label(key).classes('text-h6')
             ui.label(option.get('help-text', '')).classes('text-body2')
             option_type = option.get('type', 'text')
             current_value = option.get('value', '')
 
             if option_type == 'bool':
-                with ui.row():
-                    switch_label = ui.label(f"{current_value}").classes('text-body2')
-
+                with ui.row().classes('items-center justify-between w-[25%]'):
                     def on_toggle(e, k=key):
                         selected_options[k] = e.value
-                        switch_label.set_text(f"{e.value}")
+                        e.set_text(f"{e.value}")
 
+                    ui.label(f'{key}:')
                     ui.switch(
+                        #f'{current_value}',
                         value=current_value,
-                        on_change=on_toggle
+                        #on_change=lambda e: on_toggle(e.sender)
                     )
 
             elif option_type == 'int':
@@ -142,7 +142,7 @@ def display_robot_options(robot_name, selected_additions, selected_options, opti
                         options=int_options,
                         value=current_value,
                         on_change=int_input_change(key)
-                    ) as dropdown:
+                    ).classes('w-full') as dropdown:
                         dropdown.label = key
                 else:
                     # Fallback: no min/max, use input box
@@ -162,7 +162,7 @@ def display_robot_options(robot_name, selected_additions, selected_options, opti
                 )
 
             elif option_type == 'text':
-                ui.input(key, value=option.get('value', ''), on_change=(lambda e, k=key: selected_options.update({k: e.value})))
+                ui.input(key, placeholder=option.get('value', ''), on_change=(lambda e, k=key: selected_options.update({k: e.value}))).classes('w-full')
             
             elif option_type == 'dropdown':
                 # Ensure the dropdown options are a list

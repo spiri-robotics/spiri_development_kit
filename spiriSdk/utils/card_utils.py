@@ -24,11 +24,11 @@ class RobotContainer:
         self.destination.clear()
         with self.destination:
             await self.displayButtons()
-            for robotName in names:
+            for robotID in names:
                 with ui.card().classes('w-full'):
                     with ui.row(align_items='stretch').classes('w-full'):
                         with ui.card_section():
-                            ui.label(f'{robotName}').classes('mb-5 text-lg font-semibold text-gray-900 dark:text-gray-100')
+                            ui.label(f'{robotID}').classes('mb-5 text-lg font-semibold text-gray-900 dark:text-gray-100')
                             label_status = ui.label('Status: Loading...').classes('text-sm text-gray-600 dark:text-gray-300')
 
                             async def update_status(name, label):
@@ -36,7 +36,7 @@ class RobotContainer:
                                 label.text = f'Status: {status}'
 
                             # Initial status
-                            await update_status(robotName, label_status)
+                            await update_status(robotID, label_status)
 
                             # Periodic update
                             def start_polling(name, label):
@@ -46,16 +46,16 @@ class RobotContainer:
                                         await asyncio.sleep(5)
                                 asyncio.create_task(polling_loop())
 
-                            start_polling(robotName, label_status)
+                            start_polling(robotID, label_status)
                         ui.space()
                         with ui.card_actions():
-                            def make_stop(robot=robotName):
+                            def make_stop(robot=robotID):
                                 stop_container(robot)
 
-                            async def make_start(robot=robotName):
+                            async def make_start(robot=robotID):
                                 await start_container(robot)
 
-                            async def make_restart(robot=robotName):
+                            async def make_restart(robot=robotID):
                                 await restart_container(robot)
                             ui.button('Start', on_click=make_start, icon='play_arrow', color='positive').classes('m-1')
                             ui.button('Stop', on_click=make_stop, icon='stop', color='warning').classes('m-1')
@@ -72,7 +72,7 @@ class RobotContainer:
 
                             with ui.dropdown_button(icon='settings', color='secondary'):
                                 ui.item('Edit', on_click=self.editRobot.open)
-                                ui.item('Delete', on_click=lambda n=robotName: delete(n))
+                                ui.item('Delete', on_click=lambda n=robotID: delete(n))
 
     def assignAddRobot(self, addRobot) -> None:
         self.addRobot = addRobot
