@@ -1,14 +1,14 @@
 x-spiri-options:
-  Name: 
+  NAME: 
     type: text
-    value: Enby
-  Camera:
+    value: null
+  CAMERA:
     type: bool
     value: false
-  Wifi:
+  WIFI:
     type: bool
     value: false
-  Fav number:
+  FAV_NUMBER:
     type: int
     min: 0
     max: 100

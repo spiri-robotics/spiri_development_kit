@@ -15,13 +15,14 @@ selected_additions = []
 options_container = None
 
 def on_select(robot_name: str):
-        selected_robot = robot_name
-        selected_additions.clear()
-        selected_options.clear()
-        options_container.clear()
-        selected_additions.append(robot_name)
-        display_robot_options(robot_name, selected_additions, selected_options, options_container)
-        return selected_robot
+    global selected_robot
+    selected_robot = robot_name
+    selected_additions.clear()
+    selected_options.clear()
+    options_container.clear()
+    selected_additions.append(robot_name)
+    display_robot_options(robot_name, selected_additions, selected_options, options_container)
+    return selected_robot
 
 @ui.refreshable
 def display_fields():

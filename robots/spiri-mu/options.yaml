@@ -1,5 +1,5 @@
 x-spiri-options:
-  ROBOT_NAME:
+  NAME:
     type: text
     value: Enby
   ARDUPILOT_VEHICLE:
