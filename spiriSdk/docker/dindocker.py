@@ -395,4 +395,3 @@ class DockerInDocker(Container):
         raise RuntimeError(
             f"Failed to run compose after {max_attempts} attempts. Last error: {str(last_exception)}"
         )
-

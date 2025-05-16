@@ -7,6 +7,7 @@ import yaml
 
 ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 DATA_DIR = os.path.join(ROOT_DIR, 'data')
+ROBOTS_DIR = os.path.join(DATA_DIR, 'robots')
 
 daemons = {}
 
@@ -20,7 +21,7 @@ async def init_daemons() -> dict:
             daemons[robot_name] = dind
             await run.io_bound(dind.ensure_started)
 
-            services_dir = os.path.join(robot_path, 'services')
+            services_dir = os.path.join(ROBOTS_DIR, robot_name.split('-')[0], "services")
             if not os.path.exists(services_dir):
                 continue
 
@@ -42,10 +43,10 @@ async def init_daemons() -> dict:
                     continue
 
                 # Step 4: Check x-spiri-sdk-autostart
-                if compose_data.get("x-spiri-sdk-autostart", False):
+                if compose_data.get("x-spiri-sdk-autostart", True):
                     print(f"Autostarting: {robot_name}/{service}")
                     # Step 5: Run `docker compose up -d` inside the DinD container
-                    inside_path = f"/data/{robot_name}/services/{service}"
+                    inside_path = f"/robots/{robot_name}/services/{service}"
                     command = f"docker compose -f {inside_path}/docker-compose.yaml up -d"
                     result = daemons[robot_name].container.exec_run(command, workdir=inside_path)
                     print(result.output.decode())
