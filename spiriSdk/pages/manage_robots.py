@@ -1,5 +1,5 @@
 from nicegui import ui
-from spiriSdk.pages.styles import styles
+from spiriSdk.ui.styles import styles
 from spiriSdk.pages.header import header
 from spiriSdk.pages.new_robots import new_robots, selected_options, selected_robot
 from spiriSdk.utils.new_robot_utils import save_robot_config
