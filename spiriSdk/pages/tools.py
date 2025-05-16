@@ -1,3 +1,4 @@
+from nicegui import ui
 from spiriSdk.ui.styles import styles
 from spiriSdk.pages.header import header
 from spiriSdk.utils.gazebo_models import Robot

@@ -1,5 +1,4 @@
 from nicegui import ui
-from spiriSdk.pages.styles import styles
 from datetime import datetime
 import subprocess
 

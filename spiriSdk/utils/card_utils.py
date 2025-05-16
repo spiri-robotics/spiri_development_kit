@@ -1,6 +1,7 @@
 from spiriSdk.utils.daemon_utils import daemons, stop_container, start_container, restart_container, display_daemon_status
 from spiriSdk.utils.new_robot_utils import delete_robot
 from spiriSdk.pages.tools import prep_bot
+from nicegui import ui
 import asyncio
 
 class RobotContainer:
