@@ -31,7 +31,7 @@ def launch_app(command):
     except FileNotFoundError:
         print(f"Command not found: {command}. Make sure it is installed and available in the PATH.")
 
-async def prep_bot(robot_name: str ='mu') -> None: 
+async def prep_bot(robot_name: str ='mu', robot_type: str ='spiri-mu') -> None: 
     """Create a new robot and send it to launch function to be added to the world"""
     world_spawn = None
     if world_spawn is None:
@@ -40,7 +40,7 @@ async def prep_bot(robot_name: str ='mu') -> None:
         world_spawn = running_worlds[0][0] 
     robot_number = len(robots) + 1
 
-    mu = Robot(robot_name, robot_number)
+    mu = Robot(robot_name, robot_type, robot_number)
     
     robots.append(mu)
     
