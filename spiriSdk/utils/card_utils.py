@@ -5,10 +5,10 @@ from spiriSdk.pages.tools import tools, prep_bot
 import asyncio
 import os
 from pathlib import Path
-from spiriSdk.pages.new_robots import new_robots, clear_fields
+from spiriSdk.pages.new_robots import new_robots#, clear_fields
 from spiriSdk.pages.edit_robot import edit_robot
 
-async def addRobot(event):
+async def addRobot():
     with ui.dialog() as d, ui.card(align_items='stretch').classes('w-full'):
         await new_robots()
 
@@ -19,12 +19,11 @@ async def addRobot(event):
             from spiriSdk.pages.new_robots import selected_robot, selected_options
             await save_robot_config(selected_robot, selected_options)
 
-            # Close dialog and reset fields + button 
             d.close()
-            button.delete()
-            button = ui.button('Add', color='secondary', on_click=lambda e: submit(e.sender)).classes('text-base')
-            await clear_fields()
 
+            # Refresh display to update visible cards
+            from spiriSdk.pages.home import container
+            await container.displayCards()
             ui.notify(f"Robot {selected_robot} added successfully!")
 
         with ui.card_actions().props('align=center'):
@@ -35,11 +34,11 @@ async def addRobot(event):
 
 async def editRobot(robotID):
     with ui.dialog() as d, ui.card(align_items='stretch').classes('w-full'):
-        await edit_robot()
+        await edit_robot(robotID)
 
         with ui.card_actions().props('align=center'):
-            ui.button('Save', on_click=d.close)
-            ui.button('Cancel', on_click=d.close) 
+            ui.button('Cancel', on_click=d.close, color='secondary') 
+            ui.button('Save', on_click=d.close, color='secondary')
     d.open()
 
 class RobotContainer:
@@ -118,8 +117,7 @@ class RobotContainer:
                                 else:
                                     ui.notify('error deleting robot')
 
-                            with ui.dropdown_button(icon='settings', color='secondary').classes('text-base'):
+                            with ui.dropdown_button(icon='settings', color='secondary').classes('text-base') as drop:
                                 ui.item('Edit', on_click=lambda n=robotID: editRobot(n))
                                 ui.item('Delete', on_click=lambda n=robotID: delete(n))
-
 

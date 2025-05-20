@@ -92,6 +92,5 @@ async def tools():
         for app_name, command in applications.items():
             ui.button(f'{app_name}', on_click=lambda cmd=command: launch_app(cmd), color='secondary').classes('text-base')  # old color for all 3: color='#20788a'
         ui.button('Launch Gazebo', on_click=gz_dialog.open, color='secondary').classes('text-base')
-        ui.button('Add Mu', on_click=lambda: prep_bot(), color='secondary').classes('text-base')
             
         
