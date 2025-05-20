@@ -1,0 +1,16 @@
+x-spiri-options:
+  NAME: 
+    type: text
+    value: null
+  CAMERA:
+    type: bool
+    value: false
+  WIFI:
+    type: bool
+    value: false
+  FAV_NUMBER:
+    type: int
+    min: 0
+    max: 100
+    
+  

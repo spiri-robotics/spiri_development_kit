@@ -102,25 +102,24 @@ def display_robot_options(robot_name, selected_additions, selected_options, opti
 
     # Display options dynamically
     with options_container:
-        ui.label(f"Options for {robot_name}").classes('text-h5')
+        #ui.label(f"Options for {robot_name}").classes('text-h5')
 
         for key, option in options.get('x-spiri-options', {}).items():
-            ui.label(key).classes('text-h6')
+            #ui.label(key).classes('text-h6')
             ui.label(option.get('help-text', '')).classes('text-body2')
             option_type = option.get('type', 'text')
             current_value = option.get('value', '')
+            formatted_key = key.translate(str.maketrans("_", " ")).capitalize()
 
             if option_type == 'bool':
-                with ui.row():
-                    switch_label = ui.label(f"{current_value}").classes('text-body2')
-
+                with ui.row().classes('items-center justify-between w-[25%]'):
                     def on_toggle(e, k=key):
                         selected_options[k] = e.value
-                        switch_label.set_text(f"{e.value}")
 
+                    ui.label(f'{formatted_key}:')
                     ui.switch(
                         value=current_value,
-                        on_change=on_toggle
+                        on_change=lambda e: on_toggle(e.sender)
                     )
 
             elif option_type == 'int':
@@ -140,15 +139,14 @@ def display_robot_options(robot_name, selected_additions, selected_options, opti
                     int_options = list(range(min_val, max_val + 1, step))
                     with ui.select(
                         options=int_options,
-                        value=current_value,
                         on_change=int_input_change(key)
-                    ) as dropdown:
-                        dropdown.label = key
+                    ).classes('w-full') as dropdown:
+                        dropdown.label = formatted_key
                 else:
                     # Fallback: no min/max, use input box
                     ui.input(
-                        label=f"{key} (int)",
-                        value=str(current_value),
+                        label=f"{formatted_key} (int)",
+                        placeholder=str(current_value),
                         on_change=make_int_input(key)
                     )
 
@@ -156,23 +154,23 @@ def display_robot_options(robot_name, selected_additions, selected_options, opti
                 def make_float_input(k):
                     return lambda e: selected_options.update({k: float(e.value) if e.value else 0.0})
                 ui.input(
-                    label=f"{key} (float)",
-                    value=str(current_value),
+                    label=f"{formatted_key} (float)",
+                    placeholder=str(current_value),
                     on_change=make_float_input(key)
                 )
 
             elif option_type == 'text':
-                ui.input(key, value=option.get('value', ''), on_change=(lambda e, k=key: selected_options.update({k: e.value})))
+                ui.input(formatted_key, placeholder=option.get('value', ''), on_change=(lambda e, k=key: selected_options.update({k: e.value}))).classes('w-full')
             
             elif option_type == 'dropdown':
                 # Ensure the dropdown options are a list
                 dropdown_options = option.get('options', [])
                 if isinstance(dropdown_options, list):
-                    with ui.dropdown_button(f"{key}: {option.get('value', '')}", auto_close=True):
+                    with ui.dropdown_button(f"{formatted_key}: {option.get('value', '')}", auto_close=True):
                         for item in dropdown_options:
                             ui.item(item, on_change=(lambda e, k=key: selected_options.update({k: e.value})))
                 else:
-                    ui.label(f"Invalid dropdown options for {key}").classes('text-body2')
+                    ui.label(f"Invalid dropdown options for '{key}'").classes('text-body2')
             
             else:
-                ui.input(key, value=option.get('value', ''), on_change=(lambda e, k=key: selected_options.update({k: e.value})))
+                ui.input(formatted_key, placeholder=option.get('value', ''), on_change=(lambda e, k=key: selected_options.update({k: e.value})))

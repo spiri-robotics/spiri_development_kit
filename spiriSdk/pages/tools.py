@@ -60,13 +60,13 @@ async def tools():
     
     with ui.dialog() as gz_dialog, ui.card():
     
-        with ui.card().props('').classes('rounded-lg'):
+        #with ui.card().props('').classes('rounded-lg'):
             ui.label('World Start Time State').props('class="text-lg text-center"')
 
             #variable to tell the world time whether to initially run or not
             world_auto_run = ui.toggle(['Running', 'Paused'], value='Paused') .props('class="text-lg text-center"')
     
-        with ui.card().props('').classes('rounded-lg'):
+        #with ui.card().props('').classes('rounded-lg'):
             w = ui.select(list(worlds.keys()), value='empty_world').props('class="text-lg text-center"')
             
             async def start_and_close(): 
@@ -88,10 +88,9 @@ async def tools():
     
     await styles()
 
-    with ui.grid(columns=3):
+    with ui.row():
         for app_name, command in applications.items():
             ui.button(f'{app_name}', on_click=lambda cmd=command: launch_app(cmd), color='secondary').classes('text-base')  # old color for all 3: color='#20788a'
         ui.button('Launch Gazebo', on_click=gz_dialog.open, color='secondary').classes('text-base')
-        ui.button('Add Mu', on_click=lambda: prep_bot(), color='secondary').classes('text-base')
             
         
