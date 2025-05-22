@@ -303,7 +303,6 @@ class DockerInDocker(Container):
         for attempt in range(self.ready_timeout):
             try:
                 # Set ownership and permissions of socket file inside container
-                socket_path = f"/dind-sockets/{self.container_name}.socket"
                 self.container.exec_run(f"chown :{CURRENT_PRIMARY_GROUP} /dind-sockets/{self.container_name}.socket")
                 self.container.exec_run(f"chmod 666 /dind-sockets/{self.container_name}.socket")
                 
