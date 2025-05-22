@@ -26,7 +26,4 @@ async def new_robots():
         ui.select([f'{robot}' for robot in robots], label='Select robot type', on_change=lambda e: on_select(e.value)).classes('w-[400px]')
 
     options_container = ui.column()
-
-    #Old add button: ui.button('Add Robot', color='secondary', on_click=lambda: save_robot_config(selected_robot, selected_options)).classes('q-mt-md')
-    
     ui.button('back to manage page', color='secondary', on_click=lambda: ui.navigate.to('/manage_robots'))
