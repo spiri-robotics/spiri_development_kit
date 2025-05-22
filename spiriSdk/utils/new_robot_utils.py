@@ -57,7 +57,7 @@ def ensure_options_yaml():
     return robots
 
 async def save_robot_config(robot_type, selected_options):
-    robot_id = uuid.uuid4().hex[:6]
+    robot_id = selected_options.get('DRONE_SYS_ID', uuid.uuid4().hex[:6])
     folder_name = f"{robot_type}-{robot_id}"
     folder_path = os.path.join(ROOT_DIR, "data", folder_name)
     os.makedirs(folder_path, exist_ok=True)

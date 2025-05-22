@@ -32,5 +32,3 @@ async def new_robots():
     await styles()
     
     display_fields()
-
-    ui.button('back to manage page', color='secondary', on_click=lambda: ui.navigate.to('/')).classes('text-base')
