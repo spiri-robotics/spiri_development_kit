@@ -1,4 +1,7 @@
 x-spiri-options:
+  NAME:
+    type: text
+    value: Enby
   ARDUPILOT_VEHICLE:
     help-text: when the container will stop waiting and timeout
     type: float
@@ -18,6 +21,3 @@ x-spiri-options:
   MAVROS2_PORT:
     type: int
     value: 1901.0
-  ROBOT_NAME:
-    type: text
-    value: Enby
