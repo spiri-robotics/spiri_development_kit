@@ -6,7 +6,7 @@ from pathlib import Path
 import uuid
 from spiriSdk.docker.dindocker import DockerInDocker
 from nicegui import run
-from spiriSdk.utils.daemon_utils import daemons, init_daemons
+from spiriSdk.utils.daemon_utils import daemons
 import shutil
 
 ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))

@@ -2,7 +2,7 @@ from spiriSdk.utils.daemon_utils import daemons, stop_container, start_container
 from spiriSdk.utils.new_robot_utils import delete_robot, save_robot_config
 from spiriSdk.pages.tools import tools, prep_bot
 import asyncio
-import nicegui as ui
+from nicegui import ui
 import os
 from pathlib import Path
 from spiriSdk.pages.new_robots import new_robots#, clear_fields
@@ -55,8 +55,6 @@ class RobotContainer:
 
     async def displayCards(self) -> None:
         names = daemons.keys()
-        print(names)
-        self.addRobot.close()
         self.destination.clear()
         with self.destination:
             await self.displayButtons()
