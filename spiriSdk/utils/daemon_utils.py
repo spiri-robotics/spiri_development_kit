@@ -22,6 +22,7 @@ async def init_daemons() -> dict:
             await run.io_bound(dind.ensure_started)
 
             services_dir = os.path.join(ROBOTS_DIR, robot_name.split('-')[0], "services")
+            print(f"Checking services in {services_dir} for {robot_name}...")
             if not os.path.exists(services_dir):
                 continue
 
@@ -48,11 +49,8 @@ async def init_daemons() -> dict:
                     # Step 5: Run `docker compose up -d` inside the DinD container
                     inside_path = f"/robots/{robot_name}/services/{service}"
                     command = f"docker compose -f {inside_path}/docker-compose.yaml up -d"
-                    result = daemons[robot_name].container.exec_run(command, workdir=inside_path)
+                    result = await run.io_bound(lambda: daemons[robot_name].container.exec_run(command, workdir=inside_path))
                     print(result.output.decode())
-
-async def on_startup():
-    await init_daemons()
 
 async def on_shutdown():
     for daemon in daemons.values():

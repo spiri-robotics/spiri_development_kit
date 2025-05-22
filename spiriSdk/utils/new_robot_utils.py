@@ -77,11 +77,11 @@ async def delete_robot(robot_name) -> bool:
     robot_path = os.path.join(ROOT_DIR, "data", robot_name)
     daemon = daemons.pop(robot_name)
     daemon.cleanup()
-    shutil.rmtree(robot_path)
+    if os.path.exists(robot_path):
+        shutil.rmtree(robot_path)
     return True
 
 def display_robot_options(robot_name, selected_additions, selected_options, options_container):
-        print(daemons)
         ui.notify(f'Selected Robot: {robot_name}, Selected Addition: {addition}' for addition in selected_additions)
         options_path = os.path.join(ROBOTS_DIR, robot_name, 'options.yaml')
         if not os.path.exists(options_path):

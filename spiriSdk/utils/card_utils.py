@@ -5,7 +5,7 @@ import asyncio
 from nicegui import ui
 import os
 from pathlib import Path
-from spiriSdk.pages.new_robots import new_robots#, clear_fields
+from spiriSdk.pages.new_robots import new_robots
 from spiriSdk.pages.edit_robot import edit_robot
 
 async def addRobot():
@@ -115,7 +115,7 @@ class RobotContainer:
                         with ui.card_section():
                             command = f"Docker services command: unix:///tmp/dind-sockets/{robotName}.socket"
                             def copy_text(robot=robotName):
-                                command = f"Docker services command: unix:///tmp/dind-sockets/{robot}.socket"
+                                command = f"unix:///tmp/dind-sockets/{robot}.socket"
                                 ui.run_javascript(f'''
                                     navigator.clipboard.writeText("{command}");
                                 ''')
