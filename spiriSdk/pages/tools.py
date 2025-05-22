@@ -6,14 +6,16 @@ from spiriSdk.utils.gazebo_worlds import World
 from spiriSdk.utils.gazebo_worlds import find_worlds
 import subprocess
 
+#Commands to run applications
 applications = {
     'rqt': ['rqt'],
     'rvis2': ['rviz2']
 }
 
+#Arrays to hold temporary information for page such as robots and worlds
 robots = []
 worlds = {}
-running_worlds = [['','']]
+running_worlds = [['empty_world','empty_world.world']]
 selected_dir = {'empty_world': 'empty_world.world'}
 
 def launch_app(command): 
@@ -23,14 +25,16 @@ def launch_app(command):
     except FileNotFoundError:
         print(f"Command not found: {command}. Make sure it is installed and available in the PATH.")
 
-async def prep_bot(world_spawn: str =None) -> None: 
-    """Create a new robot and add it to the world"""
+async def prep_bot(robot_name: str ='mu', robot_type: str ='spiri-mu') -> None: 
+    """Create a new robot and send it to launch function to be added to the world"""
+    world_spawn = None
     if world_spawn is None:
+
         #Tells the robot which world to add it to. Will eventually be changed to a list of running worlds
         world_spawn = running_worlds[0][0] 
     robot_number = len(robots) + 1
 
-    mu = Robot('spiri_mu_', robot_number)
+    mu = Robot(robot_name, robot_type, robot_number)
     
     robots.append(mu)
     
@@ -44,19 +48,20 @@ def select_world(dir) -> World:
 
 @ui.page('/tools')
 async def tools():
-    
-    worlds = await find_worlds() #Sets worlds to the dict of gazebo worlds found in the worlds directory
+
+    #Sets worlds to the dict of gazebo worlds found in the worlds directory
+    worlds = await find_worlds() 
     
     with ui.dialog() as gz_dialog, ui.card():
     
-        with ui.card().props('').classes('rounded-lg'):
+        #with ui.card().props('').classes('rounded-lg'):
             ui.label('World Start Time State').props('class="text-lg text-center"')
 
             #variable to tell the world time whether to initially run or not
-            world_auto_run = ui.toggle(['Running', 'Paused'], value='Paused') 
+            world_auto_run = ui.toggle(['Running', 'Paused'], value='Paused') .props('class="text-lg text-center"')
     
-        with ui.card().props('').classes('rounded-lg'):
-            w = ui.select(list(worlds.keys()))
+        #with ui.card().props('').classes('rounded-lg'):
+            w = ui.select(list(worlds.keys()), value='empty_world').props('class="text-lg text-center"')
             
             async def start_and_close(): 
                 """function to combine starting the world and closing the dialog"""
@@ -73,17 +78,13 @@ async def tools():
             ui.button('Start World', 
                       on_click=start_and_close,
                       color='warning'
-                      ).classes('rounded-1/2')
+                      ).props('class="text-lg text-center"').classes('rounded-1/2')
     
     await styles()
-    await header()
 
-    with ui.grid(columns=3):
+    with ui.row():
         for app_name, command in applications.items():
-            with ui.button(on_click=lambda cmd=command: launch_app(cmd), color='warning').classes('rounded-1/2'):   # old color for all 3: color='#20788a'
-                ui.label(app_name).classes('text-lg text-center')
-        with ui.button(on_click=gz_dialog.open, color='warning').classes('rounded-1/2'):
-            ui.label('Launch Gazebo').classes('text-lg text-center')
-        ui.button("add mu", on_click=lambda: prep_bot(), color='warning').classes('text-lg rounded-1/2')
+            ui.button(f'{app_name}', on_click=lambda cmd=command: launch_app(cmd), color='secondary').classes('text-base')  # old color for all 3: color='#20788a'
+        ui.button('Launch Gazebo', on_click=gz_dialog.open, color='secondary').classes('text-base')
             
         

@@ -1,14 +1,18 @@
 from nicegui import ui
-from spiriSdk.ui.styles import styles
+from spiriSdk.pages.styles import styles
+from spiriSdk.pages.header import header
+from spiriSdk.utils.card_utils import RobotContainer
+
+container = None
 
 @ui.page('/')
 async def home():
     await styles()
+    await header()
+    
+    destination = ui.card().classes('w-full p-0 shadow-none dark:bg-[#212428]')
+    global container
+    container = RobotContainer(destination)
 
-    with ui.row():
-        ui.button('tools', on_click=lambda: ui.navigate.to('/tools'), color='secondary')
-        ui.button('manage', on_click=lambda: ui.navigate.to('/manage_robots'), color='secondary')
-
-    with ui.row().classes('w-full'):
-        with ui.card().classes('w-[calc(50vw-24px)]'):
-            ui.label('Welcome to the Spiri SDK!').classes('text-lg')
+    await container.displayButtons()
+    await container.displayCards()

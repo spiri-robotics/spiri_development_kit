@@ -1,4 +1,6 @@
-from spiriSdk.pages import home, manage_robots, new_robots, tools
+from nicegui import ui
+from spiriSdk.dindocker import DockerInDocker
+from spiriSdk.pages import home, new_robots, tools
 from spiriSdk.utils.daemon_utils import on_startup, on_shutdown
 from nicegui import app, ui
 
@@ -8,4 +10,4 @@ favicon = """
 app.on_startup(on_startup)
 app.on_shutdown(on_shutdown)
 
-ui.run(title='Spiri SDK', favicon=favicon, reload=True, dark=None, port=8197, show=True)
+ui.run(title='Spiri SDK', favicon=favicon, reload=True, dark=None, port=8197, show=False)
