@@ -19,7 +19,6 @@ def on_select(robot_name: str):
     display_robot_options(robot_name, selected_additions, selected_options, options_container)
     return selected_robot
 
-#@ui.refreshable
 def display_fields():
     ui.label('New Robot').classes('text-h5')
     with ui.row().classes('w-full'):
@@ -35,6 +34,3 @@ async def new_robots():
     display_fields()
 
     ui.button('back to manage page', color='secondary', on_click=lambda: ui.navigate.to('/')).classes('text-base')
-
-# async def clear_fields():
-#     display_fields.refresh()
