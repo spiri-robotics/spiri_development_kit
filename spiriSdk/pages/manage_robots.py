@@ -25,6 +25,7 @@ async def manage_robots():
         await new_robots()
 
         async def add_robot():
+            print(f"Selected robot: {selected_robot}")
             await save_robot_config(selected_robot, selected_options)
             addRobot.close()
             await container.displayCards()   
