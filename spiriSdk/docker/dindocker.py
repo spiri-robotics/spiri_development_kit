@@ -240,14 +240,18 @@ class DockerInDocker(Container):
         init=False
     )
     robot_data_root: Path = field(init=False)
+    robot_root: Path = field(init=False)
+    robot_type: str = field(init=False)
     #registry_proxy: Optional[DockerRegistryProxy] = field(default_factory=lambda: DEFAULT_REGISTRY_PROXY)
     registry_proxy: Optional[DockerRegistryProxy] = field(default=None)
 
     def __post_init__(self):
         """Initialize DinD-specific paths and settings."""
         super().__post_init__()
+        self.robot_type = "-".join(self.image_name.split('-')[:-1])
         self.robot_data_root = self.sdk_root / "data" / self.container_name
         self.robot_data_root.mkdir(parents=True, exist_ok=True)
+        self.robot_root = self.sdk_root / "robots" / self.robot_type
         
         # Create socket directory if it doesn't exist
         self.socket_dir.mkdir(mode=0o777, parents=True, exist_ok=True)
@@ -255,22 +259,9 @@ class DockerInDocker(Container):
         
         self.volumes.update({
             str(self.robot_data_root): {"bind": "/data", "mode": "rw"},
-            str(self.socket_dir): {"bind": "/dind-sockets", "mode": "rw"}
+            str(self.socket_dir): {"bind": "/dind-sockets", "mode": "rw"},
+            str(self.robot_root): {"bind": f"/robots/{self.robot_type}", "mode": "rw"}
         })
-
-        if self.image_name:
-        # Mount the robot services directory to /robots inside container
-            robot_type = "-".join(self.image_name.split('-')[:-1])
-            host_robot_services_path = self.sdk_root / "robots" / robot_type
-            self.volumes[str(host_robot_services_path)] = {"bind": f"/robots/{robot_type}", "mode": "rw"}
-
-            # Mount the robot config.env to /spiriSdk/data/{robot_name}/config.env
-            host_config_env = self.sdk_root / "data" / self.image_name / "config.env"
-            container_config_path = f"/spiriSdk/data/{self.image_name}/config.env"
-            if host_config_env.exists():
-                self.volumes[str(host_config_env)] = {"bind": container_config_path, "mode": "ro"}
-            else:
-                logger.warning(f"Config file not found: {host_config_env}")
                 
         self.command = [
             f'--host=unix:///dind-sockets/{self.container_name}.socket'
