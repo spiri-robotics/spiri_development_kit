@@ -60,7 +60,6 @@ class RobotContainer:
             await self.displayButtons()
             for robotName in names:
                 ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
-                folder_path = os.path.join(ROOT_DIR, "data", f"{robotName}")
 
                 with ui.card().classes('w-full'):
                     with ui.row(align_items='stretch').classes('w-full'):
