@@ -53,7 +53,7 @@ class Container:
         Raises:
             RuntimeError: If container fails to start
         """
-        
+        print(f"Ensuring container {self.container_name} is started with image {self.image_name}")
         try:
             # Check if a container with the same name already exists
             if self.container is None:

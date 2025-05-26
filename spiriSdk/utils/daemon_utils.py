@@ -21,7 +21,8 @@ async def init_daemons() -> dict:
             daemons[robot_name] = dind
             await run.io_bound(dind.ensure_started)
 
-            services_dir = os.path.join(ROBOTS_DIR, robot_name.split('-')[0], "services")
+            robot_type = "-".join(robot_name.split('-')[:-1])
+            services_dir = os.path.join(ROBOTS_DIR, robot_type, "services")
             print(f"Checking services in {services_dir} for {robot_name}...")
             if not os.path.exists(services_dir):
                 continue
