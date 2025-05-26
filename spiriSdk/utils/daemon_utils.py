@@ -66,43 +66,39 @@ async def start_container(robot_name: str):
     await run.io_bound(daemons[robot_name].ensure_started)
     ui.notify(f"Container {robot_name} started.")
 
-def stop_container(robot_name: str):
+def stop_container(robot_name: str) -> str:
     if robot_name not in daemons:
-        ui.notify(f"No daemon found for {robot_name}.")
-        return
+        return f"No daemon found for {robot_name}."
 
     container = daemons[robot_name].container
-
     if container is None:
-        ui.notify(f"No container found for {robot_name}. It may have already been removed.")
-        return
+        return f"No container found for {robot_name}. It may have already been removed."
 
     try:
-        container.reload()  # Refresh container state
+        container.reload()
     except NotFound:
         daemons[robot_name].container = None
-        ui.notify(f"Container {robot_name} is already removed.")
-        return
+        return f"Container {robot_name} is already removed."
 
     if container.status != "running":
-        ui.notify(f"Container {robot_name} is not running or has already stopped.")
-        return
+        return f"Container {robot_name} is not running or has already stopped."
 
     try:
         container.stop()
-        ui.notify(f"Container {robot_name} stopped.")
+        return f"Container {robot_name} stopped."
     except NotFound:
         daemons[robot_name].container = None
-        ui.notify(f"Container {robot_name} was already removed before stopping.")
+        return f"Container {robot_name} was already removed before stopping."
     except APIError as e:
         if e.response is not None and e.response.status_code == 404:
             daemons[robot_name].container = None
-            ui.notify(f"Container {robot_name} was already removed before stopping.")
+            return f"Container {robot_name} was already removed before stopping."
         else:
             raise
 
 async def restart_container(robot_name: str):
-    await run.io_bound(lambda: stop_container(robot_name))  # wrap sync function
+    message = await run.io_bound(lambda: stop_container(robot_name))
+    ui.notify(message)
     await start_container(robot_name)
     ui.notify(f"Container {robot_name} restarted.")
 

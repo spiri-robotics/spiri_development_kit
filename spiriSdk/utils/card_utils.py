@@ -87,7 +87,8 @@ class RobotContainer:
                         ui.space()
                         with ui.card_actions():
                             def make_stop(robot=robotName):
-                                stop_container(robot)
+                                message = stop_container(robot)
+                                ui.notify(message)
 
                             async def make_start(robot=robotName):
                                 await start_container(robot)
