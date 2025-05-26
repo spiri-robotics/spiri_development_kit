@@ -52,7 +52,7 @@ async def init_daemons() -> dict:
                     print(f"Autostarting: {robot_name}/{service}")
                     # Step 5: Run `docker compose up -d` inside the DinD container
                     inside_path = f"/robots/{robot_type}/services/{service}"
-                    command = f"docker compose --env-file=/data/{robot_name}/config.env -f {inside_path}/docker-compose.yaml up -d"
+                    command = f"docker compose --env-file=/data/config.env -f {inside_path}/docker-compose.yaml up -d"
                     result = await run.io_bound(lambda: daemons[robot_name].container.exec_run(command, workdir=inside_path))
                     print(result.output.decode())
 
