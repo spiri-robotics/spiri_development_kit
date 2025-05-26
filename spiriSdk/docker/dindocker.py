@@ -274,7 +274,7 @@ class DockerInDocker(Container):
                 
         self.command = [
             f'--host=unix:///dind-sockets/{self.container_name}.socket'
-        ]
+        ]\
 
     def ensure_started(self) -> None:
         """Start the Docker-in-Docker container with specialized configuration."""
