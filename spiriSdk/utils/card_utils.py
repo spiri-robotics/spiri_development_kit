@@ -113,13 +113,13 @@ class RobotContainer:
                                 ui.item('Delete', on_click=lambda n=robotName: delete(n))
                     with ui.row().classes('w-full'):
                         with ui.card_section():
-                            command = f"Docker services command: unix:///tmp/dind-sockets/{robotName}.socket"
+                            command = f"Docker services command: docker --host=unix:///tmp/dind-sockets/{robotName}.socket ps"
                             def copy_text(robot=robotName):
-                                command = f"unix:///tmp/dind-sockets/{robot}.socket"
+                                command = f"docker --host=unix:///tmp/dind-sockets/{robot}.socket ps"
                                 ui.run_javascript(f'''
                                     navigator.clipboard.writeText("{command}");
                                 ''')
                                 ui.notify("Copied to clipboard!")
                             ui.label(command).classes('text-sm text-gray-200')
-                        ui.button("Copy to Clipboard", on_click=copy_text, color='secondary').classes('m-1 mr-10')
+                        ui.button("Copy to Clipboard", icon="content_copy", on_click=copy_text, color='secondary').classes('m-1 mr-10')
                             

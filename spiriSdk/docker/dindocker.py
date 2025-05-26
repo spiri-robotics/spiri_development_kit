@@ -257,10 +257,24 @@ class DockerInDocker(Container):
             str(self.robot_data_root): {"bind": "/data", "mode": "rw"},
             str(self.socket_dir): {"bind": "/dind-sockets", "mode": "rw"}
         })
+
+        if self.image_name:
+        # Mount the robot services directory to /robots inside container
+            robot_type = "-".join(self.image_name.split('-')[:-1])
+            host_robot_services_path = self.sdk_root / "robots" / robot_type
+            self.volumes[str(host_robot_services_path)] = {"bind": f"/robots/{robot_type}", "mode": "rw"}
+
+            # Mount the robot config.env to /spiriSdk/data/{robot_name}/config.env
+            host_config_env = self.sdk_root / "data" / self.image_name / "config.env"
+            container_config_path = f"/spiriSdk/data/{self.image_name}/config.env"
+            if host_config_env.exists():
+                self.volumes[str(host_config_env)] = {"bind": container_config_path, "mode": "ro"}
+            else:
+                logger.warning(f"Config file not found: {host_config_env}")
+                
         self.command = [
             f'--host=unix:///dind-sockets/{self.container_name}.socket'
         ]
-
 
     def ensure_started(self) -> None:
         """Start the Docker-in-Docker container with specialized configuration."""
