@@ -1,4 +1,4 @@
-from spiriSdk.utils.daemon_utils import daemons, stop_container, start_container, restart_container, display_daemon_status
+from spiriSdk.utils.daemon_utils import daemons, stop_container, start_container, restart_container, display_daemon_status, DaemonEvent
 from spiriSdk.utils.new_robot_utils import delete_robot, save_robot_config
 from spiriSdk.pages.tools import tools, prep_bot
 import asyncio
@@ -23,7 +23,6 @@ async def addRobot():
 
             # Refresh display to update visible cards
             from spiriSdk.pages.home import container
-            await container.displayCards()
             ui.notify(f"Robot {selected_robot} added successfully!")
 
         with ui.card_actions().props('align=center'):
@@ -45,6 +44,7 @@ class RobotContainer:
 
     def __init__(self, bigCard,) -> None:
         self.destination = bigCard
+        DaemonEvent.subscribe(self.displayCards)
 
     async def displayButtons(self) -> None:
         with self.destination:
@@ -104,7 +104,6 @@ class RobotContainer:
                             async def delete(n):
                                 if await delete_robot(n):
                                     ui.notify(f'{n} deleted')
-                                    await self.displayCards()
                                 else:
                                     ui.notify('error deleting robot')
 

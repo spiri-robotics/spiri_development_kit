@@ -11,6 +11,18 @@ ROBOTS_DIR = os.path.join(ROOT_DIR, 'robots')
 
 daemons = {}
 
+class DaemonEvent:
+    _subscribers = []
+
+    @classmethod
+    def subscribe(cls, callback):
+        cls._subscribers.append(callback)
+
+    @classmethod
+    async def notify(cls):
+        for callback in cls._subscribers:
+            await callback()
+
 async def init_daemons() -> dict:
     global daemons
     print("Initializing Daemons...")
@@ -21,6 +33,7 @@ async def init_daemons() -> dict:
             daemons[robot_name] = dind
             await run.io_bound(dind.ensure_started)
             await start_services(robot_name)
+            await DaemonEvent.notify()
 
 async def start_services(robot_name: str):
     if robot_name not in daemons:
@@ -72,8 +85,10 @@ async def start_services(robot_name: str):
                 # Step 5: Run `docker compose up -d` inside the DinD container
                 inside_path = f"/robots/{robot_type}/services/{service}"
                 command = f"docker compose --env-file=/data/config.env -f {inside_path}/docker-compose.yaml up -d"
-                result = await run.io_bound(lambda: daemons[robot_name].container.exec_run(command, workdir=inside_path))
+                print(daemons[robot_name].container)
+                result = await run.io_bound(lambda robot_name=robot_name: daemons[robot_name].container.exec_run(command, workdir=inside_path))
                 print(result.output.decode())
+
     except Exception as e:
         return f"Error starting services for {robot_name}: {str(e)}"
 

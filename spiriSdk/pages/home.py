@@ -15,4 +15,3 @@ async def home():
     container = RobotContainer(destination)
 
     await container.displayButtons()
-    await container.displayCards()
