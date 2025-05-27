@@ -128,7 +128,7 @@ class Container:
         """Context manager exit."""
         self.cleanup()
 
-    def container_ip(self) -> str:
+    def get_ip(self) -> str:
         """Get the container's IP address.
         
         Returns:

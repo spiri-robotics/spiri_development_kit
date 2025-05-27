@@ -110,6 +110,8 @@ class RobotContainer:
                             with ui.dropdown_button(icon='settings', color='secondary').classes('text-base') as drop:
                                 ui.item('Edit', on_click=lambda n=robotName: editRobot(n))
                                 ui.item('Delete', on_click=lambda n=robotName: delete(n))
+
+                    # Display the robot's Docker services command            
                     with ui.row().classes('w-full'):
                         with ui.card_section():
                             command = f"Docker services command: docker --host=unix:///tmp/dind-sockets/{robotName}.socket ps"
@@ -121,4 +123,10 @@ class RobotContainer:
                                 ui.notify("Copied to clipboard!")
                             ui.label(command).classes('text-sm text-gray-200')
                         ui.button("Copy to Clipboard", icon="content_copy", on_click=copy_text, color='secondary').classes('m-1 mr-10')
-                            
+                        
+                    # Display the robot's web interface if applicable
+                    if str.join("-", robotName.split("-")[:1]) == "spiri_mu":
+                        with ui.card_section():
+                            url = f'http://{daemons[robotName].get_ip()}:{8124}'
+                            ui.html(f'<iframe src="{url}" width="1000" height="600"></iframe>')
+                        
