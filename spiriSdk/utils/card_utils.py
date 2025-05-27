@@ -7,6 +7,15 @@ import os
 from pathlib import Path
 from spiriSdk.pages.new_robots import new_robots
 from spiriSdk.pages.edit_robot import edit_robot
+import httpx
+
+async def is_service_ready(url: str, timeout: float = 0.5) -> bool:
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.get(url, timeout=timeout)
+            return response.status_code == 200
+    except Exception:
+        return False
 
 async def addRobot():
     with ui.dialog() as d, ui.card(align_items='stretch').classes('w-full'):
@@ -128,5 +137,12 @@ class RobotContainer:
                     if str.join("-", robotName.split("-")[:1]) == "spiri_mu":
                         with ui.card_section():
                             url = f'http://{daemons[robotName].get_ip()}:{8124}'
+
+                            loading = ui.spinner(size='lg')
+                            while not await is_service_ready(url):
+                                await asyncio.sleep(1)
+
+                            loading.delete()
+
                             ui.html(f'<iframe src="{url}" width="1000" height="600"></iframe>')
                         
