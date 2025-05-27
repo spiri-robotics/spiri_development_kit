@@ -53,7 +53,7 @@ class Container:
         Raises:
             RuntimeError: If container fails to start
         """
-        
+        print(f"Ensuring container {self.container_name} is started with image {self.image_name}")
         try:
             # Check if a container with the same name already exists
             if self.container is None:
@@ -240,14 +240,18 @@ class DockerInDocker(Container):
         init=False
     )
     robot_data_root: Path = field(init=False)
+    robot_root: Path = field(init=False)
+    robot_type: str = field(init=False)
     #registry_proxy: Optional[DockerRegistryProxy] = field(default_factory=lambda: DEFAULT_REGISTRY_PROXY)
     registry_proxy: Optional[DockerRegistryProxy] = field(default=None)
 
     def __post_init__(self):
         """Initialize DinD-specific paths and settings."""
         super().__post_init__()
+        self.robot_type = "-".join(self.image_name.split('-')[:-1])
         self.robot_data_root = self.sdk_root / "data" / self.container_name
         self.robot_data_root.mkdir(parents=True, exist_ok=True)
+        self.robot_root = self.sdk_root / "robots" / self.robot_type
         
         # Create socket directory if it doesn't exist
         self.socket_dir.mkdir(mode=0o777, parents=True, exist_ok=True)
@@ -255,12 +259,13 @@ class DockerInDocker(Container):
         
         self.volumes.update({
             str(self.robot_data_root): {"bind": "/data", "mode": "rw"},
-            str(self.socket_dir): {"bind": "/dind-sockets", "mode": "rw"}
+            str(self.socket_dir): {"bind": "/dind-sockets", "mode": "rw"},
+            str(self.robot_root): {"bind": f"/robots/{self.robot_type}", "mode": "rw"}
         })
+                
         self.command = [
             f'--host=unix:///dind-sockets/{self.container_name}.socket'
-        ]
-
+        ]\
 
     def ensure_started(self) -> None:
         """Start the Docker-in-Docker container with specialized configuration."""
@@ -303,7 +308,6 @@ class DockerInDocker(Container):
         for attempt in range(self.ready_timeout):
             try:
                 # Set ownership and permissions of socket file inside container
-                socket_path = f"/dind-sockets/{self.container_name}.socket"
                 self.container.exec_run(f"chown :{CURRENT_PRIMARY_GROUP} /dind-sockets/{self.container_name}.socket")
                 self.container.exec_run(f"chmod 666 /dind-sockets/{self.container_name}.socket")
                 
@@ -395,4 +399,3 @@ class DockerInDocker(Container):
         raise RuntimeError(
             f"Failed to run compose after {max_attempts} attempts. Last error: {str(last_exception)}"
         )
-

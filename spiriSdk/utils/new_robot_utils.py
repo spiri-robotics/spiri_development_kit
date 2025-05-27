@@ -4,9 +4,9 @@ import yaml
 import re
 from pathlib import Path
 import uuid
-from spiriSdk.dindocker import DockerInDocker
+from spiriSdk.docker.dindocker import DockerInDocker
 from nicegui import run
-from spiriSdk.utils.daemon_utils import daemons, init_daemons
+from spiriSdk.utils.daemon_utils import daemons, start_services, DaemonEvent
 import shutil
 
 ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
@@ -57,7 +57,7 @@ def ensure_options_yaml():
     return robots
 
 async def save_robot_config(robot_type, selected_options):
-    robot_id = uuid.uuid4().hex[:6]
+    robot_id = selected_options.get('DRONE_SYS_ID', uuid.uuid4().hex[:6])
     folder_name = f"{robot_type}-{robot_id}"
     folder_path = os.path.join(ROOT_DIR, "data", folder_name)
     os.makedirs(folder_path, exist_ok=True)
@@ -71,13 +71,18 @@ async def save_robot_config(robot_type, selected_options):
     await run.io_bound(new_daemon.ensure_started)
     daemons[folder_name] = new_daemon
 
+    await start_services(folder_name)
+    await DaemonEvent.notify()
+
     ui.notify(f"Saved config.env and started daemon for {folder_name}")
 
 async def delete_robot(robot_name) -> bool:
     robot_path = os.path.join(ROOT_DIR, "data", robot_name)
     daemon = daemons.pop(robot_name)
     daemon.cleanup()
-    shutil.rmtree(robot_path)
+    if os.path.exists(robot_path):
+        shutil.rmtree(robot_path)
+    await DaemonEvent.notify()
     return True
 
 def display_robot_options(robot_name, selected_additions, selected_options, options_container):
@@ -102,24 +107,25 @@ def display_robot_options(robot_name, selected_additions, selected_options, opti
 
     # Display options dynamically
     with options_container:
-        #ui.label(f"Options for {robot_name}").classes('text-h5')
+        ui.label(f"Options for {robot_name}").classes('text-h5')
 
         for key, option in options.get('x-spiri-options', {}).items():
-            #ui.label(key).classes('text-h6')
+            ui.label(key).classes('text-h6')
             ui.label(option.get('help-text', '')).classes('text-body2')
             option_type = option.get('type', 'text')
             current_value = option.get('value', '')
-            formatted_key = key.translate(str.maketrans("_", " ")).capitalize()
 
             if option_type == 'bool':
-                with ui.row().classes('items-center justify-between w-[25%]'):
+                with ui.row():
+                    switch_label = ui.label(f"{current_value}").classes('text-body2')
+
                     def on_toggle(e, k=key):
                         selected_options[k] = e.value
+                        switch_label.set_text(f"{e.value}")
 
-                    ui.label(f'{formatted_key}:')
                     ui.switch(
                         value=current_value,
-                        on_change=lambda e: on_toggle(e.sender)
+                        on_change=on_toggle
                     )
 
             elif option_type == 'int':
@@ -139,14 +145,15 @@ def display_robot_options(robot_name, selected_additions, selected_options, opti
                     int_options = list(range(min_val, max_val + 1, step))
                     with ui.select(
                         options=int_options,
+                        value=current_value,
                         on_change=int_input_change(key)
-                    ).classes('w-full') as dropdown:
-                        dropdown.label = formatted_key
+                    ) as dropdown:
+                        dropdown.label = key
                 else:
                     # Fallback: no min/max, use input box
                     ui.input(
-                        label=f"{formatted_key} (int)",
-                        placeholder=str(current_value),
+                        label=f"{key} (int)",
+                        value=str(current_value),
                         on_change=make_int_input(key)
                     )
 
@@ -154,23 +161,23 @@ def display_robot_options(robot_name, selected_additions, selected_options, opti
                 def make_float_input(k):
                     return lambda e: selected_options.update({k: float(e.value) if e.value else 0.0})
                 ui.input(
-                    label=f"{formatted_key} (float)",
-                    placeholder=str(current_value),
+                    label=f"{key} (float)",
+                    value=str(current_value),
                     on_change=make_float_input(key)
                 )
 
             elif option_type == 'text':
-                ui.input(formatted_key, placeholder=option.get('value', ''), on_change=(lambda e, k=key: selected_options.update({k: e.value}))).classes('w-full')
+                ui.input(key, value=option.get('value', ''), on_change=(lambda e, k=key: selected_options.update({k: e.value})))
             
             elif option_type == 'dropdown':
                 # Ensure the dropdown options are a list
                 dropdown_options = option.get('options', [])
                 if isinstance(dropdown_options, list):
-                    with ui.dropdown_button(f"{formatted_key}: {option.get('value', '')}", auto_close=True):
+                    with ui.dropdown_button(f"{key}: {option.get('value', '')}", auto_close=True):
                         for item in dropdown_options:
                             ui.item(item, on_change=(lambda e, k=key: selected_options.update({k: e.value})))
                 else:
-                    ui.label(f"Invalid dropdown options for '{key}'").classes('text-body2')
+                    ui.label(f"Invalid dropdown options for {key}").classes('text-body2')
             
             else:
-                ui.input(formatted_key, placeholder=option.get('value', ''), on_change=(lambda e, k=key: selected_options.update({k: e.value})))
+                ui.input(key, value=option.get('value', ''), on_change=(lambda e, k=key: selected_options.update({k: e.value})))

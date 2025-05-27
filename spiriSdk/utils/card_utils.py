@@ -1,11 +1,11 @@
-from nicegui import ui, run
-from spiriSdk.utils.daemon_utils import daemons, stop_container, start_container, restart_container, display_daemon_status
+from spiriSdk.utils.daemon_utils import daemons, stop_container, start_container, restart_container, display_daemon_status, DaemonEvent
 from spiriSdk.utils.new_robot_utils import delete_robot, save_robot_config
 from spiriSdk.pages.tools import tools, prep_bot
 import asyncio
+from nicegui import ui
 import os
 from pathlib import Path
-from spiriSdk.pages.new_robots import new_robots#, clear_fields
+from spiriSdk.pages.new_robots import new_robots
 from spiriSdk.pages.edit_robot import edit_robot
 
 async def addRobot():
@@ -23,7 +23,6 @@ async def addRobot():
 
             # Refresh display to update visible cards
             from spiriSdk.pages.home import container
-            await container.displayCards()
             ui.notify(f"Robot {selected_robot} added successfully!")
 
         with ui.card_actions().props('align=center'):
@@ -32,9 +31,9 @@ async def addRobot():
     
     d.open()
 
-async def editRobot(robotID):
+async def editRobot(robotName):
     with ui.dialog() as d, ui.card(align_items='stretch').classes('w-full'):
-        await edit_robot(robotID)
+        await edit_robot(robotName)
 
         with ui.card_actions().props('align=center'):
             ui.button('Cancel', on_click=d.close, color='secondary') 
@@ -45,6 +44,7 @@ class RobotContainer:
 
     def __init__(self, bigCard,) -> None:
         self.destination = bigCard
+        DaemonEvent.subscribe(self.displayCards)
 
     async def displayButtons(self) -> None:
         with self.destination:
@@ -58,18 +58,8 @@ class RobotContainer:
         self.destination.clear()
         with self.destination:
             await self.displayButtons()
-            for robotID in names:
+            for robotName in names:
                 ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
-                folder_name = f"{robotID}"
-                folder_path = os.path.join(ROOT_DIR, "data", folder_name)
-                config_path = os.path.join(folder_path, "config.env")
-
-                robotName = robotID
-
-                with open(config_path, "r") as options:
-                    for line in options:
-                        if 'name='.casefold() in line.casefold():
-                            robotName = line[5:]
 
                 with ui.card().classes('w-full'):
                     with ui.row(align_items='stretch').classes('w-full'):
@@ -82,7 +72,7 @@ class RobotContainer:
                                 label.text = f'Status: {status}'
 
                             # Initial status
-                            await update_status(robotID, label_status)
+                            await update_status(robotName, label_status)
 
                             # Periodic update
                             def start_polling(name, label):
@@ -92,16 +82,17 @@ class RobotContainer:
                                         await asyncio.sleep(5)
                                 asyncio.create_task(polling_loop())
 
-                            start_polling(robotID, label_status)
+                            start_polling(robotName, label_status)
                         ui.space()
                         with ui.card_actions():
-                            def make_stop(robot=robotID):
-                                stop_container(robot)
+                            def make_stop(robot=robotName):
+                                message = stop_container(robot)
+                                ui.notify(message)
 
-                            async def make_start(robot=robotID):
+                            async def make_start(robot=robotName):
                                 await start_container(robot)
 
-                            async def make_restart(robot=robotID):
+                            async def make_restart(robot=robotName):
                                 await restart_container(robot)
                             
                             ui.button('Start', on_click=make_start, icon='play_arrow', color='positive').classes('m-1 text-base')
@@ -113,11 +104,21 @@ class RobotContainer:
                             async def delete(n):
                                 if await delete_robot(n):
                                     ui.notify(f'{n} deleted')
-                                    await self.displayCards()
                                 else:
                                     ui.notify('error deleting robot')
 
                             with ui.dropdown_button(icon='settings', color='secondary').classes('text-base') as drop:
-                                ui.item('Edit', on_click=lambda n=robotID: editRobot(n))
-                                ui.item('Delete', on_click=lambda n=robotID: delete(n))
-
+                                ui.item('Edit', on_click=lambda n=robotName: editRobot(n))
+                                ui.item('Delete', on_click=lambda n=robotName: delete(n))
+                    with ui.row().classes('w-full'):
+                        with ui.card_section():
+                            command = f"Docker services command: docker --host=unix:///tmp/dind-sockets/{robotName}.socket ps"
+                            def copy_text(robot=robotName):
+                                command = f"docker --host=unix:///tmp/dind-sockets/{robot}.socket ps"
+                                ui.run_javascript(f'''
+                                    navigator.clipboard.writeText("{command}");
+                                ''')
+                                ui.notify("Copied to clipboard!")
+                            ui.label(command).classes('text-sm text-gray-200')
+                        ui.button("Copy to Clipboard", icon="content_copy", on_click=copy_text, color='secondary').classes('m-1 mr-10')
+                            
