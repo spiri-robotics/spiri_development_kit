@@ -16,6 +16,12 @@ async def is_service_ready(url: str, timeout: float = 0.5) -> bool:
             return response.status_code == 200
     except Exception:
         return False
+    
+def copy_text(command):
+    ui.run_javascript(f'''
+        navigator.clipboard.writeText("{command}");
+    ''')
+    ui.notify("Copied to clipboard!")
 
 async def addRobot():
     with ui.dialog() as d, ui.card(align_items='stretch').classes('w-full'):
@@ -124,19 +130,17 @@ class RobotContainer:
                     with ui.row().classes('w-full'):
                         with ui.card_section():
                             command = f"Docker services command: docker --host=unix:///tmp/dind-sockets/{robotName}.socket ps"
-                            def copy_text(robot=robotName):
-                                command = f"docker --host=unix:///tmp/dind-sockets/{robot}.socket ps"
-                                ui.run_javascript(f'''
-                                    navigator.clipboard.writeText("{command}");
-                                ''')
-                                ui.notify("Copied to clipboard!")
+                            copy_command = f"docker --host=unix:///tmp/dind-sockets/{robotName}.socket ps"
                             ui.label(command).classes('text-sm text-gray-200')
-                        ui.button("Copy to Clipboard", icon="content_copy", on_click=copy_text, color='secondary').classes('m-1 mr-10')
+                        ui.button("Copy to Clipboard", icon="content_copy", on_click=lambda c=copy_command: copy_text(c), color='secondary').classes('m-1 mr-10')
                         
                     # Display the robot's web interface if applicable
                     if str.join("-", robotName.split("-")[:1]) == "spiri_mu":
                         with ui.card_section():
-                            url = f'http://{daemons[robotName].get_ip()}:{8124}'
+                            url = f'http://{daemons[robotName].get_ip()}:{80}'
+                            with ui.row().classes('w-full'):
+                                ui.label(f'Access the Web Interface at: {url}').classes('text-sm text-gray-200 py-3')
+                                ui.button("Copy to Clipboard", icon="content_copy", on_click=lambda c=url: copy_text(c), color='secondary').classes('m-1 mr-10')
 
                             loading = ui.spinner(size='lg')
                             while not await is_service_ready(url):
