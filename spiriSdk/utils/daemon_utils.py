@@ -20,41 +20,62 @@ async def init_daemons() -> dict:
             dind = DockerInDocker("docker:dind", robot_name)
             daemons[robot_name] = dind
             await run.io_bound(dind.ensure_started)
+            await start_services(robot_name)
 
-            robot_type = "-".join(robot_name.split('-')[:-1])
-            services_dir = os.path.join(ROBOTS_DIR, robot_type, "services")
-            print(f"Checking services in {services_dir} for {robot_name}...")
-            if not os.path.exists(services_dir):
-                print(f"Services directory {services_dir} does not exist for {robot_name}. Skipping.")
+async def start_services(robot_name: str):
+    if robot_name not in daemons:
+        return f"No daemon found for {robot_name}."
+
+    container = daemons[robot_name].container
+    if container is None:
+        return f"No container found for {robot_name}. It may not be started yet."
+
+    try:
+        container.reload()
+    except NotFound:
+        daemons[robot_name].container = None
+        return f"Container {robot_name} is already removed."
+
+    if container.status != "running":
+        return f"Container {robot_name} is not running."
+
+    try:
+        robot_type = "-".join(robot_name.split('-')[:-1])
+        services_dir = os.path.join(ROBOTS_DIR, robot_type, "services")
+        print(f"Checking services in {services_dir} for {robot_name}...")
+        if not os.path.exists(services_dir):
+            print(f"Services directory {services_dir} does not exist for {robot_name}. Skipping.")
+            return
+
+        for service in os.listdir(services_dir):
+            service_path = os.path.join(services_dir, service)
+            if not os.path.isdir(service_path):
+                print(f"Skipping {service_path} as it is not a directory.")
                 continue
 
-            for service in os.listdir(services_dir):
-                service_path = os.path.join(services_dir, service)
-                if not os.path.isdir(service_path):
-                    print(f"Skipping {service_path} as it is not a directory.")
-                    continue
+            compose_path = os.path.join(service_path, "docker-compose.yaml")
+            if not os.path.exists(compose_path):
+                print(f"docker-compose.yaml not found for {robot_name}/{service} at {compose_path}. Skipping.")
+                continue
 
-                compose_path = os.path.join(service_path, "docker-compose.yaml")
-                if not os.path.exists(compose_path):
-                    print(f"docker-compose.yaml not found for {robot_name}/{service} at {compose_path}. Skipping.")
-                    continue
+            # Step 3: Load compose YAML
+            try:
+                with open(compose_path, 'r') as f:
+                    compose_data = yaml.safe_load(f)
+            except Exception as e:
+                print(f"Error reading {compose_path}: {e}")
+                continue
 
-                # Step 3: Load compose YAML
-                try:
-                    with open(compose_path, 'r') as f:
-                        compose_data = yaml.safe_load(f)
-                except Exception as e:
-                    print(f"Error reading {compose_path}: {e}")
-                    continue
-
-                # Step 4: Check x-spiri-sdk-autostart
-                if compose_data.get("x-spiri-sdk-autostart", True):
-                    print(f"Autostarting: {robot_name}/{service}")
-                    # Step 5: Run `docker compose up -d` inside the DinD container
-                    inside_path = f"/robots/{robot_type}/services/{service}"
-                    command = f"docker compose --env-file=/data/config.env -f {inside_path}/docker-compose.yaml up -d"
-                    result = await run.io_bound(lambda: daemons[robot_name].container.exec_run(command, workdir=inside_path))
-                    print(result.output.decode())
+            # Step 4: Check x-spiri-sdk-autostart
+            if compose_data.get("x-spiri-sdk-autostart", True):
+                print(f"Autostarting: {robot_name}/{service}")
+                # Step 5: Run `docker compose up -d` inside the DinD container
+                inside_path = f"/robots/{robot_type}/services/{service}"
+                command = f"docker compose --env-file=/data/config.env -f {inside_path}/docker-compose.yaml up -d"
+                result = await run.io_bound(lambda: daemons[robot_name].container.exec_run(command, workdir=inside_path))
+                print(result.output.decode())
+    except Exception as e:
+        return f"Error starting services for {robot_name}: {str(e)}"
 
 async def on_shutdown():
     for daemon in daemons.values():
