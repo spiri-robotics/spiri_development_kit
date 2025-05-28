@@ -110,15 +110,8 @@ class RobotContainer:
                             with ui.dropdown_button(icon='settings', color='secondary').classes('text-base') as drop:
                                 ui.item('Edit', on_click=lambda n=robotName: editRobot(n))
                                 ui.item('Delete', on_click=lambda n=robotName: delete(n))
-                    with ui.row().classes('w-full'):
+                    with ui.row(align_items="start").classes('w-full'):
                         with ui.card_section():
-                            command = f"Docker services command: docker --host=unix:///tmp/dind-sockets/{robotName}.socket ps"
-                            def copy_text(robot=robotName):
-                                command = f"docker --host=unix:///tmp/dind-sockets/{robot}.socket ps"
-                                ui.run_javascript(f'''
-                                    navigator.clipboard.writeText("{command}");
-                                ''')
-                                ui.notify("Copied to clipboard!")
-                            ui.label(command).classes('text-sm text-gray-200')
-                        ui.button("Copy to Clipboard", icon="content_copy", on_click=copy_text, color='secondary').classes('m-1 mr-10')
+                            command = f"DOCKER_HOST=unix:///tmp/dind-sockets/{robotName}.socket"
+                            ui.code(command, language='bash').classes('text-sm text-gray-200')
                             
