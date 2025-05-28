@@ -149,4 +149,15 @@ class RobotContainer:
                             loading.delete()
 
                             ui.html(f'<iframe src="{url}" width="1000" height="600"></iframe>')
+                    if str.join("-", robotName.split("-")[:1]) == "ARC":
+                        with ui.card_section():
+                            url = f'http://{daemons[robotName].get_ip()}:{80}'
+                            with ui.row().classes('w-full'):
+                                ui.link(f'Access the Web Interface at: {url}', url, new_tab=True).classes('text-sm text-gray-200 py-3')
+
+                            loading = ui.spinner(size='lg')
+                            while not await is_service_ready(url):
+                                await asyncio.sleep(1)
+
+                            loading.delete()
                         

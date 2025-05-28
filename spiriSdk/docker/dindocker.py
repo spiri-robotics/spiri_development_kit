@@ -242,8 +242,8 @@ class DockerInDocker(Container):
     robot_data_root: Path = field(init=False)
     robot_root: Path = field(init=False)
     robot_type: str = field(init=False)
-    registry_proxy: Optional[DockerRegistryProxy] = field(default_factory=lambda: DEFAULT_REGISTRY_PROXY)
-    #registry_proxy: Optional[DockerRegistryProxy] = field(default=None)
+    #registry_proxy: Optional[DockerRegistryProxy] = field(default_factory=lambda: DEFAULT_REGISTRY_PROXY)
+    registry_proxy: Optional[DockerRegistryProxy] = field(default=None)
 
     def __post_init__(self):
         """Initialize DinD-specific paths and settings."""

@@ -1,6 +1,5 @@
 from nicegui import ui
 from spiriSdk.ui.styles import styles
-from spiriSdk.pages.header import header
 from spiriSdk.utils.gazebo_models import Robot
 from spiriSdk.utils.gazebo_worlds import World
 from spiriSdk.utils.gazebo_worlds import find_worlds
@@ -50,7 +49,7 @@ def select_world(dir) -> World:
 async def tools():
 
     #Sets worlds to the dict of gazebo worlds found in the worlds directory
-    worlds = await find_worlds() 
+    worlds = dict(await find_worlds())
     
     with ui.dialog() as gz_dialog, ui.card():
     
