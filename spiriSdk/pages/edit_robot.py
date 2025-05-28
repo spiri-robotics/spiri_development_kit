@@ -1,9 +1,7 @@
 from nicegui import ui
-from spiriSdk.pages.styles import styles
+from spiriSdk.ui.styles import styles
 from spiriSdk.pages.header import header
 import os
-
-
 
 @ui.page('/edit_robot')
 

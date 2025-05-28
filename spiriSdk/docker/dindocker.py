@@ -18,6 +18,23 @@ from dataclasses import dataclass, field
 
 CURRENT_PRIMARY_GROUP = os.getgid()
 
+def cleanup_docker_resources():
+    """Cleanup function to remove all stopped containers and unused images."""
+    client = docker.from_env()
+    #Find all containers that start with "spirisdk_" and remove them
+    containers = client.containers.list(all=True, filters={"name": "spirisdk_"})
+    logger.info(f"Cleaning up {len(containers)} containers...")
+    for container in containers:
+        try:
+            logger.info(f"Removing container {container.name} ({container.id})")
+            container.remove(force=True)
+        except docker.errors.APIError as e:
+            logger.error(f"Failed to remove container {container.name}: {e}")
+
+cleanup_docker_resources()
+
+atexit.register(cleanup_docker_resources)
+
 @dataclass
 class Container:
     """Base container management class with common functionality."""
@@ -53,7 +70,7 @@ class Container:
         Raises:
             RuntimeError: If container fails to start
         """
-        
+        #print(f"Ensuring container {self.container_name} is started with image {self.image_name}")
         try:
             # Check if a container with the same name already exists
             if self.container is None:
@@ -72,7 +89,7 @@ class Container:
                 
                     docker_args = {
                         "image": self.image_name,
-                        "name": self.container_name,
+                        "name": "spirisdk_"+self.container_name,
                         "privileged": self.privileged,
                         "detach": True,
                         "remove": self.auto_remove,
@@ -147,6 +164,7 @@ class Container:
 
     def cleanup(self) -> None:
         """Clean up container resources."""
+        logger.debug(f"Cleaning up container {self.container_name}")
         if self.container is not None:
             try:
                 self.container.stop(timeout=5)
@@ -205,7 +223,7 @@ class DockerRegistryProxy(Container):
             f"Cert dir contents:\n{self.container.exec_run('ls -la /certs').output.decode()}"
         )
 
-DEFAULT_REGISTRY_PROXY = DockerRegistryProxy()
+DEFAULT_REGISTRY_PROXY = DockerRegistryProxy(container_name="registry_proxy")
 
 @dataclass
 class DockerInDocker(Container):
@@ -240,14 +258,19 @@ class DockerInDocker(Container):
         init=False
     )
     robot_data_root: Path = field(init=False)
-    #registry_proxy: Optional[DockerRegistryProxy] = field(default_factory=lambda: DEFAULT_REGISTRY_PROXY)
-    registry_proxy: Optional[DockerRegistryProxy] = field(default=None)
+    robot_root: Path = field(init=False)
+    robot_type: str = field(init=False)
+    registry_proxy: Optional[DockerRegistryProxy] = field(default_factory=lambda: DEFAULT_REGISTRY_PROXY)
+    #registry_proxy: Optional[DockerRegistryProxy] = field(default=None)
 
     def __post_init__(self):
         """Initialize DinD-specific paths and settings."""
         super().__post_init__()
+        atexit.register(self.cleanup)
+        self.robot_type = "-".join(self.image_name.split('-')[:-1])
         self.robot_data_root = self.sdk_root / "data" / self.container_name
         self.robot_data_root.mkdir(parents=True, exist_ok=True)
+        self.robot_root = self.sdk_root / "robots" / self.robot_type
         
         # Create socket directory if it doesn't exist
         self.socket_dir.mkdir(mode=0o777, parents=True, exist_ok=True)
@@ -255,12 +278,13 @@ class DockerInDocker(Container):
         
         self.volumes.update({
             str(self.robot_data_root): {"bind": "/data", "mode": "rw"},
-            str(self.socket_dir): {"bind": "/dind-sockets", "mode": "rw"}
+            str(self.socket_dir): {"bind": "/dind-sockets", "mode": "rw"},
+            str(self.robot_root): {"bind": f"/robots/{self.robot_type}", "mode": "rw"}
         })
+                
         self.command = [
             f'--host=unix:///dind-sockets/{self.container_name}.socket'
-        ]
-
+        ]\
 
     def ensure_started(self) -> None:
         """Start the Docker-in-Docker container with specialized configuration."""
@@ -303,7 +327,6 @@ class DockerInDocker(Container):
         for attempt in range(self.ready_timeout):
             try:
                 # Set ownership and permissions of socket file inside container
-                socket_path = f"/dind-sockets/{self.container_name}.socket"
                 self.container.exec_run(f"chown :{CURRENT_PRIMARY_GROUP} /dind-sockets/{self.container_name}.socket")
                 self.container.exec_run(f"chmod 666 /dind-sockets/{self.container_name}.socket")
                 
@@ -395,4 +418,3 @@ class DockerInDocker(Container):
         raise RuntimeError(
             f"Failed to run compose after {max_attempts} attempts. Last error: {str(last_exception)}"
         )
-

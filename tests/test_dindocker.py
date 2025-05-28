@@ -7,8 +7,8 @@ import shutil
 import docker
 from pathlib import Path
 from loguru import logger
-from spiriSdk.dindocker import DockerInDocker, DockerRegistryProxy
-from spiriSdk.dindocker import DockerInDocker, DockerRegistryProxy
+from spiriSdk.docker.dindocker import DockerInDocker, DockerRegistryProxy
+from spiriSdk.docker.dindocker import DockerInDocker, DockerRegistryProxy
 
 def get_dind_containers(name_prefix="dind_"):
     """Helper to find any leftover dind containers from previous runs"""

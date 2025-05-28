@@ -1,6 +1,5 @@
-from functools import partial
-from nicegui import ui, binding, app, run
-from spiriSdk.pages.styles import styles
+from nicegui import ui
+from spiriSdk.ui.styles import styles
 from spiriSdk.pages.header import header
 from spiriSdk.utils.gazebo_models import Robot
 from spiriSdk.utils.gazebo_worlds import World
@@ -9,9 +8,6 @@ from spiriSdk.utils.gazebo_worlds import running_worlds as get_running_worlds
 import time
 import docker
 import subprocess
-import asyncio
-import spiriSdk.icons as icons
-from pathlib import Path
 
 #Commands to run applications
 applications = {
