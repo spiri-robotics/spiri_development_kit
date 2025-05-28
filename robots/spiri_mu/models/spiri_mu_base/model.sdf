@@ -45,7 +45,7 @@
         <pose degrees='true'>0 0 -0.1375 0 0 90</pose>
         <geometry>
           <mesh>
-            <uri>model://robots/spiri-mu/models/spiri_mu_base/meshes/mu2_frame.fbx</uri>
+            <uri>model://robots/spiri_mu/models/spiri_mu_base/meshes/mu2_frame.fbx</uri>
             <scale> 0.01 0.01 0.01</scale>
           </mesh>
         </geometry>
@@ -55,7 +55,7 @@
         <pose degrees='true'>0.1455 0.20 -0.1375 0 0 285</pose>
         <geometry>
           <mesh>
-            <uri>model://robots/spiri-mu/models/spiri_mu_base/meshes/mu2_leg.fbx</uri>
+            <uri>model://robots/spiri_mu/models/spiri_mu_base/meshes/mu2_leg.fbx</uri>
             <scale> 0.01 0.01 0.01</scale>
           </mesh>
         </geometry>
@@ -76,7 +76,7 @@
         <pose degrees='true'>0.1455 0.20 -0.13 0 0 30</pose>
         <geometry>
           <mesh>
-            <uri>model://robots/spiri-mu/models/spiri_mu_base/meshes/mu2_motor.fbx</uri>
+            <uri>model://robots/spiri_mu/models/spiri_mu_base/meshes/mu2_motor.fbx</uri>
             <scale> 0.01 0.01 0.01</scale>
           </mesh>
         </geometry>
@@ -97,7 +97,7 @@
         <pose degrees='true'>0.1455 -0.20 -0.1375 0 0 165</pose>
         <geometry>
           <mesh>
-            <uri>model://robots/spiri-mu/models/spiri_mu_base/meshes/mu2_leg.fbx</uri>
+            <uri>model://robots/spiri_mu/models/spiri_mu_base/meshes/mu2_leg.fbx</uri>
             <scale> 0.01 0.01 0.01</scale>
           </mesh>
         </geometry>
@@ -118,7 +118,7 @@
         <pose degrees='true'>0.1455 -0.20 -0.13 0 0 90</pose>
         <geometry>
           <mesh>
-            <uri>model://robots/spiri-mu/models/spiri_mu_base/meshes/mu2_motor.fbx</uri>
+            <uri>model://robots/spiri_mu/models/spiri_mu_base/meshes/mu2_motor.fbx</uri>
             <scale> 0.01 0.01 0.01</scale>
           </mesh>
         </geometry>
@@ -139,7 +139,7 @@
         <pose degrees='true'>-0.175 0.175 -0.1375 0 0 0</pose>
         <geometry>
           <mesh>
-            <uri>model://robots/spiri-mu/models/spiri_mu_base/meshes/mu2_leg.fbx</uri>
+            <uri>model://robots/spiri_mu/models/spiri_mu_base/meshes/mu2_leg.fbx</uri>
             <scale> 0.01 0.01 0.01</scale>
           </mesh>
         </geometry>
@@ -160,7 +160,7 @@
         <pose degrees='true'>-0.175 0.175 -0.13 0 0 0</pose>
         <geometry>
           <mesh>
-            <uri>model://robots/spiri-mu/models/spiri_mu_base/meshes/mu2_motor.fbx</uri>
+            <uri>model://robots/spiri_mu/models/spiri_mu_base/meshes/mu2_motor.fbx</uri>
             <scale> 0.01 0.01 0.01</scale>
           </mesh>
         </geometry>
@@ -181,7 +181,7 @@
         <pose degrees='true'>-0.175 -0.175 -0.1375 0 0 90</pose>
         <geometry>
           <mesh>
-            <uri>model://robots/spiri-mu/models/spiri_mu_base/meshes/mu2_leg.fbx</uri>
+            <uri>model://robots/spiri_mu/models/spiri_mu_base/meshes/mu2_leg.fbx</uri>
             <scale> 0.01 0.01 0.01</scale>
           </mesh>
         </geometry>
@@ -201,7 +201,7 @@
         <pose degrees='true'>-0.175 -0.175 -0.13 0 0 0</pose>
         <geometry>
           <mesh>
-            <uri>model://robots/spiri-mu/models/spiri_mu_base/meshes/mu2_motor.fbx</uri>
+            <uri>model://robots/spiri_mu/models/spiri_mu_base/meshes/mu2_motor.fbx</uri>
             <scale> 0.01 0.01 0.01</scale>
           </mesh>
         </geometry>
@@ -288,7 +288,7 @@
         <pose>0 0 0 0 0 0</pose>
         <geometry>
           <mesh>
-            <uri>model://robots/spiri-mu/models/spiri_mu_base/meshes/mu2_prop.fbx</uri>
+            <uri>model://robots/spiri_mu/models/spiri_mu_base/meshes/mu2_prop.fbx</uri>
             <scale> 0.01 0.01 0.01</scale>
           </mesh>
         </geometry>
@@ -361,7 +361,7 @@
       <visual name='rotor_1_visual'>
         <geometry>
           <mesh>
-            <uri>model://robots/spiri-mu/models/spiri_mu_base/meshes/mu2_prop.fbx</uri>
+            <uri>model://robots/spiri_mu/models/spiri_mu_base/meshes/mu2_prop.fbx</uri>
             <scale> 0.01 0.01 0.01</scale>
           </mesh>
         </geometry>
@@ -435,7 +435,7 @@
         <pose>0 0 0 0 0 0</pose>
         <geometry>
           <mesh>
-            <uri>model://robots/spiri-mu/models/spiri_mu_base/meshes/mu2_prop.fbx</uri>
+            <uri>model://robots/spiri_mu/models/spiri_mu_base/meshes/mu2_prop.fbx</uri>
             <scale> 0.01 0.01 0.01</scale>
           </mesh>
         </geometry>
@@ -509,7 +509,7 @@
         <pose>0 0 0 0 0 0</pose>
         <geometry>
           <mesh>
-            <uri>model://robots/spiri-mu/models/spiri_mu_base/meshes/mu2_prop.fbx</uri>
+            <uri>model://robots/spiri_mu/models/spiri_mu_base/meshes/mu2_prop.fbx</uri>
             <scale> 0.01 0.01 0.01</scale>
           </mesh>
         </geometry>

@@ -2,6 +2,7 @@ from nicegui import ui, run
 from spiriSdk.utils.daemon_utils import daemons, stop_container, start_container, restart_container, display_daemon_status
 from spiriSdk.utils.new_robot_utils import delete_robot, save_robot_config
 from spiriSdk.pages.tools import tools, prep_bot
+from spiriSdk.utils.gazebo_worlds import running_worlds
 import asyncio
 import os
 from pathlib import Path
@@ -41,6 +42,8 @@ async def editRobot(robotID):
             ui.button('Save', on_click=d.close, color='secondary')
     d.open()
 
+
+
 class RobotContainer:
 
     def __init__(self, bigCard,) -> None:
@@ -57,6 +60,7 @@ class RobotContainer:
         names = daemons.keys()
         self.destination.clear()
         with self.destination:
+            worlds = []
             await self.displayButtons()
             for robotID in names:
                 ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
@@ -104,11 +108,30 @@ class RobotContainer:
                             async def make_restart(robot=robotID):
                                 await restart_container(robot)
                             
+                            async def add_to_world(robot, world):
+                                robotType = str(robot).split('-')[0]
+                                print(robotType)
+                                await prep_bot(robot, robotType, world)
+                                ui.notify(f'Added {robot} to {world}')
+
+                            async def show_worlds_menu(robot=robotID):
+                                worlds = await running_worlds()
+                                print(f"Worlds: {worlds}")
+                                if not worlds:
+                                    ui.notify("No Gazebo worlds running.")
+                                    return
+
+                                with ui.menu() as menu:
+                                    for world in worlds:
+                                        w = world
+                                        ui.menu_item(world, on_click=lambda n=robot: add_to_world(n, w))
+                                
+                                                    
                             ui.button('Start', on_click=make_start, icon='play_arrow', color='positive').classes('m-1 text-base')
                             ui.button('Stop', on_click=make_stop, icon='stop', color='warning').classes('m-1 text-base')
                             ui.button('Restart', on_click=make_restart, icon='refresh', color='secondary').classes('m-1 mr-10 text-base')
 
-                            ui.button("Add robot to world", on_click=lambda: prep_bot(), color='secondary').classes('m-1 mr-10 text-base')
+                            ui.button('Add robot to world', on_click=show_worlds_menu).classes('m-1 mr-10 text-base').props('color=secondary')
 
                             async def delete(n):
                                 if await delete_robot(n):

@@ -2,11 +2,11 @@
 <sdf version="1.9">
   <model name="spiri_mu">
     <include>
-      <uri>model://robots/spiri-mu/models/spiri_mu_base</uri>
+      <uri>model://robots/spiri_mu/models/spiri_mu_base</uri>
     </include>
 
     <include>
-      <uri>model://robots/spiri-mu/models/spiri_gimbal</uri>
+      <uri>model://robots/spiri_mu/models/spiri_gimbal</uri>
       <name>gimbal</name>
       <pose degrees="true">0.1 0 -0.1 0 0 90</pose>    
     </include>

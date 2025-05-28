@@ -17,7 +17,31 @@ async def find_worlds(p: str = Path('./worlds')) -> dict:
     except FileNotFoundError:
         print(f"Directory not found: {p}. Make sure it exists.")
         return []
-    
+
+async def running_worlds() -> list:
+    """Get a list of running Gazebo world names."""
+    try:
+        cmd = "ps aux | grep '[g]z sim'"
+        process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
+        output, _ = process.communicate()
+        output = output.decode('utf-8')
+
+        running_worlds = []
+        for line in output.strip().split('\n'):
+            if line:
+                parts = line.split()
+                command = ' '.join(parts[10:])  # Command starts around field 11
+                for token in command.split():
+                    if token.endswith('.world'):
+                        world_file = os.path.basename(token)
+                        world_name = os.path.splitext(world_file)[0]
+                        running_worlds.append(world_name)
+        return running_worlds
+
+    except subprocess.CalledProcessError as e:
+        print(f"Error running command: {e}")
+        return []
+
 class World:
     def __init__(self, name: str , path: str):
         self.name = name
