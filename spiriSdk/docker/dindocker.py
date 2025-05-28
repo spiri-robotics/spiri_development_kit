@@ -205,7 +205,7 @@ class DockerRegistryProxy(Container):
             f"Cert dir contents:\n{self.container.exec_run('ls -la /certs').output.decode()}"
         )
 
-DEFAULT_REGISTRY_PROXY = DockerRegistryProxy()
+DEFAULT_REGISTRY_PROXY = DockerRegistryProxy(container_name="spirisdk_registry_proxy")
 
 @dataclass
 class DockerInDocker(Container):
@@ -242,8 +242,8 @@ class DockerInDocker(Container):
     robot_data_root: Path = field(init=False)
     robot_root: Path = field(init=False)
     robot_type: str = field(init=False)
-    #registry_proxy: Optional[DockerRegistryProxy] = field(default_factory=lambda: DEFAULT_REGISTRY_PROXY)
-    registry_proxy: Optional[DockerRegistryProxy] = field(default=None)
+    registry_proxy: Optional[DockerRegistryProxy] = field(default_factory=lambda: DEFAULT_REGISTRY_PROXY)
+    #registry_proxy: Optional[DockerRegistryProxy] = field(default=None)
 
     def __post_init__(self):
         """Initialize DinD-specific paths and settings."""
