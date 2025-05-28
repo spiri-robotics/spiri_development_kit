@@ -108,11 +108,11 @@ class RobotContainer:
                             async def make_restart(robot=robotID):
                                 await restart_container(robot)
                             
-                            async def add_to_world(robot, world):
+                            async def add_to_world(robot=robotID):
                                 robotType = str(robot).split('-')[0]
                                 print(robotType)
-                                await prep_bot(robot, robotType, world)
-                                ui.notify(f'Added {robot} to {world}')
+                                await prep_bot(robot, robotType)
+                                ui.notify(f'Added {robot} to world')
 
                             async def show_worlds_menu(robot=robotID):
                                 worlds = await running_worlds()
@@ -131,7 +131,7 @@ class RobotContainer:
                             ui.button('Stop', on_click=make_stop, icon='stop', color='warning').classes('m-1 text-base')
                             ui.button('Restart', on_click=make_restart, icon='refresh', color='secondary').classes('m-1 mr-10 text-base')
 
-                            ui.button('Add robot to world', on_click=show_worlds_menu).classes('m-1 mr-10 text-base').props('color=secondary')
+                            ui.button('Add robot to world', on_click=add_to_world).classes('m-1 mr-10 text-base').props('color=secondary')
 
                             async def delete(n):
                                 if await delete_robot(n):
