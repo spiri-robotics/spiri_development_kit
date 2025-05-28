@@ -140,10 +140,12 @@ class RobotContainer:
                                 ui.link(f'Access the Web Interface at: {url}', url, new_tab=True).classes('text-sm text-gray-200 py-3')
 
                             loading = ui.spinner(size='lg')
-                            while not await is_service_ready(url):
+                            i = 0
+                            while not await is_service_ready(url) and i < 6:
                                 await asyncio.sleep(1)
+                                i += 1
 
-                            loading.delete()
+                            loading.set_visibility(False)
 
                             ui.html(f'<iframe src="{url}" width="1000" height="600"></iframe>')
                     if str.join("-", robotName.split("-")[:1]) == "ARC":
@@ -153,8 +155,11 @@ class RobotContainer:
                                 ui.link(f'Access the Web Interface at: {url}', url, new_tab=True).classes('text-sm text-gray-200 py-3')
 
                             loading = ui.spinner(size='lg')
-                            while not await is_service_ready(url):
+                            i = 0
+                            while not await is_service_ready(url) and i < 6:
                                 await asyncio.sleep(1)
+                                i += 1
 
-                            loading.delete()
-                        
+                            loading.set_visibility(False)
+
+                            ui.html(f'<iframe src="{url}" width="1000" height="600"></iframe>')
