@@ -3,7 +3,7 @@ import subprocess
 import os
 
 
-async def find_worlds(p: str = Path('./worlds')) -> dict:
+async def find_worlds(p: Path = Path('./worlds')) -> dict:
     """Find all worlds in the given directory."""
     worlds = {'empty_world': World('empty_world.world', 'empty_world')}
     try:
@@ -16,7 +16,7 @@ async def find_worlds(p: str = Path('./worlds')) -> dict:
         return worlds
     except FileNotFoundError:
         print(f"Directory not found: {p}. Make sure it exists.")
-        return []
+        return worlds
     
 class World:
     def __init__(self, name: str , path: str):
