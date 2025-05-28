@@ -139,8 +139,7 @@ class RobotContainer:
                         with ui.card_section():
                             url = f'http://{daemons[robotName].get_ip()}:{80}'
                             with ui.row().classes('w-full'):
-                                ui.label(f'Access the Web Interface at: {url}').classes('text-sm text-gray-200 py-3')
-                                ui.button("Copy to Clipboard", icon="content_copy", on_click=lambda c=url: copy_text(c), color='secondary').classes('m-1 mr-10')
+                                ui.link(f'Access the Web Interface at: {url}', url, new_tab=True).classes('text-sm text-gray-200 py-3')
 
                             loading = ui.spinner(size='lg')
                             while not await is_service_ready(url):

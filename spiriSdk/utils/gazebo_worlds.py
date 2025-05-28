@@ -1,7 +1,5 @@
 from pathlib import Path
 import subprocess
-import os
-
 
 async def find_worlds(p: Path = Path('./worlds')) -> dict:
     """Find all worlds in the given directory."""
