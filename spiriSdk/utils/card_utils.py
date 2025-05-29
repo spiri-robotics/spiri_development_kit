@@ -99,13 +99,13 @@ class RobotContainer:
                             async def make_restart(robot=robotName):
                                 await restart_container(robot)
                             
-                            async def add_to_world(robot=robotID):
+                            async def add_to_world(robot=robotName):
                                 robotType = str(robot).split('-')[0]
                                 print(robotType)
                                 await prep_bot(robot, robotType)
                                 ui.notify(f'Added {robot} to world')
 
-                            async def show_worlds_menu(robot=robotID):
+                            async def show_worlds_menu(robot=robotName):
                                 worlds = await running_worlds()
                                 print(f"Worlds: {worlds}")
                                 if not worlds:
