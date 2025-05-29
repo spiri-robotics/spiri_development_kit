@@ -188,11 +188,11 @@ class DockerRegistryProxy(Container):
             "DISABLE_IPV6": "true",  # Disable IPv6
         }
     )
-    volumes: Dict[str, Dict[str, str]] = field(
-        default_factory=lambda: {
-            str(Path(os.environ.get("SDK_ROOT", ".")) / "cache" / "certs"): {"bind": "/certs", "mode": "rw"}
-        }
-    )
+    #volumes: Dict[str, Dict[str, str]] = field(
+        # default_factory=lambda: {
+        #     str(Path(os.environ.get("SDK_ROOT", ".")) / "cache" / "certs"): {"bind": "/certs", "mode": "rw"}
+        # }
+    #)
 
     def get_cacert(self) -> str:
         """Get the CA certificate for the registry mirror.

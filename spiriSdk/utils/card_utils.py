@@ -136,24 +136,21 @@ class RobotContainer:
                     if str.join("-", robotName.split("-")[:1]) == "spiri_mu":
                         with ui.card_section():
                             url = f'http://{daemons[robotName].get_ip()}:{80}'
-                            with ui.row().classes('w-full'):
-                                ui.link(f'Access the Web Interface at: {url}', url, new_tab=True).classes('text-sm text-gray-200 py-3')
-
                             loading = ui.spinner(size='lg')
                             i = 0
-                            while not await is_service_ready(url) and i < 6:
+                            while not await is_service_ready(url) or i < 6:
                                 await asyncio.sleep(1)
-                                i += 1
 
                             loading.set_visibility(False)
 
-                            ui.html(f'<iframe src="{url}" width="1000" height="600"></iframe>')
+                            if await is_service_ready(url):
+                                ui.link(f'Access the Web Interface at: {url}', url, new_tab=True).classes('text-sm text-gray-200 py-3')
+                                ui.html(f'<iframe src="{url}" width="1000" height="600"></iframe>')
+                            else: 
+                                ui.label('Web interface not available, please try again later').classes('text-sm text-gray-600 dark:text-gray-300')
                     if str.join("-", robotName.split("-")[:1]) == "ARC":
                         with ui.card_section():
                             url = f'http://{daemons[robotName].get_ip()}:{80}'
-                            with ui.row().classes('w-full'):
-                                ui.link(f'Access the Web Interface at: {url}', url, new_tab=True).classes('text-sm text-gray-200 py-3')
-
                             loading = ui.spinner(size='lg')
                             i = 0
                             while not await is_service_ready(url) and i < 6:
@@ -162,4 +159,8 @@ class RobotContainer:
 
                             loading.set_visibility(False)
 
-                            ui.html(f'<iframe src="{url}" width="1000" height="600"></iframe>')
+                            if await is_service_ready(url):
+                                ui.link(f'Access the Web Interface at: {url}', url, new_tab=True).classes('text-sm text-gray-200 py-3')
+                                ui.html(f'<iframe src="{url}" width="1000" height="600"></iframe>')
+                            else: 
+                                ui.label('Web interface not available, please try again later').classes('text-sm text-gray-600 dark:text-gray-300')
