@@ -1,15 +1,13 @@
+import os, asyncio
+from nicegui import ui
 from spiriSdk.utils.daemon_utils import daemons, stop_container, start_container, restart_container, display_daemon_status, DaemonEvent
 from spiriSdk.utils.new_robot_utils import delete_robot, save_robot_config
 from spiriSdk.pages.tools import tools, prep_bot
-import asyncio
-from nicegui import ui
-import os
-from pathlib import Path
 from spiriSdk.pages.new_robots import new_robots
 from spiriSdk.pages.edit_robot import edit_robot
 
 async def addRobot():
-    with ui.dialog() as d, ui.card(align_items='stretch').classes('w-full'):
+    with ui.dialog() as d, ui.card(align_items='stretch').classes('w-full').props(add='full-width'):
         await new_robots()
 
         async def submit(button):
@@ -23,6 +21,7 @@ async def addRobot():
 
             # Refresh display to update visible cards
             from spiriSdk.pages.home import container
+            await container.displayCards()
             ui.notify(f"Robot {selected_robot} added successfully!")
 
         with ui.card_actions().props('align=center'):
@@ -36,20 +35,21 @@ async def editRobot(robotName):
         await edit_robot(robotName)
 
         with ui.card_actions().props('align=center'):
-            ui.button('Cancel', on_click=d.close, color='secondary') 
-            ui.button('Save', on_click=d.close, color='secondary')
+            ui.button('Cancel', on_click=d.close, color='secondary').classes('text-base')
+            ui.button('Save', on_click=d.close, color='secondary').classes('text-base')
     d.open()
 
 class RobotContainer:
 
-    def __init__(self, bigCard,) -> None:
-        self.destination = bigCard
+    def __init__(self, destination) -> None:
+        self.destination = destination
         DaemonEvent.subscribe(self.displayCards)
 
     async def displayButtons(self) -> None:
         with self.destination:
             with ui.row().classes('justify-items-stretch w-full'):
                 ui.button('Add Robot', on_click=addRobot, color='secondary').classes('text-base')
+                # ui.button(on_click=lambda: ui.navigate.to('/new_robots'), color='secondary').classes('text-base')
                 ui.space()
                 await tools()
 
@@ -110,6 +110,7 @@ class RobotContainer:
                             with ui.dropdown_button(icon='settings', color='secondary').classes('text-base') as drop:
                                 ui.item('Edit', on_click=lambda n=robotName: editRobot(n))
                                 ui.item('Delete', on_click=lambda n=robotName: delete(n))
+
                     with ui.row(align_items="start").classes('w-full'):
                         with ui.card_section():
                             command = f"DOCKER_HOST=unix:///tmp/dind-sockets/{robotName}.socket"

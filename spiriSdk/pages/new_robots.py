@@ -25,10 +25,10 @@ def display_fields():
         ui.select([f'{robot}' for robot in robots], label='Select robot type', on_change=lambda e: on_select(e.value)).classes('w-full')
 
     global options_container
-    options_container = ui.column()
+    options_container = ui.column().classes('w-full')
 
 @ui.page('/new_robots')
 async def new_robots():
+
     await styles()
-    
     display_fields()

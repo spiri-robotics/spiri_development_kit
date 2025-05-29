@@ -1,6 +1,5 @@
 from nicegui import ui
 from spiriSdk.ui.styles import styles
-from spiriSdk.pages.header import header
 from spiriSdk.utils.gazebo_models import Robot
 from spiriSdk.utils.gazebo_worlds import World
 from spiriSdk.utils.gazebo_worlds import find_worlds
@@ -52,16 +51,18 @@ async def tools():
     #Sets worlds to the dict of gazebo worlds found in the worlds directory
     worlds = await find_worlds() 
     
-    with ui.dialog() as gz_dialog, ui.card():
+    with ui.dialog() as gz_dialog, ui.card().classes('items-center'):
     
         #with ui.card().props('').classes('rounded-lg'):
-            ui.label('World Start Time State').props('class="text-lg text-center"')
+            ui.label('World Start Time State').classes('text-h5')
+
+            ui.space()
 
             #variable to tell the world time whether to initially run or not
-            world_auto_run = ui.toggle(['Running', 'Paused'], value='Paused') .props('class="text-lg text-center"')
+            world_auto_run = ui.toggle(['Running', 'Paused'], value='Paused').props('size=md toggle-color="[#274c77]"')
     
         #with ui.card().props('').classes('rounded-lg'):
-            w = ui.select(list(worlds.keys()), value='empty_world').props('class="text-lg text-center"')
+            w = ui.select(list(worlds.keys()), value='empty_world').classes('text-lg')
             
             async def start_and_close(): 
                 """function to combine starting the world and closing the dialog"""
@@ -75,10 +76,13 @@ async def tools():
                 
                 gz_dialog.close()
             
+            ui.space()
+
             ui.button('Start World', 
                       on_click=start_and_close,
-                      color='warning'
-                      ).props('class="text-lg text-center"').classes('rounded-1/2')
+                      color='secondary'
+                      ).classes('text-base')
+            ui.space()
     
     await styles()
 
