@@ -70,7 +70,6 @@ class RobotContainer:
 
     async def displayCards(self) -> None:
         names = daemons.keys()
-        self.destination.clear()
         with self.destination:
             await self.displayButtons()
             for robotName in names:
@@ -138,8 +137,9 @@ class RobotContainer:
                             url = f'http://{daemons[robotName].get_ip()}:{80}'
                             loading = ui.spinner(size='lg')
                             i = 0
-                            while not await is_service_ready(url) or i < 6:
+                            while not await is_service_ready(url) and i < 6:
                                 await asyncio.sleep(1)
+                                i += 1
 
                             loading.set_visibility(False)
 
