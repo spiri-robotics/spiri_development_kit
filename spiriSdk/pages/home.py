@@ -2,6 +2,7 @@ from nicegui import ui
 from spiriSdk.ui.styles import styles
 from spiriSdk.pages.header import header
 from spiriSdk.utils.card_utils import RobotContainer
+from spiriSdk.utils.daemon_utils import DaemonEvent
 
 container = None
 
@@ -15,3 +16,5 @@ async def home():
     container = RobotContainer(destination)
 
     await container.displayButtons()
+
+    await DaemonEvent.notify()
