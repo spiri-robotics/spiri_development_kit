@@ -1,6 +1,8 @@
 from pathlib import Path
 import subprocess
 
+
+async def find_worlds(p: Path = Path('./worlds')) -> dict:
 async def find_worlds(p: Path = Path('./worlds')) -> dict:
     """Find all worlds in the given directory."""
     worlds = {'empty_world': World('empty_world.world', 'empty_world')}
