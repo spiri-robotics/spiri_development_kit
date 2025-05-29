@@ -17,4 +17,5 @@ async def home():
     global container
     container = RobotContainer(destination)
     
-    await DaemonEvent.notify()
+    if container.is_empty():
+        await DaemonEvent.notify()

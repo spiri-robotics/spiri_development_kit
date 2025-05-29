@@ -33,7 +33,7 @@ async def init_daemons() -> dict:
             daemons[robot_name] = dind
             await run.io_bound(dind.ensure_started)
             await start_services(robot_name)
-            await DaemonEvent.notify()
+    await DaemonEvent.notify()
 
 async def start_services(robot_name: str):
     if robot_name not in daemons:

@@ -61,6 +61,9 @@ class RobotContainer:
         self.destination = bigCard
         DaemonEvent.subscribe(self.displayCards)
 
+    def is_empty(self) -> bool:
+        return len(list(self.destination.descendants())) == 0
+
     async def displayButtons(self) -> None:
         with self.destination:
             with ui.row().classes('justify-items-stretch w-full'):

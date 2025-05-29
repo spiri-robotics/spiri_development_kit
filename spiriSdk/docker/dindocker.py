@@ -78,7 +78,7 @@ class Container:
                 if existing_containers:
                     self.container = existing_containers[0]
                     if self.container.status == "running":
-                        logger.info(f"Container {"spirisdk_"+self.container_name} is already running.")
+                        logger.info(f"Container spirisdk_{self.container_name} is already running.")
                         return
                     else:
                         logger.info(f"Starting existing container spirisdk_{self.container_name}.")
