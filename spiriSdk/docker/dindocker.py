@@ -224,8 +224,8 @@ class DockerRegistryProxy(Container):
         )
     
 creds = {
-    "REGISTRY_AUTH_spiri_gitea_USERNAME": "Aurora",
-    "REGISTRY_AUTH_spiri_gitea_PASSWORD": "6e940fee8a76ad0b229a5bd8c87ca8ee96e66154"
+    "REGISTRIES": "git.spirirobotics.com",
+    "REGISTRY_git_spirirobotics_com_AUTH": "Aurora:6e940fee8a76ad0b229a5bd8c87ca8ee96e66154"
 }
 
 DEFAULT_REGISTRY_PROXY = DockerRegistryProxy(container_name="registry_proxy")
