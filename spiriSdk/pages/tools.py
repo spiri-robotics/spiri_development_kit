@@ -2,8 +2,7 @@ from nicegui import ui
 from spiriSdk.ui.styles import styles
 from spiriSdk.pages.header import header
 from spiriSdk.utils.gazebo_utils import Gazebo
-from spiriSdk.utils.gazebo_utils import Robot
-from spiriSdk.utils.gazebo_utils import World
+
 import time
 import docker
 import subprocess
@@ -30,28 +29,25 @@ async def tools():
     
     with ui.dialog() as gz_dialog, ui.card():
     
-        #with ui.card().props('').classes('rounded-lg'):
-            ui.label('World Start Time State').props('class="text-lg text-center"')
+        ui.label('World Start Time State').props('class="text-lg text-center"')
 
-            #variable to tell the world time whether to initially run or not
-            world_auto_run = ui.toggle(['Running', 'Paused'], value='Paused') .props('class="text-lg text-center"')
-    
-        #with ui.card().props('').classes('rounded-lg'):
-            print(gz.worlds)
-            w = ui.select(list(gz.worlds.keys()), value='empty_world').props('class="text-lg text-center"')
-            
-            async def start_and_close(): 
-                """function to combine starting the world and closing the dialog"""
+        #variable to tell the world time whether to initially run or not
+        world_auto_run = ui.toggle(['Running', 'Paused'], value='Paused') .props('class="text-lg text-center"')
 
-                # Set running_worlds to the world that was selected as well as start running the gazebo simulation
-                await gz.start_world(w.value, world_auto_run.value)
-                
-                gz_dialog.close()
+        w = ui.select(list(gz.worlds.keys()), value='empty_world').props('class="text-lg text-center"')
+        
+        async def start_and_close(): 
+            """function to combine starting the world and closing the dialog"""
+
+            # Set running_worlds to the world that was selected as well as start running the gazebo simulation
+            await gz.start_world(w.value, world_auto_run.value)
             
-            ui.button('Start World', 
-                      on_click=start_and_close,
-                      color='warning'
-                      ).props('class="text-lg text-center"').classes('rounded-1/2')
+            gz_dialog.close()
+        
+        ui.button('Start World', 
+                    on_click=start_and_close,
+                    color='warning'
+                    ).props('class="text-lg text-center"').classes('rounded-1/2')
     
     async def print_running_worlds(gz=gz):
         await gz.get_running_worlds()
