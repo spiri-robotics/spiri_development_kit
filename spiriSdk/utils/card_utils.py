@@ -36,10 +36,6 @@ async def addRobot():
 
             d.close()
 
-            # Refresh display to update visible cards
-            from spiriSdk.pages.home import container
-            ui.notify(f"Robot {selected_robot} added successfully!")
-
         with ui.card_actions().props('align=center'):
             ui.button('Cancel', color='secondary', on_click=d.close).classes('text-base')
             ui.button('Add', color='secondary', on_click=lambda e: submit(e.sender)).classes('text-base')
@@ -73,6 +69,7 @@ class RobotContainer:
 
     async def displayCards(self) -> None:
         names = daemons.keys()
+        self.destination.clear()
         with self.destination:
             await self.displayButtons()
             for robotName in names:

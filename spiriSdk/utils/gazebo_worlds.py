@@ -10,7 +10,6 @@ async def find_worlds(p: Path = Path('./worlds')) -> dict:
                 for world in subdir.rglob('*.world'):
                     world = World(world.name, subdir.name)
                     worlds.update({subdir.name: world})
-        print(f"Found worlds: {list(worlds.keys())}")
         return worlds
     except FileNotFoundError:
         print(f"Directory not found: {p}. Make sure it exists.")
