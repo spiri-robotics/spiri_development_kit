@@ -222,8 +222,14 @@ class DockerRegistryProxy(Container):
             f"Certificate not generated after 30 seconds.\n"
             f"Cert dir contents:\n{self.container.exec_run('ls -la /certs').output.decode()}"
         )
+    
+creds = {
+    "REGISTRY_AUTH_spiri_gitea_USERNAME": "Aurora",
+    "REGISTRY_AUTH_spiri_gitea_PASSWORD": "6e940fee8a76ad0b229a5bd8c87ca8ee96e66154"
+}
 
 DEFAULT_REGISTRY_PROXY = DockerRegistryProxy(container_name="registry_proxy")
+DEFAULT_REGISTRY_PROXY.environment.update(creds)
 
 @dataclass
 class DockerInDocker(Container):
