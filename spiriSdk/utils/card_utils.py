@@ -1,7 +1,7 @@
 from spiriSdk.utils.daemon_utils import daemons, stop_container, start_container, restart_container, display_daemon_status, DaemonEvent
 from spiriSdk.utils.new_robot_utils import delete_robot, save_robot_config
-from spiriSdk.pages.tools import tools, prep_bot
-from spiriSdk.utils.gazebo_worlds import running_worlds
+from spiriSdk.pages.tools import tools, gz
+from spiriSdk.utils.gazebo_utils import Gazebo
 import asyncio
 from nicegui import ui
 import os
@@ -101,21 +101,9 @@ class RobotContainer:
                             
                             async def add_to_world(robot=robotName):
                                 robotType = str(robot).split('-')[0]
-                                print(robotType)
-                                await prep_bot(robot, robotType)
+                                world = gz.worlds[gz.running_worlds[0]]
+                                await world.prep_bot(robot, robotType)
                                 ui.notify(f'Added {robot} to world')
-
-                            async def show_worlds_menu(robot=robotName):
-                                worlds = await running_worlds()
-                                print(f"Worlds: {worlds}")
-                                if not worlds:
-                                    ui.notify("No Gazebo worlds running.")
-                                    return
-
-                                with ui.menu() as menu:
-                                    for world in worlds:
-                                        w = world
-                                        ui.menu_item(world, on_click=lambda n=robot: add_to_world(n, w))
                                 
                                                     
                             ui.button('Start', on_click=make_start, icon='play_arrow', color='positive').classes('m-1 text-base')

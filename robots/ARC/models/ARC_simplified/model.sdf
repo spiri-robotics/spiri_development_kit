@@ -1,7 +1,7 @@
 <?xml version='1.0'?>
 <sdf version="1.5">
 <model name="ARC">
-  <pose>4.5 0 0 0 0 1.57</pose>
+  <pose>0 0 0 0 0 1.57</pose>
   <static>true</static>
     <link name="link">
       <inertial>
@@ -24,10 +24,10 @@
       </collision>
       <visual name="visual">
         <cast_shadows>false</cast_shadows>
-	<geometry>
+	      <geometry>
           <mesh>
-            <uri>model://robots/ARC/models/ARC_simplified/meshes/ARC_simplified.dae</uri>
-            <scale>0.1 0.1 0.1</scale>
+            <uri>model://robots/ARC/models/ARC_simplified/meshes/ARC_simple.fbx</uri>
+            <scale>0.011 0.011 0.011</scale>
           </mesh>
         </geometry>
       </visual>
