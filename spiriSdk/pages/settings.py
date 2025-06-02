@@ -14,6 +14,8 @@ def read_env():
             if '=' in line and not line.strip().startswith('#'):
                 key, value = line.split('=', 1)
                 env[key.strip()] = value.strip().strip('"')
+    else:
+        ui.notify("No env file found")
     return env
 
 def write_env(env_dict):

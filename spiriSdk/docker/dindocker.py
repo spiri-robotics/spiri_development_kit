@@ -222,6 +222,10 @@ class DockerRegistryProxy(Container):
             f"Cert dir contents:\n{self.container.exec_run('ls -la /certs').output.decode()}"
         )
     
+dotenv_path = Path(".env")
+if not dotenv_path.exists():
+    dotenv_path.write_text("REGISTRIES=\nAUTH_REGISTRIES=\n")
+    logger.info(".env file created with empty REGISTRIES and AUTH_REGISTRIES")    
 load_dotenv()
     
 creds = {
