@@ -11,9 +11,8 @@ import uuid
 from pathlib import Path
 from typing import Optional, Dict, Any
 from loguru import logger
-import json
-
-
+import os
+from dotenv import load_dotenv
 from dataclasses import dataclass, field
 
 CURRENT_PRIMARY_GROUP = os.getgid()
@@ -223,9 +222,11 @@ class DockerRegistryProxy(Container):
             f"Cert dir contents:\n{self.container.exec_run('ls -la /certs').output.decode()}"
         )
     
+load_dotenv()
+    
 creds = {
-    "REGISTRIES": "git.spirirobotics.com",
-    "AUTH_REGISTRIES": "git.spirirobotics.com:Aurora:92187422e0875b9f993df32ea8be9b3dd1d8b7dc"
+    "REGISTRIES": os.getenv("REGISTRIES"),
+    "AUTH_REGISTRIES": os.getenv("AUTH_REGISTRIES")
 }
 
 DEFAULT_REGISTRY_PROXY = DockerRegistryProxy(container_name="registry_proxy")

@@ -175,7 +175,7 @@ cython_debug/
 .pypirc
 .aider*
 
-
-
 #Cache files
 cache/
+
+.env
