@@ -59,7 +59,11 @@ def ensure_options_yaml():
 async def save_robot_config(robot_type, selected_options):
     robot_id = selected_options.get('DRONE_SYS_ID', uuid.uuid4().hex[:6])
     folder_name = f"{robot_type}-{robot_id}"
+    if folder_name in daemons:
+        ui.notify(f"Robot {folder_name} already exists. Please choose a different robot type or ID.", type="error")
+        return
     folder_path = os.path.join(ROOT_DIR, "data", folder_name)
+
     os.makedirs(folder_path, exist_ok=True)
 
     config_path = os.path.join(folder_path, "config.env")
@@ -75,6 +79,7 @@ async def save_robot_config(robot_type, selected_options):
     await DaemonEvent.notify()
 
     ui.notify(f"Saved config.env and started daemon for {folder_name}")
+    ui.notify(f"Robot {folder_name} added successfully!")
 
 async def delete_robot(robot_name) -> bool:
     robot_path = os.path.join(ROOT_DIR, "data", robot_name)

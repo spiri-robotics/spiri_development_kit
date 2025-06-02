@@ -8,6 +8,21 @@ import os
 from pathlib import Path
 from spiriSdk.pages.new_robots import new_robots
 from spiriSdk.pages.edit_robot import edit_robot
+import httpx
+
+async def is_service_ready(url: str, timeout: float = 0.5) -> bool:
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.get(url, timeout=timeout)
+            return response.status_code == 200
+    except Exception:
+        return False
+    
+def copy_text(command):
+    ui.run_javascript(f'''
+        navigator.clipboard.writeText("{command}");
+    ''')
+    ui.notify("Copied to clipboard!")
 
 async def addRobot():
     with ui.dialog() as d, ui.card(align_items='stretch').classes('w-full'):
@@ -21,10 +36,6 @@ async def addRobot():
             await save_robot_config(selected_robot, selected_options)
 
             d.close()
-
-            # Refresh display to update visible cards
-            from spiriSdk.pages.home import container
-            ui.notify(f"Robot {selected_robot} added successfully!")
 
         with ui.card_actions().props('align=center'):
             ui.button('Cancel', color='secondary', on_click=d.close).classes('text-base')
@@ -48,6 +59,9 @@ class RobotContainer:
     def __init__(self, bigCard,) -> None:
         self.destination = bigCard
         DaemonEvent.subscribe(self.displayCards)
+
+    def is_empty(self) -> bool:
+        return len(list(self.destination.descendants())) == 0
 
     async def displayButtons(self) -> None:
         with self.destination:
@@ -121,8 +135,43 @@ class RobotContainer:
                             with ui.dropdown_button(icon='settings', color='secondary').classes('text-base') as drop:
                                 ui.item('Edit', on_click=lambda n=robotName: editRobot(n))
                                 ui.item('Delete', on_click=lambda n=robotName: delete(n))
+
+                    # Display the robot's Docker services command            
                     with ui.row(align_items="start").classes('w-full'):
                         with ui.card_section():
-                            command = f"DOCKER_HOST=unix:///tmp/dind-sockets/{robotName}.socket"
+                            command = f"DOCKER_HOST=unix:///tmp/dind-sockets/spiri_{robotName}.socket"
                             ui.code(command, language='bash').classes('text-sm text-gray-200')
-                            
+                        
+                    # Display the robot's web interface if applicable
+                    if str.join("-", robotName.split("-")[:1]) == "spiri_mu":
+                        with ui.card_section():
+                            url = f'http://{daemons[robotName].get_ip()}:{80}'
+                            loading = ui.spinner(size='lg')
+                            i = 0
+                            while not await is_service_ready(url) and i < 6:
+                                await asyncio.sleep(1)
+                                i += 1
+
+                            loading.set_visibility(False)
+
+                            if await is_service_ready(url):
+                                ui.link(f'Access the Web Interface at: {url}', url, new_tab=True).classes('text-sm text-gray-200 py-3')
+                                ui.html(f'<iframe src="{url}" width="1000" height="600"></iframe>')
+                            else: 
+                                ui.button('UI unavailable: Reload Page', on_click=DaemonEvent.notify, color='secondary').classes('text-sm text-gray-600 dark:text-gray-300')
+                    if str.join("-", robotName.split("-")[:1]) == "ARC":
+                        with ui.card_section():
+                            url = f'http://{daemons[robotName].get_ip()}:{80}'
+                            loading = ui.spinner(size='lg')
+                            i = 0
+                            while not await is_service_ready(url) and i < 6:
+                                await asyncio.sleep(1)
+                                i += 1
+
+                            loading.set_visibility(False)
+
+                            if await is_service_ready(url):
+                                ui.link(f'Access the Web Interface at: {url}', url, new_tab=True).classes('text-sm text-gray-200 py-3')
+                                ui.html(f'<iframe src="{url}" width="1000" height="600"></iframe>')
+                            else: 
+                                ui.label('Web interface not available, please try again later').classes('text-sm text-gray-600 dark:text-gray-300')
