@@ -5,24 +5,6 @@
       <uri>model://robots/spiri_mu/models/spiri_mu_base</uri>
     </include>
 
-    <include>
-      <uri>model://robots/spiri_mu/models/spiri_gimbal</uri>
-      <name>gimbal</name>
-      <pose degrees="true">0.1 0 -0.1 0 0 90</pose>    
-    </include>
-
-    <joint name="gimbal_joint" type="revolute">
-      <parent>spiri_mu_base::base_link</parent>
-      <child>gimbal::base_link</child>
-      <axis>
-        <limit>
-          <lower>0</lower>
-          <upper>0</upper>
-        </limit>
-        <xyz>0 0 1</xyz>
-      </axis>
-    </joint>
-
     <!-- plugins -->
     <plugin filename="gz-sim-joint-state-publisher-system"
       name="gz::sim::systems::JointStatePublisher">

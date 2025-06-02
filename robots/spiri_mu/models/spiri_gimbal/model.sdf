@@ -18,7 +18,7 @@
         <geometry>
           <mesh>
           <scale>0.01 0.01 0.01</scale>
-            <uri>model://robots/spiri-mu/models/spiri_gimbal/meshes/mu2_gimbal_base.fbx</uri>
+            <uri>model://robots/spiri_mu/models/spiri_gimbal/meshes/mu2_gimbal_base.fbx</uri>
           </mesh>
         </geometry>
         <material>
@@ -32,7 +32,7 @@
         <geometry>
           <mesh>
             <scale>0.01 0.01 0.01</scale>
-            <uri>model://robots/spiri-mu/models/spiri_gimbal/meshes/mu2_gimbal_base.fbx</uri>
+            <uri>model://robots/spiri_mu/models/spiri_gimbal/meshes/mu2_gimbal_base.fbx</uri>
           </mesh>
         </geometry>
       </collision>
@@ -55,7 +55,7 @@
         <geometry>
           <mesh>
             <scale>0.01 0.01 0.01</scale>
-            <uri>model://robots/spiri-mu/models/spiri_gimbal/meshes/mu2_gimbal_yaw.fbx</uri>
+            <uri>model://robots/spiri_mu/models/spiri_gimbal/meshes/mu2_gimbal_yaw.fbx</uri>
           </mesh>
         </geometry>
         <material>
@@ -68,7 +68,7 @@
         <geometry>
           <mesh>
             <scale>0.01 0.01 0.01</scale>
-            <uri>model://robots/spiri-mu/models/spiri_gimbal/meshes/mu2_gimbal_yaw.fbx</uri>
+            <uri>model://robots/spiri_mu/models/spiri_gimbal/meshes/mu2_gimbal_yaw.fbx</uri>
           </mesh>
         </geometry>
       </collision>
@@ -105,7 +105,7 @@
         <geometry>
           <mesh>
             <scale>0.01 0.01 0.01</scale>
-            <uri>model://robots/spiri-mu/models/spiri_gimbal/meshes/mu2_gimbal_roll.fbx</uri>
+            <uri>model://robots/spiri_mu/models/spiri_gimbal/meshes/mu2_gimbal_roll.fbx</uri>
           </mesh>
         </geometry>
         <material>
@@ -147,7 +147,7 @@
         <geometry>
           <mesh>
             <scale>0.01 0.01 0.01</scale>
-            <uri>model://robots/spiri-mu/models/spiri_gimbal/meshes/mu2_gimbal_pitch.fbx</uri>
+            <uri>model://robots/spiri_mu/models/spiri_gimbal/meshes/mu2_gimbal_pitch.fbx</uri>
           </mesh>
         </geometry>
         <material>

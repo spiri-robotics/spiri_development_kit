@@ -12,7 +12,8 @@ RUN apt-get update && apt-get -y install qterminal mesa-utils \
     gstreamer1.0-plugins-good \
     gstreamer1.0-plugins-bad \
     gstreamer1.0-plugins-ugly \
-    ros-${ROS_DISTRO}-rmw-cyclonedds-cpp
+    ros-${ROS_DISTRO}-rmw-cyclonedds-cpp \
+    ros-${ROS_DISTRO}-ros-gz
 
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 ADD . /app

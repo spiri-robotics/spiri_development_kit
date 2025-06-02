@@ -1,6 +1,7 @@
 from spiriSdk.utils.daemon_utils import daemons, stop_container, start_container, restart_container, display_daemon_status, DaemonEvent
 from spiriSdk.utils.new_robot_utils import delete_robot, save_robot_config
-from spiriSdk.pages.tools import tools, prep_bot
+from spiriSdk.pages.tools import tools, gz
+from spiriSdk.utils.gazebo_utils import Gazebo
 import asyncio
 from nicegui import ui
 import os
@@ -51,6 +52,8 @@ async def editRobot(robotName):
             ui.button('Save', on_click=d.close, color='secondary')
     d.open()
 
+
+
 class RobotContainer:
 
     def __init__(self, bigCard,) -> None:
@@ -71,6 +74,7 @@ class RobotContainer:
         names = daemons.keys()
         self.destination.clear()
         with self.destination:
+            worlds = []
             await self.displayButtons()
             for robotName in names:
                 ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
@@ -109,11 +113,18 @@ class RobotContainer:
                             async def make_restart(robot=robotName):
                                 await restart_container(robot)
                             
+                            async def add_to_world(robot=robotName):
+                                robotType = str(robot).split('-')[0]
+                                world = gz.worlds[gz.running_worlds[0]]
+                                await world.prep_bot(robot, robotType)
+                                ui.notify(f'Added {robot} to world')
+                                
+                                                    
                             ui.button('Start', on_click=make_start, icon='play_arrow', color='positive').classes('m-1 text-base')
                             ui.button('Stop', on_click=make_stop, icon='stop', color='warning').classes('m-1 text-base')
                             ui.button('Restart', on_click=make_restart, icon='refresh', color='secondary').classes('m-1 mr-10 text-base')
 
-                            ui.button("Add robot to world", on_click=lambda: prep_bot(), color='secondary').classes('m-1 mr-10 text-base')
+                            ui.button('Add robot to world', on_click=add_to_world).classes('m-1 mr-10 text-base').props('color=secondary')
 
                             async def delete(n):
                                 if await delete_robot(n):
