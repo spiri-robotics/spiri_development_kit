@@ -158,7 +158,7 @@ class RobotContainer:
                                 ui.link(f'Access the Web Interface at: {url}', url, new_tab=True).classes('text-sm text-gray-200 py-3')
                                 ui.html(f'<iframe src="{url}" width="1000" height="600"></iframe>')
                             else: 
-                                ui.button('UI unavailable: Reload Page', on_click=DaemonEvent.notify, color='secondary').classes('text-sm text-gray-600 dark:text-gray-300')
+                                ui.label('Robot GUI unavailable: Please try again later').classes('text-sm text-gray-600 dark:text-gray-300')
                     if str.join("-", robotName.split("-")[:1]) == "ARC":
                         with ui.card_section():
                             url = f'http://{daemons[robotName].get_ip()}:{80}'

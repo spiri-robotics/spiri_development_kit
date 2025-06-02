@@ -76,8 +76,7 @@ async def header():
     with ui.header():
         with ui.row():
             ui.button('Home', on_click=lambda: ui.navigate.to('/'), color='secondary')
-            ui.button('Tools', on_click=lambda: ui.navigate.to('/tools'), color='secondary')
-            ui.button('Manage Robots', on_click=lambda: ui.navigate.to('/manage_robots'), color='secondary')
+            ui.button("", icon='settings', on_click=lambda: ui.navigate.to('/settings'), color='secondary')
 
         ui.space()
 
