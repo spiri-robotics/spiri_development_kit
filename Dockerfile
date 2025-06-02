@@ -15,10 +15,11 @@ RUN apt-get update && apt-get -y install qterminal mesa-utils \
     ros-${ROS_DISTRO}-rmw-cyclonedds-cpp \
     ros-${ROS_DISTRO}-ros-gz
 
-# Clone ArduPilot
-RUN git clone --depth=1 https://github.com/ArduPilot/ardupilot.git /opt/ardupilot && \
-    cd /opt/ardupilot && \
-    git submodule update --init --recursive
+COPY --from=git.spirirobotics.com/spiri/gazebo-resources:main /plugins /plugins
+
+
+ENV GZ_SIM_SYSTEM_PLUGIN_PATH=/plugins
+ENV GZ_SIM_RESOURCE_PATH=/worlds
 
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 ADD . /app
