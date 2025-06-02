@@ -225,7 +225,7 @@ class DockerRegistryProxy(Container):
     
 creds = {
     "REGISTRIES": "git.spirirobotics.com",
-    "AUTH_REGISTRIES": "git.spirirobotics.com:Aurora:6e940fee8a76ad0b229a5bd8c87ca8ee96e66154"
+    "AUTH_REGISTRIES": "git.spirirobotics.com:Aurora:92187422e0875b9f993df32ea8be9b3dd1d8b7dc"
 }
 
 DEFAULT_REGISTRY_PROXY = DockerRegistryProxy(container_name="registry_proxy")
@@ -338,8 +338,6 @@ class DockerInDocker(Container):
                 
                 self.get_client().ping()
                 logger.success("Docker-in-Docker container started successfully")
-                result = self.container.exec_run("ping -c 3 git.spirirobotics.com")
-                print(result.output.decode())
                 return
             except Exception as e:
                 if attempt == self.ready_timeout - 1:
