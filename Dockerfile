@@ -15,6 +15,11 @@ RUN apt-get update && apt-get -y install qterminal mesa-utils \
     ros-${ROS_DISTRO}-rmw-cyclonedds-cpp \
     ros-${ROS_DISTRO}-ros-gz
 
+# Clone ArduPilot
+RUN git clone --depth=1 https://github.com/ArduPilot/ardupilot.git /opt/ardupilot && \
+    cd /opt/ardupilot && \
+    git submodule update --init --recursive
+
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 ADD . /app
 WORKDIR /app
