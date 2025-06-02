@@ -27,7 +27,8 @@ async def settings():
     await styles()
     env_data = read_env()
 
-    ui.label("Settings").classes('text-4xl')
+    ui.label("Authentication Settings").classes('text-4xl')
+    ui.label("Edit the list of sites that require authentication here")
     ui.separator()
 
     ### --- REGISTRIES SECTION ---
