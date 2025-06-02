@@ -85,7 +85,6 @@ async def start_services(robot_name: str):
                 # Step 5: Run `docker compose up -d` inside the DinD container
                 inside_path = f"/robots/{robot_type}/services/{service}"
                 command = f"docker compose --env-file=/data/config.env -f {inside_path}/docker-compose.yaml up -d"
-                print(daemons[robot_name].container)
                 result = await run.io_bound(lambda robot_name=robot_name: daemons[robot_name].container.exec_run(command, workdir=inside_path))
                 print(result.output.decode())
 
