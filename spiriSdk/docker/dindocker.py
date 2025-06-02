@@ -338,6 +338,8 @@ class DockerInDocker(Container):
                 
                 self.get_client().ping()
                 logger.success("Docker-in-Docker container started successfully")
+                result = self.container.exec_run("ping -c 3 git.spirirobotics.com")
+                print(result.output.decode())
                 return
             except Exception as e:
                 if attempt == self.ready_timeout - 1:
