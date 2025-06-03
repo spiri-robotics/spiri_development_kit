@@ -1,7 +1,7 @@
 import os, asyncio, httpx
 from nicegui import ui
 from spiriSdk.utils.daemon_utils import daemons, stop_container, start_container, restart_container, display_daemon_status, DaemonEvent
-from spiriSdk.utils.new_robot_utils import delete_robot, save_robot_config
+from spiriSdk.utils.new_robot_utils import delete_robot, save_robot_config, inputChecker
 from spiriSdk.pages.tools import tools, gz
 from spiriSdk.pages.new_robots import new_robots
 from spiriSdk.pages.edit_robot import edit_robot, save_changes, clear_changes
@@ -22,7 +22,8 @@ def copy_text(command):
 
 async def addRobot():
     with ui.dialog() as d, ui.card(align_items='stretch').classes('w-full'):
-        await new_robots()
+        checker = inputChecker()
+        await new_robots(checker)
 
         async def submit(button):
             button = button.props(add='loading')
@@ -36,11 +37,11 @@ async def addRobot():
             # Refresh display to update visible cards
             from spiriSdk.pages.home import container
             await container.displayCards()
-            ui.notify(f"Robot {selected_robot} added successfully!")
 
         with ui.card_actions().props('align=center'):
             ui.button('Cancel', color='secondary', on_click=d.close).classes('text-base')
-            ui.button('Add', color='secondary', on_click=lambda e: submit(e.sender)).classes('text-base')
+            addBtn = ui.button('Add', color='secondary', on_click=lambda e: submit(e.sender)).classes('text-base')
+            addBtn.bind_enabled_from(checker, 'isValid')
     
     d.open()
 
@@ -153,7 +154,7 @@ class RobotContainer:
                     with ui.row(align_items="start").classes('w-full'):
                         with ui.card_section():
                             command = f"DOCKER_HOST=unix:///tmp/dind-sockets/spiri_{robotName}.socket"
-                            ui.code(command, language='bash').classes('text-sm text-gray-200')
+                            ui.code(command, language='bash').classes('text-sm text-gray-600 dark:text-gray-200')
                         
                     # Display the robot's web interface if applicable
                     if str.join("-", robotName.split("-")[:1]) == "spiri_mu":
@@ -171,7 +172,7 @@ class RobotContainer:
                                 ui.link(f'Access the Web Interface at: {url}', url, new_tab=True).classes('text-sm text-gray-200 py-3')
                                 ui.html(f'<iframe src="{url}" width="1000" height="600"></iframe>')
                             else: 
-                                ui.label('Robot GUI unavailable: Please try again later').classes('text-sm text-gray-600 dark:text-gray-300')
+                                ui.label('Robot GUI unavailable, please try again later').classes('text-sm text-gray-600 dark:text-gray-300')
                     if str.join("-", robotName.split("-")[:1]) == "ARC":
                         with ui.card_section():
                             url = f'http://{daemons[robotName].get_ip()}:{80}'

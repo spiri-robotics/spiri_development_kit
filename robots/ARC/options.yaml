@@ -1,4 +1,8 @@
 x-spiri-options:
+  ARC_NAME:
+    help-text: The custom name of the robot
+    type: text
+    value: ARC
   ARC_SYS_ID:
     help-text: The system ID of the drone
     type: int
@@ -7,16 +11,8 @@ x-spiri-options:
     precision: 0
     step: 1
     value: 1
-  ARC_NAME:
-    help-text: The custom name of the robot
-    type: text
-    value: ARC
-  INSTANCE:
-    help-text: Whether the vehicle should be instanced
-    type: bool
-    value: False
   MAVROS1_PORT:
-    help-text: First port to be used by the MAVROS1 bridge
+    help-text: First port - to be used by the MAVROS1 bridge
     type: int
     value: 1900
   GCS_PORT:
@@ -31,3 +27,7 @@ x-spiri-options:
     help-text: Port to be used by the SITL
     type: int
     value: 1904
+  INSTANCE:
+    help-text: Whether the vehicle should be instanced
+    type: bool
+    value: False

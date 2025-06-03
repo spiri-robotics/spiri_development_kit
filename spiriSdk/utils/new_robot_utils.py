@@ -10,6 +10,45 @@ ROBOTS_DIR = os.path.join(ROOT_DIR, 'robots')
 # Get the list of robots dynamically from the robots folder
 robots = [folder for folder in os.listdir(ROBOTS_DIR) if os.path.isdir(os.path.join(ROBOTS_DIR, folder))]
 
+class inputChecker:
+
+    def __init__(self):
+        self.inputs = {}
+        self.isValid = False
+
+    def add(self, i):
+        self.inputs[i] = False
+        self.update()
+
+    def reset(self):
+        if len(self.inputs) > 1:
+            self.inputs.popitem()
+            self.update()
+        else:
+            pass
+
+    def update(self):
+        for v in self.inputs.values():
+            if v is False:
+                self.isValid = False
+                return
+        
+        self.isValid = True
+
+    def checkSelect(self, i: ui.select):
+        if i.value:
+            self.inputs[i] = True
+        else:
+            self.inputs[i] = False
+        self.update()
+
+    def checkText(self, i: ui.input):
+        if i.value:
+            self.inputs[i] = True
+        else:
+            self.inputs[i] = False
+        self.update()
+
 def ensure_options_yaml():
     robots = []
     for folder in os.listdir(ROBOTS_DIR):
@@ -54,6 +93,8 @@ def ensure_options_yaml():
 async def save_robot_config(robot_type, selected_options):
     if robot_type == "ARC":
         robot_id = selected_options.get('ARC_SYS_ID', uuid.uuid4().hex[:6])
+    elif robot_type == "car":
+        robot_id = selected_options.get('CAR_SYS_ID', uuid.uuid4().hex[:6])
     else:   
         robot_id = selected_options.get('DRONE_SYS_ID', uuid.uuid4().hex[:6])
     folder_name = f"{robot_type}-{robot_id}"
@@ -88,7 +129,7 @@ async def delete_robot(robot_name) -> bool:
     await DaemonEvent.notify()
     return True
 
-def display_robot_options(robot_name, selected_additions, selected_options, options_container):
+def display_robot_options(robot_name, selected_additions, selected_options, options_container, checker: inputChecker):
     options_path = os.path.join(ROBOTS_DIR, robot_name, 'options.yaml')
     if not os.path.exists(options_path):
         ui.notify(f"No options.yaml found for {robot_name}")
@@ -105,10 +146,12 @@ def display_robot_options(robot_name, selected_additions, selected_options, opti
         selected_options[key] = option.get('value')
 
     format_rules = {
+        'Arc': 'ARC',
         'Sys': 'System',
         'Id': 'ID',
+        'Mavros': 'MAVROS',
         'Gcs': 'GCS',
-        'Serial0': 'Serial 0',
+        'Serial0': 'Serial',
         'Sitl': 'SITL'
     }
 
@@ -140,19 +183,19 @@ def display_robot_options(robot_name, selected_additions, selected_options, opti
                 step = option.get('step', 1)
                 current_value = option.get('value', 0)
 
-                def update(e, k):
+                def handleNum(e, k):
                     if int(e.value) == e.value:
                         selected_options[k] = int(e.value)
                     else:
                         selected_options[k] = e.value
 
-                ui.number(
+                i = ui.number(
                     formatted_key,
                     value=current_value,
                     min=min_val,
                     max=max_val,
                     step=step,
-                    on_change=lambda e, k=key: update(e.sender, k)
+                    on_change=lambda e, k=key: handleNum(e.sender, k)
                 ).classes('w-full')
             
             elif option_type == 'dropdown':
@@ -164,4 +207,12 @@ def display_robot_options(robot_name, selected_additions, selected_options, opti
                     ui.label(f"Invalid dropdown options for {key}").classes('text-body2')
             
             else:
-                ui.input(formatted_key, value=current_value, on_change=(lambda e, k=key: selected_options.update({k: e.value}))).classes('w-full')
+                def handleText(e: ui.input, k):
+                    selected_options.update({k: e.value})
+                    if 'NAME' in k:
+                        checker.checkText(e)
+
+                i = ui.input(formatted_key, value=current_value, placeholder=current_value, on_change=lambda e, k=key: handleText(e.sender, k)).classes('w-full')
+                if 'NAME' in key:
+                    i.value = ''
+                    checker.add(i)

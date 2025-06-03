@@ -14,13 +14,13 @@ x-spiri-options:
   ARDUPILOT_VEHICLE:
     help-text: Amount of time (in seconds) the container will wait before timing out
     type: float
-    value: 1
+    value: 3
   MAVROS1_PORT:
-    help-text: First port to be used by the MAVROS1 bridge
+    help-text: Port to be used by the MAVROS1 bridge
     type: int
     value: 1900
   MAVROS2_PORT:
-    help-text: Second port to be used by the MAVROS2 bridge
+    help-text: Port to be used by the MAVROS2 bridge
     type: int
     value: 1901
   GCS_PORT:
