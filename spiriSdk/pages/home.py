@@ -11,5 +11,7 @@ async def home():
     destination = ui.card().classes('w-full p-0 shadow-none dark:bg-[#212428]')
     container = RobotContainer(destination)
     
-    if container.is_empty():
+    empty = container.is_empty()
+    print(empty) # debug
+    if empty:
         await DaemonEvent.notify()
