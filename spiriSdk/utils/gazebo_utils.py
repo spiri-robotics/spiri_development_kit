@@ -55,9 +55,19 @@ class Gazebo:
     
     async def start_world(self, name, run_value):
         world = World(self, name)
+        await self.kill_all_worlds()
         await world.run_world(run_value)
         self.worlds[name] = world
         print(f'start:{world.name}')
+
+    async def kill_all_worlds(self):
+        try:
+            cmd = "pkill -f 'gz sim'"
+            subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
+            print(f"closed: {self.running_worlds}")
+            await self.get_running_worlds()
+        except subprocess.CalledProcessError as e:
+            print(f"Error running command: {e}")
 
 class World:
     def __init__(self, parent, name: str):
