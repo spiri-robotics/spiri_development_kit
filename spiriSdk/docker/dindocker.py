@@ -11,9 +11,8 @@ import uuid
 from pathlib import Path
 from typing import Optional, Dict, Any
 from loguru import logger
-import json
-
-
+import os
+from dotenv import load_dotenv
 from dataclasses import dataclass, field
 
 CURRENT_PRIMARY_GROUP = os.getgid()
@@ -74,18 +73,18 @@ class Container:
         try:
             # Check if a container with the same name already exists
             if self.container is None:
-                existing_containers = self.client.containers.list(all=True, filters={"name": self.container_name})
+                existing_containers = self.client.containers.list(all=True, filters={"name": "spirisdk_"+self.container_name})
                 if existing_containers:
                     self.container = existing_containers[0]
                     if self.container.status == "running":
-                        logger.info(f"Container {self.container_name} is already running.")
+                        logger.info(f"Container spirisdk_{self.container_name} is already running.")
                         return
                     else:
-                        logger.info(f"Starting existing container {self.container_name}.")
+                        logger.info(f"Starting existing container spirisdk_{self.container_name}.")
                         self.container.start()
                         return
                 else:
-                    logger.info(f"Starting container {self.container_name} using image {self.image_name}")
+                    logger.info(f"Starting container spirisdk_{self.container_name} using image {self.image_name}")
                 
                     docker_args = {
                         "image": self.image_name,
@@ -107,13 +106,13 @@ class Container:
                 try:
                     self.container.reload()
                     if self.container.status != "running":
-                        logger.info(f"Starting container {self.container_name}...")
+                        logger.info(f"Starting container spirisdk_{self.container_name}...")
                         self.container.start()
                     else:
-                        logger.info(f"Container {self.container_name} is already running.")
+                        logger.info(f"Container spirisdk_{self.container_name} is already running.")
                         return
                 except docker.errors.NotFound:
-                    logger.warning(f"Container {self.container_name} not found (probably auto-removed). Recreating...")
+                    logger.warning(f"Container spirisdk_{self.container_name} not found (probably auto-removed). Recreating...")
                     self.container = None
                     return self.ensure_started()  # retry from beginning
         except Exception as e:
@@ -145,7 +144,7 @@ class Container:
         """Context manager exit."""
         self.cleanup()
 
-    def container_ip(self) -> str:
+    def get_ip(self) -> str:
         """Get the container's IP address.
         
         Returns:
@@ -164,7 +163,7 @@ class Container:
 
     def cleanup(self) -> None:
         """Clean up container resources."""
-        logger.debug(f"Cleaning up container {self.container_name}")
+        logger.debug(f"Cleaning up container spirisdk_{self.container_name}")
         if self.container is not None:
             try:
                 self.container.stop(timeout=5)
@@ -188,11 +187,11 @@ class DockerRegistryProxy(Container):
             "DISABLE_IPV6": "true",  # Disable IPv6
         }
     )
-    volumes: Dict[str, Dict[str, str]] = field(
-        default_factory=lambda: {
-            str(Path(os.environ.get("SDK_ROOT", ".")) / "cache" / "certs"): {"bind": "/certs", "mode": "rw"}
-        }
-    )
+    #volumes: Dict[str, Dict[str, str]] = field(
+        # default_factory=lambda: {
+        #     str(Path(os.environ.get("SDK_ROOT", ".")) / "cache" / "certs"): {"bind": "/certs", "mode": "rw"}
+        # }
+    #)
 
     def get_cacert(self) -> str:
         """Get the CA certificate for the registry mirror.
@@ -222,8 +221,20 @@ class DockerRegistryProxy(Container):
             f"Certificate not generated after 30 seconds.\n"
             f"Cert dir contents:\n{self.container.exec_run('ls -la /certs').output.decode()}"
         )
+    
+dotenv_path = Path(".env")
+if not dotenv_path.exists():
+    dotenv_path.write_text("REGISTRIES=\nAUTH_REGISTRIES=\n")
+    logger.info(".env file created with empty REGISTRIES and AUTH_REGISTRIES")    
+load_dotenv()
+    
+creds = {
+    "REGISTRIES": os.getenv("REGISTRIES"),
+    "AUTH_REGISTRIES": os.getenv("AUTH_REGISTRIES")
+}
 
 DEFAULT_REGISTRY_PROXY = DockerRegistryProxy(container_name="registry_proxy")
+DEFAULT_REGISTRY_PROXY.environment.update(creds)
 
 @dataclass
 class DockerInDocker(Container):
@@ -283,7 +294,7 @@ class DockerInDocker(Container):
         })
                 
         self.command = [
-            f'--host=unix:///dind-sockets/{self.container_name}.socket'
+            f'--host=unix:///dind-sockets/spirisdk_{self.container_name}.socket'
         ]\
 
     def ensure_started(self) -> None:
@@ -308,7 +319,7 @@ class DockerInDocker(Container):
             })
 
             # Set proxy environment variables
-            proxy_ip = self.registry_proxy.container_ip()
+            proxy_ip = self.registry_proxy.get_ip()
             self.environment.update({
                 "HTTP_PROXY": f"http://{proxy_ip}:3128",
                 "HTTPS_PROXY": f"http://{proxy_ip}:3128",
@@ -327,8 +338,8 @@ class DockerInDocker(Container):
         for attempt in range(self.ready_timeout):
             try:
                 # Set ownership and permissions of socket file inside container
-                self.container.exec_run(f"chown :{CURRENT_PRIMARY_GROUP} /dind-sockets/{self.container_name}.socket")
-                self.container.exec_run(f"chmod 666 /dind-sockets/{self.container_name}.socket")
+                self.container.exec_run(f"chown :{CURRENT_PRIMARY_GROUP} /dind-sockets/spirisdk_{self.container_name}.socket")
+                self.container.exec_run(f"chmod 666 /dind-sockets/spirisdk_{self.container_name}.socket")
                 
                 self.get_client().ping()
                 logger.success("Docker-in-Docker container started successfully")
@@ -344,7 +355,7 @@ class DockerInDocker(Container):
         """Get a Docker client connected to this DinD container."""
         if self.container is None:
             raise RuntimeError("Container not running")
-        return docker.DockerClient(base_url=f"unix:///tmp/dind-sockets/{self.container_name}.socket")
+        return docker.DockerClient(base_url=f"unix:///tmp/dind-sockets/spirisdk_{self.container_name}.socket")
         #return docker.DockerClient(base_url=f"tcp://{self.container_ip()}:2375")
 
     def _prepare_service_paths(self, compose_file: str) -> Dict[str, Any]:
@@ -380,8 +391,7 @@ class DockerInDocker(Container):
         logger.info(f"Running compose file: {compose_file}")
         
         paths = self._prepare_service_paths(compose_file)
-        client = self.get_client()
-        docker_host = f"unix://{self.socket_dir}/{self.container_name}.socket"
+        docker_host = f"unix://{self.socket_dir}/spirisdk_{self.container_name}.socket"
         logger.debug(f"Docker host: {docker_host}")
         env = os.environ.copy()
         env.update({

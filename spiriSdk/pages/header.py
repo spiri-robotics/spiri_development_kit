@@ -93,8 +93,10 @@ def wifi_icon(signal):
 
 
 async def header():
-    with ui.header().classes('items-center border-b-4 border-[#274c77]'):
-        ui.image("https://spirirobotics.com/static/images/light_logo.svg").props("width=75px height=75px")
+    with ui.header().classes('items-center'):
+        with ui.row():
+            ui.button('', icon='home', on_click=lambda: ui.navigate.to('/'), color='secondary').classes('text-base')
+            ui.button('', icon='settings', on_click=lambda: ui.navigate.to('/settings'), color='secondary').classes('text-base')
 
         ui.space()
 

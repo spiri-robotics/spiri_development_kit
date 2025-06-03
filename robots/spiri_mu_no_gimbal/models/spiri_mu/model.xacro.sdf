@@ -1,19 +1,18 @@
 <?xml version='1.0'?>
-<sdf version="1.9">
+<sdf version="1.9" xmlns:xacro="http://www.ros.org/wiki/xacro">
   <model name="spiri_mu">
-    <include>
-      <uri>model://robots/spiri_mu/models/spiri_mu_base</uri>
-    </include>
+    <xacro:arg name="fdm_port_in" default="9002"/>
+    <xacro:arg name="gstreamer_udp_port" default="5600"/>
+    <xacro:arg name="sim_drone_count" default="0"/>
 
     <include>
-      <uri>model://robots/spiri_mu/models/spiri_gimbal</uri>
-      <name>gimbal</name>
-      <pose degrees="true">0.1 0 -0.1 0 0 90</pose>    
+      <uri>model://spiri_mu_base</uri>
     </include>
 
-    <joint name="gimbal_joint" type="revolute">
+    <joint name="gimbal_joint" type="fixed">
+    
       <parent>spiri_mu_base::base_link</parent>
-      <child>gimbal::base_link</child>
+      <child>gimbal_base_link</child>
       <axis>
         <limit>
           <lower>0</lower>
@@ -23,7 +22,202 @@
       </axis>
     </joint>
 
-    <!-- plugins -->
+    <link name="gimbal_base_link">
+        <pose degrees="true">0.1 0 -0.1 0 0 90</pose>  
+      <inertial>
+        <mass>0.2</mass>
+        <inertia>
+          <ixx>0.0001</ixx>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyy>0.0001</iyy>
+          <iyz>0</iyz>
+          <izz>0.0001</izz>
+        </inertia>
+      </inertial>
+      <visual name="gimbal_visual">
+        <geometry>
+          <mesh>
+          <scale>0.01 0.01 0.01</scale>
+            <uri>model://spiri_gimbal/meshes/mu2_gimbal_base.fbx</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <ambient>0.1 0.1 0.1</ambient>
+          <diffuse>0.1 0.1 0.1</diffuse>
+          <specular>1 1 1 0</specular>
+        </material>
+      </visual>
+    </link>
+
+    <link name="yaw_link">
+      <pose degrees="true">0.1 0 -0.1223 0 0 90</pose>
+      <inertial>
+        <mass>0.01</mass>
+        <inertia>
+          <ixx>0.00001</ixx>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyy>0.00001</iyy>
+          <iyz>0</iyz>
+          <izz>0.00001</izz>
+        </inertia>
+      </inertial>
+      <visual name="yaw_visual">
+        <geometry>
+          <mesh>
+            <scale>0.01 0.01 0.01</scale>
+            <uri>model://spiri_gimbal/meshes/mu2_gimbal_yaw.fbx</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <ambient>0.1 0.1 0.1</ambient>
+          <diffuse>0.1 0.1 0.1</diffuse>
+          <specular>1 1 1 0</specular>
+        </material>
+      </visual>
+      <collision name="yaw_collision">
+        <geometry>
+          <mesh>
+            <scale>0.01 0.01 0.01</scale>
+            <uri>model://spiri_gimbal/meshes/mu2_gimbal_yaw.fbx</uri>
+          </mesh>
+        </geometry>
+      </collision>
+    </link>
+    <joint name="yaw_joint" type="revolute">
+      <parent>gimbal_base_link</parent>
+      <child>yaw_link</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <dynamics>
+          <damping>0.01</damping>
+        </dynamics>
+        <limit>
+          <lower>-2.356194</lower>
+          <upper>2.356194</upper>
+        </limit>
+      </axis>
+    </joint>
+  
+    <link name="roll_link">
+      <pose degrees="true"> 0.078 0 -0.1549 0 0 90 </pose>
+      <inertial>
+        <mass>0.01</mass>
+        <inertia>
+          <ixx>0.00001</ixx>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyy>0.00001</iyy>
+          <iyz>0</iyz>
+          <izz>0.00001</izz>
+        </inertia>
+      </inertial>
+      <visual name="roll_visual">
+        <geometry>
+          <mesh>
+            <scale>0.01 0.01 0.01</scale>
+            <uri>model://spiri_gimbal/meshes/mu2_gimbal_roll.fbx</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <ambient>0.1 0.1 0.1</ambient>
+          <diffuse>0.1 0.1 0.1</diffuse>
+          <specular>1 1 1 0</specular>
+        </material>
+      </visual>
+    </link>
+    <joint name="roll_joint" type="revolute">
+      <parent>yaw_link</parent>
+      <child>roll_link</child>
+      <axis>
+        <xyz>0 1 0</xyz>
+        <dynamics>
+          <damping>0.01</damping>
+        </dynamics>
+        <limit>
+          <lower>-1.570796</lower>
+          <upper>1.570796</upper>
+        </limit>
+      </axis>
+    </joint>
+    
+    <link name="pitch_link">
+      <pose relative_to="roll_link">-0.0204 -0.031 -0.002 0 0 0</pose>
+      <inertial>
+        <mass>0.01</mass>
+        <inertia>
+          <ixx>0.00001</ixx>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyy>0.00001</iyy>
+          <iyz>0</iyz>
+          <izz>0.00001</izz>
+        </inertia>
+      </inertial>
+      <visual name="pitch_visual">
+        <geometry>
+          <mesh>
+            <scale>0.01 0.01 0.01</scale>
+            <uri>model://spiri_gimbal/meshes/mu2_gimbal_pitch.fbx</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <ambient>0.1 0.1 0.1</ambient>
+          <diffuse>0.1 0.1 0.1</diffuse>
+          <specular>1 1 1 0</specular>
+        </material>
+      </visual>
+      <sensor name="camera" type="camera">
+        <pose degrees="true">0 0 0 0 0 -90</pose>    
+        <camera>
+          <horizontal_fov>1.22173</horizontal_fov>
+          <image>
+            <width>1280</width>
+            <height>720</height>
+          </image>
+          <clip>
+            <near>0.05</near>
+            <far>15000</far>
+          </clip>
+        </camera>
+        <always_on>0</always_on>
+        <update_rate>10</update_rate>
+        <visualize>1</visualize>
+
+        <plugin filename="CameraZoomPlugin"
+            name="CameraZoomPlugin">
+          <max_zoom>125.0</max_zoom>
+          <slew_rate>0.42514285714</slew_rate>
+        </plugin>
+        
+        <plugin name="GstCameraPlugin"
+            filename="GstCameraPlugin">
+          <udp_host>0.0.0.0</udp_host>
+          <udp_port>$(arg gstreamer_udp_port)</udp_port>
+          <use_basic_pipeline>true</use_basic_pipeline>
+          <use_cuda>false</use_cuda>
+        </plugin>
+
+      </sensor>
+    </link>
+    <joint name="pitch_joint" type="revolute">
+    <pose relative_to="roll_link">-0.0204 -0.031 -0.002 0 0 0</pose>
+      <parent>roll_link</parent>
+      <child>pitch_link</child>
+      <axis>
+        <xyz>1 0 0</xyz>
+        <dynamics>
+          <damping>0.01</damping>
+        </dynamics>
+        <limit>
+          <lower>-2.356194</lower>
+          <upper>2.356194</upper>
+        </limit>
+      </axis>
+    </joint>
+
+    <!-- UAV plugins -->
     <plugin filename="gz-sim-joint-state-publisher-system"
       name="gz::sim::systems::JointStatePublisher">
     </plugin>
@@ -188,7 +382,7 @@
       filename="ArduPilotPlugin">
       <!-- Port settings -->
       <fdm_addr>0.0.0.0</fdm_addr>
-      <fdm_port_in>9002</fdm_port_in>
+      <fdm_port_in>$(arg fdm_port_in)</fdm_port_in>
       <connectionTimeoutMaxCount>5</connectionTimeoutMaxCount>
       <lock_step>1</lock_step>
 
@@ -282,37 +476,37 @@
 
       <!-- roll range is -30 to +30 deg -->
       <control channel="8">
-        <jointName>gimbal::roll_joint</jointName>
+        <jointName>roll_joint</jointName>
         <multiplier>1.047197551196</multiplier>
         <offset>-0.5</offset>
         <servo_min>1100</servo_min>
         <servo_max>1900</servo_max>
         <type>COMMAND</type>
-        <cmd_topic>/gimbal/cmd_roll</cmd_topic>
+        <cmd_topic>$(arg gstreamer_udp_port)/gimbal/cmd_roll</cmd_topic>
         <p_gain>2</p_gain>
       </control>
 
       <!-- pitch range is -135 to +45 deg -->
       <control channel="9">
-        <jointName>gimbal::pitch_joint</jointName>
+        <jointName>pitch_joint</jointName>
         <multiplier>-3.14159265</multiplier>
         <offset>-0.75</offset>
         <servo_min>1100</servo_min>
         <servo_max>1900</servo_max>
         <type>COMMAND</type>
-        <cmd_topic>/gimbal/cmd_pitch</cmd_topic>
+        <cmd_topic>$(arg gstreamer_udp_port)/gimbal/cmd_pitch</cmd_topic>
         <p_gain>2</p_gain>
       </control>
 
       <!-- yaw range is -160 to +160 deg -->
       <control channel="10">
-        <jointName>gimbal::yaw_joint</jointName>
+        <jointName>yaw_joint</jointName>
         <multiplier>-5.5850536</multiplier>
         <offset>-0.5</offset>
         <servo_min>1100</servo_min>
         <servo_max>1900</servo_max>
         <type>COMMAND</type>
-        <cmd_topic>/gimbal/cmd_yaw</cmd_topic>
+        <cmd_topic>$(arg gstreamer_udp_port)/gimbal/cmd_yaw</cmd_topic>
         <p_gain>2</p_gain>
       </control>
 
@@ -321,22 +515,22 @@
     <plugin
       filename="gz-sim-joint-position-controller-system"
       name="gz::sim::systems::JointPositionController">
-      <joint_name>gimbal::roll_joint</joint_name>
-      <topic>/gimbal/cmd_roll</topic>
+      <joint_name>roll_joint</joint_name>
+      <topic>$(arg gstreamer_udp_port)/gimbal/cmd_roll</topic>
       <p_gain>2</p_gain>
     </plugin>
     <plugin
       filename="gz-sim-joint-position-controller-system"
       name="gz::sim::systems::JointPositionController">
-      <joint_name>gimbal::pitch_joint</joint_name>
-      <topic>/gimbal/cmd_pitch</topic>
+      <joint_name>pitch_joint</joint_name>
+      <topic>$(arg gstreamer_udp_port)/gimbal/cmd_pitch</topic>
       <p_gain>2</p_gain>
     </plugin>
     <plugin
       filename="gz-sim-joint-position-controller-system"
       name="gz::sim::systems::JointPositionController">
-      <joint_name>gimbal::yaw_joint</joint_name>
-      <topic>/gimbal/cmd_yaw</topic>
+      <joint_name>yaw_joint</joint_name>
+      <topic>$(arg gstreamer_udp_port)/gimbal/cmd_yaw</topic>
       <p_gain>2</p_gain>
     </plugin>
 
