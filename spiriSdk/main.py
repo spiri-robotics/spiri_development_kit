@@ -15,3 +15,7 @@ app.on_startup(on_startup)
 app.on_shutdown(on_shutdown)
 
 ui.run(title='Spiri SDK', favicon=favicon, reload=True, dark=None, port=8197, show=True)
+
+# To Do:
+
+# consistent robotID and robotName - ID = docker & folder name, name = user-inputted name
