@@ -1,4 +1,4 @@
-FROM osrf/ros:jazzy-desktop-full
+FROM ros:jazzy-ros-base
 
 
 RUN apt-get update && apt-get -y install qterminal mesa-utils \

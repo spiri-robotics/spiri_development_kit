@@ -379,7 +379,7 @@ class DockerInDocker(Container):
             "project_dir": f"/data/{service_name}",  # Project dir in container
         }
 
-    async def run_compose(self, compose_file: str, max_attempts: int = 3) -> None:
+    async def run_compose(self, compose_file: str, max_attempts: int = 3):
         """Run docker compose with retry logic for network issues.
         
         Args:
