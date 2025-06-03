@@ -146,15 +146,6 @@ def display_robot_options(robot_name, selected_additions, selected_options, opti
                     else:
                         selected_options[k] = e.value
 
-                # def make_int_input(k):
-                #     return lambda e: selected_options.update({k: int(e.value) if e.value.isdigit() else 0})
-                
-                # def int_input_change(k):
-                #     return lambda e: selected_options.update({k: int(e.value)})
-
-                # if min_val is not None and max_val is not None:
-                    # Generate dropdown choices from min to max using step
-                # int_options = list(range(min_val, max_val + 1, step))
                 ui.number(
                     formatted_key,
                     value=current_value,
@@ -163,25 +154,6 @@ def display_robot_options(robot_name, selected_additions, selected_options, opti
                     step=step,
                     on_change=lambda e, k=key: update(e.sender, k)
                 ).classes('w-full')
-                # else:
-                #     # Fallback: no min/max, use input box
-                #     ui.input(
-                #         label=f"{key} (int)",
-                #         value=str(current_value),
-                #         on_change=make_int_input(key)
-                #     )
-
-            # elif option_type == 'float':
-            #     def make_float_input(k):
-            #         return lambda e: selected_options.update({k: float(e.value) if e.value else 0.0})
-            #     ui.input(
-            #         label=f"{key} (float)",
-            #         value=str(current_value),
-            #         on_change=make_float_input(key)
-            #     )
-
-            # elif option_type == 'text':
-            #     ui.input(key, value=option.get('value', ''), on_change=(lambda e, k=key: selected_options.update({k: e.value})))
             
             elif option_type == 'dropdown':
                 # Ensure the dropdown options are a list
