@@ -1,23 +1,41 @@
 x-spiri-options:
-  NAME:
-    type: text
-    value: Enby
-  ARDUPILOT_VEHICLE:
-    help-text: when the container will stop waiting and timeout
-    type: float
-    value: 1
   DRONE_SYS_ID:
-    help-text: what drone will be called
+    help-text: The system ID of the drone
     type: int
     max: 255
     min: 0
     precision: 0
     step: 1
     value: 1
+  ROBOT_NAME:
+    help-text: The custom name of the robot
+    type: text
+    value: Gregory
+  ARDUPILOT_VEHICLE:
+    help-text: How long until the container will stop waiting and timeout
+    type: float
+    value: 1
   INSTANCE:
     help-text: Whether the vehicle should be instanced
     type: bool
-    value: null
-  MAVROS2_PORT:
+    value: False
+  MAVROS1_PORT:
+    help-text: First port to be used by the MAVROS1 bridge
     type: int
-    value: 1901.0
+    value: 1900
+  MAVROS2_PORT:
+    help-text: Second port to be used by the MAVROS2 bridge
+    type: int
+    value: 1901
+  GCS_PORT:
+    help-text: Port to be used by the GCS
+    type: int
+    value: 1902
+  SERIAL0_PORT:
+    help-text: Port to be used by the serial device
+    type: int
+    value: 1903
+  SITL_PORT:
+    help-text: Port to be used by the SITL
+    type: int
+    value: 1904

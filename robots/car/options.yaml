@@ -1,0 +1,17 @@
+x-spiri-options:
+  CAR_SYS_ID:
+    help-text: The system ID of the drone
+    type: int
+    max: 255
+    min: 0
+    precision: 0
+    step: 1
+    value: 1
+  CAR_NAME:
+    help-text: The custom name of the robot
+    type: text
+    value: ARC
+  INSTANCE:
+    help-text: Whether the vehicle should be instanced
+    type: bool
+    value: False
