@@ -94,18 +94,16 @@ async def edit_robot(robotID):
     ui.label(f'Edit {robotID}').classes('text-h5')
     display(robotID)
 
-    # ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
-    # folder_name = f"{robotID}"
-    # folder_path = os.path.join(ROOT_DIR, "data", folder_name)
-    # config_path = os.path.join(folder_path, "config.env")
+def save_changes(robotID):
+    ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+    config_folder_name = f"{robotID}"
+    config_folder_path = os.path.join(ROOT_DIR, "data", config_folder_name)
+    config_file_path = os.path.join(config_folder_path, "config.env")
 
-    # currentSettings = {}
-    # currentSettings.clear()
+    with open(config_file_path, 'w') as f:
+        for key, val in settings.items():
+            f.write(f'{key}={val}\n')
+            print(f'{key}={val}')
 
-    # with open(config_path, 'r') as options:
-    #     for line in options:
-    #         s = line.split('=')
-    #         currentSettings[s[0]] = s[1]
-
-    # for key, val in currentSettings.items():
-    #     ui.label(key)
+def clear_changes(robotID):
+    display.refresh(robotID)

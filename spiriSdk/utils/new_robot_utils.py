@@ -139,8 +139,6 @@ def display_robot_options(robot_name, selected_additions, selected_options, opti
                     else:
                         selected_options[k] = e.value
 
-                    print(selected_options[k])
-
                 # def make_int_input(k):
                 #     return lambda e: selected_options.update({k: int(e.value) if e.value.isdigit() else 0})
                 
