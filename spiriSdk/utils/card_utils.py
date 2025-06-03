@@ -21,7 +21,7 @@ def copy_text(command):
     ui.notify("Copied to clipboard!")
 
 async def addRobot():
-    with ui.dialog() as d, ui.card(align_items='stretch').classes('w-full').props(add='full-width'):
+    with ui.dialog() as d, ui.card(align_items='stretch').classes('w-full'):
         await new_robots()
 
         async def submit(button):

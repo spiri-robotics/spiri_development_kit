@@ -1,4 +1,5 @@
 from nicegui import ui
+from spiriSdk.pages import home, settings
 from spiriSdk.utils.daemon_utils import init_daemons, on_shutdown
 from spiriSdk.utils.new_robot_utils import ensure_options_yaml
 from nicegui import app, ui
