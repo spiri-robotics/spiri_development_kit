@@ -1,16 +1,10 @@
-import os, asyncio
+import os, asyncio, httpx
 from nicegui import ui
 from spiriSdk.utils.daemon_utils import daemons, stop_container, start_container, restart_container, display_daemon_status, DaemonEvent
 from spiriSdk.utils.new_robot_utils import delete_robot, save_robot_config
 from spiriSdk.pages.tools import tools, gz
-from spiriSdk.utils.gazebo_utils import Gazebo
-import asyncio
-from nicegui import ui
-import os
-from pathlib import Path
 from spiriSdk.pages.new_robots import new_robots
 from spiriSdk.pages.edit_robot import edit_robot, save_changes, clear_changes
-import httpx
 
 async def is_service_ready(url: str, timeout: float = 0.5) -> bool:
     try:

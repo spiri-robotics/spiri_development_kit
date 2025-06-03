@@ -1,6 +1,6 @@
 from nicegui import ui
 from spiriSdk.ui.styles import styles
-from spiriSdk.utils.new_robot_utils import ensure_options_yaml, ROBOTS_DIR, save_robot_config, display_robot_options
+from spiriSdk.utils.new_robot_utils import ensure_options_yaml, display_robot_options
 
 robots = ensure_options_yaml()
 selected_options = {}

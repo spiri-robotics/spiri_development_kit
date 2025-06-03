@@ -1,10 +1,6 @@
 from nicegui import ui
 from spiriSdk.ui.styles import styles
-from spiriSdk.pages.header import header
 from spiriSdk.utils.gazebo_utils import Gazebo
-
-import time
-import docker
 import subprocess
 gz = Gazebo()
 

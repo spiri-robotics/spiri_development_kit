@@ -1,8 +1,7 @@
 import os, yaml, re, uuid, shutil
-from nicegui import ui
+from nicegui import ui, run
 from pathlib import Path
 from spiriSdk.docker.dindocker import DockerInDocker
-from nicegui import run
 from spiriSdk.utils.daemon_utils import daemons, start_services, DaemonEvent
 
 ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
