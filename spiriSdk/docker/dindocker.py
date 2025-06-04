@@ -373,7 +373,6 @@ class DockerInDocker(Container):
         }
 
     async def run_compose(self, compose_file: str, max_attempts: int = 3):
-    async def run_compose(self, compose_file: str, max_attempts: int = 3):
         """Run docker compose with retry logic for network issues.
         
         Args:
@@ -411,42 +410,7 @@ class DockerInDocker(Container):
                     "--project-directory", paths["project_dir"],
                     "up",
                     "--detach",
-                proc = await asyncio.create_subprocess_exec(
-                    "docker",
-                    "compose",
-                    "--file", paths["compose_file"],
-                    "--project-directory", paths["project_dir"],
-                    "up",
-                    "--detach",
                     env=env,
-                    stdout=asyncio.subprocess.PIPE,
-                    stderr=asyncio.subprocess.PIPE
-                )
-
-                # Stream stdout and stderr
-                while True:
-                    stdout_line = await proc.stdout.readline()
-                    stderr_line = await proc.stderr.readline()
-                    
-                    if not stdout_line and not stderr_line:
-                        break
-                        
-                    if stdout_line:
-                        line = stdout_line.decode().strip()
-                        if line:
-                            yield f"stdout: {line}"
-                    if stderr_line:
-                        line = stderr_line.decode().strip()
-                        if line:
-                            yield f"stderr: {line}"
-
-                # Check return code
-                return_code = await proc.wait()
-                if return_code == 0:
-                    return
-                else:
-                    raise subprocess.CalledProcessError(return_code, proc.args)
-
                     stdout=asyncio.subprocess.PIPE,
                     stderr=asyncio.subprocess.PIPE
                 )
