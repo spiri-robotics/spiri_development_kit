@@ -1,14 +1,10 @@
-from spiriSdk.utils.daemon_utils import daemons, stop_container, start_container, restart_container, display_daemon_status, DaemonEvent
-from spiriSdk.utils.new_robot_utils import delete_robot, save_robot_config
-from spiriSdk.pages.tools import tools, gz
-from spiriSdk.utils.gazebo_utils import Gazebo
-import asyncio
+import os, asyncio, httpx
 from nicegui import ui
-import os
-from pathlib import Path
+from spiriSdk.utils.daemon_utils import daemons, stop_container, start_container, restart_container, display_daemon_status, DaemonEvent
+from spiriSdk.utils.new_robot_utils import delete_robot, save_robot_config, inputChecker
+from spiriSdk.pages.tools import tools, gz
 from spiriSdk.pages.new_robots import new_robots
-from spiriSdk.pages.edit_robot import edit_robot
-import httpx
+from spiriSdk.pages.edit_robot import edit_robot, save_changes, clear_changes
 
 async def is_service_ready(url: str, timeout: float = 0.5) -> bool:
     try:
@@ -26,7 +22,8 @@ def copy_text(command):
 
 async def addRobot():
     with ui.dialog() as d, ui.card(align_items='stretch').classes('w-full'):
-        await new_robots()
+        checker = inputChecker()
+        await new_robots(checker)
 
         async def submit(button):
             button = button.props(add='loading')
@@ -37,27 +34,43 @@ async def addRobot():
 
             d.close()
 
+            # Refresh display to update visible cards
+            from spiriSdk.pages.home import container
+            await container.displayCards()
+
         with ui.card_actions().props('align=center'):
             ui.button('Cancel', color='secondary', on_click=d.close).classes('text-base')
-            ui.button('Add', color='secondary', on_click=lambda e: submit(e.sender)).classes('text-base')
+            addBtn = ui.button('Add', color='secondary', on_click=lambda e: submit(e.sender)).classes('text-base')
+            addBtn.bind_enabled_from(checker, 'isValid')
     
     d.open()
 
-async def editRobot(robotName):
+async def editRobot(robotName, drop: ui.dropdown_button):
     with ui.dialog() as d, ui.card(align_items='stretch').classes('w-full'):
         await edit_robot(robotName)
 
+        def close():
+            d.close()
+            clear_changes(robotName)
+            drop.close()
+
+        async def saveClose(robotName):
+            save_changes(robotName)
+            close()
+            from spiriSdk.pages.home import container
+            await container.displayCards()
+
         with ui.card_actions().props('align=center'):
-            ui.button('Cancel', on_click=d.close, color='secondary') 
-            ui.button('Save', on_click=d.close, color='secondary')
+            ui.button('Cancel', on_click=close, color='secondary').classes('text-base')
+            ui.button('Save', on_click=lambda r=robotName: saveClose(r), color='secondary').classes('text-base')
     d.open()
 
 
 
 class RobotContainer:
 
-    def __init__(self, bigCard,) -> None:
-        self.destination = bigCard
+    def __init__(self, destination) -> None:
+        self.destination = destination
         DaemonEvent.subscribe(self.displayCards)
 
     def is_empty(self) -> bool:
@@ -67,6 +80,7 @@ class RobotContainer:
         with self.destination:
             with ui.row().classes('justify-items-stretch w-full'):
                 ui.button('Add Robot', on_click=addRobot, color='secondary').classes('text-base')
+                # ui.button(on_click=lambda: ui.navigate.to('/new_robots'), color='secondary').classes('text-base')
                 ui.space()
                 await tools()
 
@@ -76,7 +90,9 @@ class RobotContainer:
         with self.destination:
             worlds = []
             await self.displayButtons()
+
             for robotName in names:
+
                 ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 
                 with ui.card().classes('w-full'):
@@ -126,21 +142,21 @@ class RobotContainer:
 
                             ui.button('Add robot to world', on_click=add_to_world).classes('m-1 mr-10 text-base').props('color=secondary')
 
-                            async def delete(n):
+                            async def delete(n,):
                                 if await delete_robot(n):
                                     ui.notify(f'{n} deleted')
                                 else:
                                     ui.notify('error deleting robot')
 
                             with ui.dropdown_button(icon='settings', color='secondary').classes('text-base') as drop:
-                                ui.item('Edit', on_click=lambda n=robotName: editRobot(n))
+                                ui.item('Edit', on_click=lambda n=robotName, d=drop: editRobot(n, d))
                                 ui.item('Delete', on_click=lambda n=robotName: delete(n))
 
                     # Display the robot's Docker services command            
                     with ui.row(align_items="start").classes('w-full'):
                         with ui.card_section():
                             command = f"DOCKER_HOST=unix:///tmp/dind-sockets/spirisdk_{robotName}.socket"
-                            ui.code(command, language='bash').classes('text-sm text-gray-200')
+                            ui.code(command, language='bash').classes('text-sm text-gray-600 dark:text-gray-200')
                         
                     # Display the robot's web interface if applicable
                     if str.join("-", robotName.split("-")[:1]) == "spiri_mu":
@@ -158,7 +174,7 @@ class RobotContainer:
                                 ui.link(f'Access the Web Interface at: {url}', url, new_tab=True).classes('text-sm text-gray-200 py-3')
                                 ui.html(f'<iframe src="{url}" width="1000" height="600"></iframe>')
                             else: 
-                                ui.label('Robot GUI unavailable: Please try again later').classes('text-sm text-gray-600 dark:text-gray-300')
+                                ui.label('Robot GUI unavailable, please try again later').classes('text-sm text-gray-600 dark:text-gray-300')
                     if str.join("-", robotName.split("-")[:1]) == "ARC":
                         with ui.card_section():
                             url = f'http://{daemons[robotName].get_ip()}:{80}'
@@ -175,3 +191,12 @@ class RobotContainer:
                                 ui.html(f'<iframe src="{url}" width="1000" height="600"></iframe>')
                             else: 
                                 ui.label('Web interface not available, please try again later').classes('text-sm text-gray-600 dark:text-gray-300')
+
+    def show_loading(self) -> None:
+        if len(daemons) == 0:
+            pass
+        else:
+            with self.destination:
+                with ui.row(align_items='center').classes('w-full justify-center mt-[20vh]'):
+                    ui.spinner(size='40px')
+                    ui.label('Starting Containers...').classes('text-base')

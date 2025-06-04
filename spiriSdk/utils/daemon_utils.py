@@ -1,9 +1,7 @@
-import os
+import os, docker, yaml
 from spiriSdk.docker.dindocker import DockerInDocker
 from nicegui import run, ui
-import docker
 from docker.errors import NotFound, APIError
-import yaml
 
 ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 DATA_DIR = os.path.join(ROOT_DIR, 'data')
