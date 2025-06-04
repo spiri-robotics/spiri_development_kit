@@ -91,18 +91,7 @@ class RobotContainer:
             worlds = []
             await self.displayButtons()
 
-            n = ui.notification(timeout=None)
-            for i in range(4):
-                n.message = 'Displaying...'
-                n.spinner = True
-                await asyncio.sleep(0.5)
-
-            r = 1
-
             for robotName in names:
-                for i in range(1):
-                    n.message = f'Displaying robot {r} of {len(names)}'
-                    await asyncio.sleep(0.1)
 
                 ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 
@@ -203,9 +192,11 @@ class RobotContainer:
                             else: 
                                 ui.label('Web interface not available, please try again later').classes('text-sm text-gray-600 dark:text-gray-300')
 
-
-            n.message = 'Done'
-            n.type = 'positive'
-            n.spinner = False
-            await asyncio.sleep(6)
-            n.dismiss()
+    def show_loading(self) -> None:
+        if len(daemons) == 0:
+            pass
+        else:
+            with self.destination:
+                with ui.row(align_items='center').classes('w-full justify-center mt-[20vh]'):
+                    ui.spinner(size='40px')
+                    ui.label('Starting Containers...').classes('text-base')

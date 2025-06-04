@@ -8,7 +8,6 @@ container = None
 
 @ui.page('/')
 async def home():
-    print('home initialized')
     await styles()
     await header()
     
@@ -17,6 +16,7 @@ async def home():
     container = RobotContainer(destination)
 
     await container.displayButtons()
+    container.show_loading()
     
     if container.is_empty():
         await DaemonEvent.notify()
