@@ -90,7 +90,20 @@ class RobotContainer:
         with self.destination:
             worlds = []
             await self.displayButtons()
+
+            n = ui.notification(timeout=None)
+            for i in range(4):
+                n.message = 'Displaying...'
+                n.spinner = True
+                await asyncio.sleep(0.5)
+
+            r = 1
+
             for robotName in names:
+                for i in range(1):
+                    n.message = f'Displaying robot {r} of {len(names)}'
+                    await asyncio.sleep(0.1)
+
                 ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 
                 with ui.card().classes('w-full'):
@@ -189,3 +202,10 @@ class RobotContainer:
                                 ui.html(f'<iframe src="{url}" width="1000" height="600"></iframe>')
                             else: 
                                 ui.label('Web interface not available, please try again later').classes('text-sm text-gray-600 dark:text-gray-300')
+
+
+                n.message = 'Done'
+                n.type = 'positive'
+                n.spinner = False
+                await asyncio.sleep(6)
+                n.dismiss()

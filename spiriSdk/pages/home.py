@@ -8,6 +8,7 @@ container = None
 
 @ui.page('/')
 async def home():
+    print('home initialized')
     await styles()
     await header()
     

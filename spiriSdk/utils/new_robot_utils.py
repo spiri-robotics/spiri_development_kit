@@ -1,4 +1,4 @@
-import os, yaml, re, uuid, shutil
+import os, yaml, re, uuid, shutil, asyncio
 from nicegui import ui, run
 from pathlib import Path
 from spiriSdk.docker.dindocker import DockerInDocker
@@ -49,7 +49,16 @@ class inputChecker:
             self.inputs[i] = False
         self.update()
 
-def ensure_options_yaml():
+async def ensure_options_yaml():
+    print('ensure options called')
+    # from spiriSdk.pages.home import container
+    # with container:
+    #     n = ui.notification(timeout=None)
+    #     for i in range(1):
+    #         n.message = 'Reading files...'
+    #         n.spinner = True
+    #         await asyncio.sleep(0.1)
+
     robots = []
     for folder in os.listdir(ROBOTS_DIR):
         folder_path = os.path.join(ROBOTS_DIR, folder)
@@ -88,6 +97,8 @@ def ensure_options_yaml():
 
                 with open(options_path, 'w') as yaml_file:
                     yaml.dump(default_options, yaml_file)
+
+    # n.dismiss()
     return robots
 
 async def save_robot_config(robot_type, selected_options):
