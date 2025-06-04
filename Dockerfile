@@ -1,4 +1,4 @@
-FROM osrf/ros:jazzy-desktop-full
+FROM ros:jazzy-ros-base
 
 
 RUN apt-get update && apt-get -y install qterminal mesa-utils \
@@ -14,6 +14,12 @@ RUN apt-get update && apt-get -y install qterminal mesa-utils \
     gstreamer1.0-plugins-ugly \
     ros-${ROS_DISTRO}-rmw-cyclonedds-cpp \
     ros-${ROS_DISTRO}-ros-gz
+
+COPY --from=git.spirirobotics.com/spiri/gazebo-resources:main /plugins /plugins
+
+
+ENV GZ_SIM_SYSTEM_PLUGIN_PATH=/plugins
+ENV GZ_SIM_RESOURCE_PATH=/worlds
 
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 ADD . /app
