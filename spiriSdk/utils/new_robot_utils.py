@@ -49,7 +49,7 @@ class inputChecker:
             self.inputs[i] = False
         self.update()
 
-async def ensure_options_yaml():
+def ensure_options_yaml():
     print('ensure options called')
     # from spiriSdk.pages.home import container
     # with container:

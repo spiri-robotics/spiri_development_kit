@@ -204,8 +204,8 @@ class RobotContainer:
                                 ui.label('Web interface not available, please try again later').classes('text-sm text-gray-600 dark:text-gray-300')
 
 
-                n.message = 'Done'
-                n.type = 'positive'
-                n.spinner = False
-                await asyncio.sleep(6)
-                n.dismiss()
+            n.message = 'Done'
+            n.type = 'positive'
+            n.spinner = False
+            await asyncio.sleep(6)
+            n.dismiss()

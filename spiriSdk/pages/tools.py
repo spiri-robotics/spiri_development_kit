@@ -7,7 +7,7 @@ gz = Gazebo()
 #Commands to run applications
 applications = {
     'rqt': ['rqt'],
-    'rvis2': ['rviz2']
+    'rviz2': ['rviz2']
 }
 
 def launch_app(command): 
