@@ -19,8 +19,15 @@ def display(robotID):
             s = line.split('=')
             settings[s[0]] = s[1]
 
-    # TO DO - tweak logic to account for all other robot types besides spiri_mu
-    default_folder_name = robotID[:8]
+    # Add additional if-statements if any other robot types are added
+    if 'spiri_mu' in robotID:
+        if 'no_gimbal' in robotID:
+            default_folder_name = robotID[:18]
+        else:
+            default_folder_name = robotID[:8]
+    else:
+        default_folder_name = robotID[:3]
+
     default_folder_path = os.path.join(ROOT_DIR, 'robots', default_folder_name)
     default_file_path = os.path.join(default_folder_path, 'options.yaml')
 
@@ -30,7 +37,7 @@ def display(robotID):
         'Id': 'ID',
         'Mavros': 'MAVROS',
         'Gcs': 'GCS',
-        'Serial0': 'Serial 0',
+        'Serial0': 'Serial',
         'Sitl': 'SITL'
     }
 
