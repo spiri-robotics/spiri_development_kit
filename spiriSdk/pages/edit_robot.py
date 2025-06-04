@@ -25,8 +25,10 @@ def display(robotID):
     default_file_path = os.path.join(default_folder_path, 'options.yaml')
 
     format_rules = {
+        'Arc': 'ARC',
         'Sys': 'System',
         'Id': 'ID',
+        'Mavros': 'MAVROS',
         'Gcs': 'GCS',
         'Serial0': 'Serial 0',
         'Sitl': 'SITL'

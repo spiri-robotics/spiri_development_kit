@@ -51,13 +51,6 @@ class inputChecker:
 
 def ensure_options_yaml():
     print('ensure options called')
-    # from spiriSdk.pages.home import container
-    # with container:
-    #     n = ui.notification(timeout=None)
-    #     for i in range(1):
-    #         n.message = 'Reading files...'
-    #         n.spinner = True
-    #         await asyncio.sleep(0.1)
 
     robots = []
     for folder in os.listdir(ROBOTS_DIR):
@@ -98,7 +91,6 @@ def ensure_options_yaml():
                 with open(options_path, 'w') as yaml_file:
                     yaml.dump(default_options, yaml_file)
 
-    # n.dismiss()
     return robots
 
 async def save_robot_config(robot_type, selected_options):
