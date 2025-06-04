@@ -8,9 +8,5 @@ else
     echo "ROS setup file not found at /opt/ros/jazzy/setup.bash"
     exit 1
 fi
-
-# Export Gazebo Sim resource path
-export GZ_SIM_RESOURCE_PATH=/worlds
-
 # Execute the command passed to the entrypoint
 exec "$@"

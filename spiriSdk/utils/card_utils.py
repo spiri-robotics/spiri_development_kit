@@ -166,7 +166,7 @@ class RobotContainer:
                     # Display the robot's Docker services command            
                     with ui.row(align_items="start").classes('w-full'):
                         with ui.card_section():
-                            command = f"DOCKER_HOST=unix:///tmp/dind-sockets/spiri_{robotName}.socket"
+                            command = f"DOCKER_HOST=unix:///tmp/dind-sockets/spirisdk_{robotName}.socket"
                             ui.code(command, language='bash').classes('text-sm text-gray-600 dark:text-gray-200')
                         
                     # Display the robot's web interface if applicable
