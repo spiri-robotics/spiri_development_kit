@@ -57,8 +57,8 @@ async def editRobot(robotName, drop: ui.dropdown_button):
         async def saveClose(robotName):
             save_changes(robotName)
             close()
-            from spiriSdk.pages.home import container
-            await container.displayCards()
+            # from spiriSdk.pages.home import container
+            # await container.displayCards()
 
         with ui.card_actions().props('align=center'):
             ui.button('Cancel', on_click=close, color='secondary').classes('text-base')

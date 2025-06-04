@@ -50,8 +50,6 @@ class inputChecker:
         self.update()
 
 def ensure_options_yaml():
-    print('ensure options called')
-
     robots = []
     for folder in os.listdir(ROBOTS_DIR):
         folder_path = os.path.join(ROBOTS_DIR, folder)
@@ -173,12 +171,20 @@ def display_robot_options(robot_name, selected_additions, selected_options, opti
                 formatted_key = formatted_key.replace(og, new)
 
             if option_type == 'bool':
-                with ui.row().classes('items-center w-[35%]'):
-                    def on_toggle(e, k):
-                        selected_options[k] = e.value
-                    
+                if current_value == 1:
+                    bool_value = True
+                else:
+                    bool_value = False
+
+                def on_toggle(e, k):
+                    if e.value == True:
+                        selected_options[k] = 1
+                    else:
+                        selected_options[k] = 0
+                
+                with ui.row().classes('items-center justify-between w-[35%]'):
                     ui.label(formatted_key)
-                    ui.switch(value=current_value, on_change=lambda e, k=key: on_toggle(e, k)).classes('ml-auto')
+                    ui.switch(value=bool_value, on_change=lambda e, k=key: on_toggle(e, k))
 
             elif option_type == 'int' or option_type == 'float':
                 min_val = option.get('min', None)
@@ -192,7 +198,7 @@ def display_robot_options(robot_name, selected_additions, selected_options, opti
                     else:
                         selected_options[k] = e.value
 
-                i = ui.number(
+                ui.number(
                     formatted_key,
                     value=current_value,
                     min=min_val,
@@ -215,7 +221,7 @@ def display_robot_options(robot_name, selected_additions, selected_options, opti
                     if 'NAME' in k:
                         checker.checkText(e)
 
-                i = ui.input(formatted_key, value=current_value, placeholder=current_value, on_change=lambda e, k=key: handleText(e.sender, k)).classes('w-full')
+                textInput = ui.input(formatted_key, value=current_value, placeholder=current_value, on_change=lambda e, k=key: handleText(e.sender, k)).classes('w-full')
                 if 'NAME' in key:
-                    i.value = ''
-                    checker.add(i)
+                    textInput.value = ''
+                    checker.add(textInput)

@@ -38,4 +38,4 @@ x-spiri-options:
   INSTANCE:
     help-text: If the robot should be instanced - required for Gazebo
     type: bool
-    value: False
+    value: 0
