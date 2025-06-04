@@ -233,9 +233,3 @@ def display_robot_options(robot_name, selected_additions, selected_options, opti
                     checker.add(textInput)
                 else:
                     textInput = ui.input(formatted_key, value=current_value, placeholder=current_value, on_change=lambda e, k=key: handleText(e.sender, k)).classes('w-full')
-                # if 'NAME' in key:
-                #     textInput.value = ''
-                #     checker.add(textInput)
-                #     textInput.validation = {
-                #         'Cannot be empty': lambda value: len(value) > 0
-                #     }
