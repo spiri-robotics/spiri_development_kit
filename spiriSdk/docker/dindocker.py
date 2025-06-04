@@ -373,11 +373,15 @@ class DockerInDocker(Container):
         }
 
     async def run_compose(self, compose_file: str, max_attempts: int = 3):
+    async def run_compose(self, compose_file: str, max_attempts: int = 3):
         """Run docker compose with retry logic for network issues.
         
         Args:
             compose_file: Path to docker-compose.yaml file
             max_attempts: Maximum number of retry attempts (default: 3)
+
+        Yields:
+            str: Lines of output from the compose process
 
         Yields:
             str: Lines of output from the compose process
@@ -400,6 +404,13 @@ class DockerInDocker(Container):
         last_exception = None
         for attempt in range(1, max_attempts + 1):
             try:
+                proc = await asyncio.create_subprocess_exec(
+                    "docker",
+                    "compose",
+                    "--file", paths["compose_file"],
+                    "--project-directory", paths["project_dir"],
+                    "up",
+                    "--detach",
                 proc = await asyncio.create_subprocess_exec(
                     "docker",
                     "compose",
@@ -436,10 +447,40 @@ class DockerInDocker(Container):
                 else:
                     raise subprocess.CalledProcessError(return_code, proc.args)
 
+                    stdout=asyncio.subprocess.PIPE,
+                    stderr=asyncio.subprocess.PIPE
+                )
+
+                # Stream stdout and stderr
+                while True:
+                    stdout_line = await proc.stdout.readline()
+                    stderr_line = await proc.stderr.readline()
+                    
+                    if not stdout_line and not stderr_line:
+                        break
+                        
+                    if stdout_line:
+                        line = stdout_line.decode().strip()
+                        if line:
+                            yield f"stdout: {line}"
+                    if stderr_line:
+                        line = stderr_line.decode().strip()
+                        if line:
+                            yield f"stderr: {line}"
+
+                # Check return code
+                return_code = await proc.wait()
+                if return_code == 0:
+                    return
+                else:
+                    raise subprocess.CalledProcessError(return_code, proc.args)
+
             except subprocess.CalledProcessError as e:
                 last_exception = e
                 logger.warning(f"Compose attempt {attempt} failed: {str(e)}")
+                logger.warning(f"Compose attempt {attempt} failed: {str(e)}")
                 if attempt < max_attempts:
+                    await asyncio.sleep(5)  # Wait before retry
                     await asyncio.sleep(5)  # Wait before retry
 
         raise RuntimeError(
