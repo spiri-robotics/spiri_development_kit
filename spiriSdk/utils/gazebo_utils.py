@@ -113,10 +113,8 @@ class Robot:
 
         if self.position == None:
             self.position = [len(self.parent.robots.keys()) + 1, 0, 0, 0, 0, 0]
-            if type == 'spiri_mu' or type == 'spiri_mu_no_gimbal':
-                self.position[2] = 0.2
-        else:
-            print("smthn wrong")
+        if type == 'spiri_mu' or type == 'spiri_mu_no_gimbal':
+            self.position[2] = self.position[2] + 0.195
 
     def get_robot_network_config(self) -> None:
         config_path = Path(f'/data/{self.name}/config.env')
@@ -156,3 +154,32 @@ class Robot:
         out, err = ros2_gz_create_proc.communicate(timeout=3)
         ros2_gz_create_proc.kill()
         return
+    
+    async def kill_robot(self):
+        
+        # http://osrf-distributions.s3.amazonaws.com/gazebo/api/7.1.0/classgazebo_1_1physics_1_1Entity.html
+        ENTITY_TYPE_MODEL = 0x00000002
+        REQUEST_ARG = f"name: '{self.name}' type: {ENTITY_TYPE_MODEL}"
+        
+        GZ_SERVICE_CMD = [
+            "gz",
+            "service",
+            "-s",
+            f"/world/{self.parent.name}/remove",
+            "--reqtype",
+            "gz.msgs.Entity",
+            "--reptype",
+            "gz.msgs.Boolean",
+            "--timeout",
+            "5000",
+            "--req",
+            REQUEST_ARG
+        ]
+        remove_entity_proc = subprocess.Popen(
+            GZ_SERVICE_CMD,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+        
+        out, err = remove_entity_proc.communicate(timeout=3)
+        remove_entity_proc.kill()
