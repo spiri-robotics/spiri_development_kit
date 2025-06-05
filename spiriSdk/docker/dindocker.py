@@ -200,11 +200,11 @@ class Container:
                 # Copy file into container
                 self.container.put_archive(
                     path="/",  # Always use root as base path
-                    data=self._create_tar_archive(temp_file, archive_path)
+                    data=self._create_tar_archive(temp_file, container_path)
                 )
                 
                 # Set permissions
-                self.container.exec_run(f"chmod {oct(mode)[2:]} {dest_path}")
+                self.container.exec_run(f"chmod {oct(mode)[2:]} {container_path}")
             finally:
                 temp_file.unlink()  # Clean up temp file
                 
