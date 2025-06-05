@@ -21,10 +21,11 @@ services:
     command: >
       mavproxy.py --non-interactive
       --master tcp:127.0.0.1:$SERIAL0_PORT
-      --out udpout:192.168.1.213:14550
+      --out udpout:$HOST_IP:14550
       --out udpout:0.0.0.0:$MAVROS2_PORT
       --out udpout:0.0.0.0:$MAVROS1_PORT
       --out udpout:0.0.0.0:18761
+      --out udpout:127.0.0.1:14555
       --sitl 127.0.0.1:$SITL_PORT
       --out udp:0.0.0.0:$GCS_PORT      
     ipc: host
