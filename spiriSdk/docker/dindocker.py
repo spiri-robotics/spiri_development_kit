@@ -8,6 +8,9 @@ from typing import Optional, Dict, Any
 from loguru import logger
 from dotenv import load_dotenv
 from dataclasses import dataclass, field
+import hashlib
+import base64
+import requests
 
 CURRENT_PRIMARY_GROUP = os.getgid()
 
@@ -167,6 +170,70 @@ class Container:
                 logger.error(f"Error during cleanup: {e}")
             self.container = None
 
+    def inject_file(self, content: str, container_path: str, mode: int = 0o644) -> None:
+        """Inject a file with given content into the container.
+        
+        Args:
+            content: String content to write to the file
+            container_path: Absolute path where file should be created in container
+            mode: File permissions (default: 0o644)
+            
+        Raises:
+            RuntimeError: If container isn't running or injection fails
+        """
+        if self.container is None:
+            raise RuntimeError("Container not running")
+
+        try:
+            # Ensure path is absolute
+            if not container_path.startswith('/'):
+                container_path = f'/{container_path}'
+
+            # Create parent directories if needed
+            dir_path = str(Path(container_path).parent)
+            self.container.exec_run(f"mkdir -p {dir_path}")
+            
+            # Create a temporary file with the content
+            temp_file = Path(f"/tmp/inject_{uuid.uuid4().hex[:8]}")
+            temp_file.write_text(content)
+            
+            try:
+                # Copy file into container
+                self.container.put_archive(
+                    path="/",  # Always use root as base path
+                    data=self._create_tar_archive(temp_file, container_path)
+                )
+                
+                # Set permissions
+                self.container.exec_run(f"chmod {oct(mode)[2:]} {container_path}")
+            finally:
+                temp_file.unlink()  # Clean up temp file
+                
+        except Exception as e:
+            raise RuntimeError(f"Failed to inject file: {str(e)}")
+
+    def _create_tar_archive(self, src_path: Path, dest_path: str) -> bytes:
+        """Create a tar archive containing a single file.
+        
+        Args:
+            src_path: Path to source file on host
+            dest_path: Destination path in container
+            
+        Returns:
+            bytes: Tar archive data
+        """
+        import io
+        import tarfile
+        
+        tar_stream = io.BytesIO()
+        with tarfile.open(fileobj=tar_stream, mode='w') as tar:
+            tarinfo = tar.gettarinfo(str(src_path), arcname=dest_path)
+            with src_path.open('rb') as f:
+                tar.addfile(tarinfo, f)
+        
+        tar_stream.seek(0)
+        return tar_stream.read()
+
 @dataclass
 class DockerRegistryProxy(Container):
     """This is a hack as currently there's no good way to cache pulls from
@@ -181,11 +248,6 @@ class DockerRegistryProxy(Container):
             "DISABLE_IPV6": "true",  # Disable IPv6
         }
     )
-    #volumes: Dict[str, Dict[str, str]] = field(
-        # default_factory=lambda: {
-        #     str(Path(os.environ.get("SDK_ROOT", ".")) / "cache" / "certs"): {"bind": "/certs", "mode": "rw"}
-        # }
-    #)
 
     def get_cacert(self) -> str:
         """Get the CA certificate for the registry mirror.
@@ -198,11 +260,11 @@ class DockerRegistryProxy(Container):
         
         # Wait for cert to be generated (max 120 seconds)
         for attempt in range(120):
-            result = self.container.exec_run("cat /certs/fullchain.pem")
-            if result.exit_code == 0:
-                cert = result.output.decode("utf-8").strip()
-                if cert:  # Only return if we got non-empty content
-                    return cert
+            try:
+                response = requests.get(f"http://{self.get_ip()}:3128/ca.crt")  # Ensure the proxy is up
+                return response.text
+            except Exception as e:
+                logger.debug(f"Attempt {attempt + 1}: Failed to fetch CA cert: {e}")
             
             # Additional debug info
             if attempt % 5 == 0:  # Every 5 seconds
@@ -289,7 +351,7 @@ class DockerInDocker(Container):
                 
         self.command = [
             f'--host=unix:///dind-sockets/spirisdk_{self.container_name}.socket'
-        ]\
+        ]
 
     def ensure_started(self) -> None:
         """Start the Docker-in-Docker container with specialized configuration."""
@@ -301,16 +363,6 @@ class DockerInDocker(Container):
             
         if self.registry_proxy:
             self.registry_proxy.ensure_started()
-            # Get CA cert from proxy and store it in robot_data_root
-            ca_cert = self.registry_proxy.get_cacert()
-            cert_path = self.robot_data_root / "ca.crt"
-            with open(cert_path, 'w') as f:
-                f.write(ca_cert)
-            
-            # Add volume for the CA cert
-            self.volumes.update({
-                str(cert_path): {"bind": "/usr/local/share/ca-certificates/registry-ca.crt", "mode": "ro"}
-            })
 
             # Set proxy environment variables
             proxy_ip = self.registry_proxy.get_ip()
@@ -322,10 +374,22 @@ class DockerInDocker(Container):
 
         super().ensure_started()  # Use base class implementation
 
-
         if self.registry_proxy:
-            # Update CA certificates in the DinD container
-            self.container.exec_run("update-ca-certificates")
+            # Inject the CA certificate into the container
+            try:
+                cacert = self.registry_proxy.get_cacert()
+                self.inject_file(
+                    content=cacert,
+                    container_path="/usr/local/share/ca-certificates/registry-proxy-ca.crt",
+                    mode=0o644
+                )
+                # Update CA certificates
+                self.container.exec_run("update-ca-certificates")
+            except Exception as e:
+                logger.error(f"Failed to inject CA certificate: {e}")
+
+
+
 
         # Additional DinD-specific readiness check
         logger.debug("Checking Docker daemon readiness...")
@@ -442,9 +506,7 @@ class DockerInDocker(Container):
             except subprocess.CalledProcessError as e:
                 last_exception = e
                 logger.warning(f"Compose attempt {attempt} failed: {str(e)}")
-                logger.warning(f"Compose attempt {attempt} failed: {str(e)}")
                 if attempt < max_attempts:
-                    await asyncio.sleep(5)  # Wait before retry
                     await asyncio.sleep(5)  # Wait before retry
 
         raise RuntimeError(
