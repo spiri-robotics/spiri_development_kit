@@ -10,7 +10,7 @@ services:
       - /bin/bash
       - -c
       - |
-        ./Tools/autotest/sim_vehicle.py $ARDUPILOT_VEHICLE --no-rebuild \
+        ./Tools/autotest/sim_vehicle.py -v $ARDUPILOT_VEHICLE --no-rebuild \
         --no-mavproxy --enable-dds --sysid $DRONE_SYS_ID -I$INSTANCE        
     stdin_open: true
     tty: true
@@ -21,6 +21,7 @@ services:
     command: >
       mavproxy.py --non-interactive
       --master tcp:127.0.0.1:$SERIAL0_PORT
+      --out udpout:192.168.1.213:14550
       --out udpout:0.0.0.0:$MAVROS2_PORT
       --out udpout:0.0.0.0:$MAVROS1_PORT
       --out udpout:0.0.0.0:18761

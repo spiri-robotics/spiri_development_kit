@@ -46,45 +46,65 @@ def battery_icon(percent, charging):
     percent = int(percent.replace("%", "")) if percent != "Unknown" else 0
 
     if charging:
-        return "battery_charging_full"
-    elif percent > 80:
-        return "battery_full"
-    elif percent > 60:
-        return "battery_5_bar"
-    elif percent > 40:
-        return "battery_4_bar"
-    elif percent > 20:
-        return "battery_2_bar"
+        if percent > 95:
+            return "battery_charging_full"
+        elif percent >= 85:
+            return 'battery_charging_90'
+        elif percent >= 70:
+            return "battery_charging_80"
+        elif percent >= 50:
+            return "battery_charging_60"
+        elif percent >= 35:
+            return "battery_charging_50"
+        elif percent >= 20:
+            return "battery_charging_30"
+        elif percent > 0:
+            return "battery_charging_20"
     else:
-        return "battery_alert"
+        if percent > 95:
+            return "battery_full"
+        elif percent >= 85:
+            return "battery_6_bar"
+        elif percent >= 70:
+            return "battery_5_bar"
+        elif percent >= 50:
+            return "battery_4_bar"
+        elif percent >= 35:
+            return "battery_3_bar"
+        elif percent >= 20:
+            return "battery_2_bar"
+        elif percent > 0:
+            return "battery_1_bar"
+        else:
+            return "battery_alert"
 
 def wifi_icon(signal):
     """Return the appropriate Material Symbol for Wi-Fi signal strength."""
     if signal > 75:
-        return "signal_wifi_4_bar"
+        return "network_wifi"
     elif signal > 50:
-        return "signal_wifi_3_bar"
+        return "network_wifi_3_bar"
     elif signal > 25:
-        return "signal_wifi_2_bar"
+        return "network_wifi_2_bar"
     elif signal > 0:
-        return "signal_wifi_1_bar"
+        return 'network_wifi_1_bar'
     else:
         return "signal_wifi_off"
 
 
 async def header():
-    with ui.header():
+    with ui.header().classes('items-center'):
         with ui.row():
-            ui.button('Home', on_click=lambda: ui.navigate.to('/'), color='secondary')
-            ui.button("", icon='settings', on_click=lambda: ui.navigate.to('/settings'), color='secondary')
+            ui.button('', icon='home', on_click=lambda: ui.navigate.to('/'), color='secondary').classes('text-base')
+            ui.button('', icon='settings', on_click=lambda: ui.navigate.to('/settings'), color='secondary').classes('text-base')
 
         ui.space()
 
         @ui.refreshable
         def clock():
             dateTime = datetime.astimezone(datetime.now())
-            ui.label(dateTime.strftime('%A %B %m %Y')).classes('text-lg text-secondary')
-            ui.label(dateTime.strftime('%X %Z')).classes('text-lg text-secondary')
+            ui.label(dateTime.strftime('%A %B %m %Y')).classes('text-xl text-secondary')
+            ui.label(dateTime.strftime('%X %Z')).classes('text-xl text-secondary')
 
         ui.timer(1.0, clock.refresh)
         
