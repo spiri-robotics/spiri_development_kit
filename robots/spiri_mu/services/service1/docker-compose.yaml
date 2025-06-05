@@ -25,6 +25,7 @@ services:
       --out udpout:0.0.0.0:$MAVROS2_PORT
       --out udpout:0.0.0.0:$MAVROS1_PORT
       --out udpout:0.0.0.0:18761
+      --out udpout:127.0.0.1:14555
       --sitl 127.0.0.1:$SITL_PORT
       --out udp:0.0.0.0:$GCS_PORT      
     ipc: host
