@@ -8,6 +8,7 @@ DATA_DIR = os.path.join(ROOT_DIR, 'data')
 ROBOTS_DIR = os.path.join(ROOT_DIR, 'robots')
 
 daemons = {}
+active_sys_ids = []
 
 class DaemonEvent:
     _subscribers = []
@@ -29,9 +30,13 @@ async def init_daemons() -> dict:
         if os.path.isdir(robot_path):
             dind = DockerInDocker("docker:dind", robot_name)
             daemons[robot_name] = dind
+
             await run.io_bound(dind.ensure_started)
             await start_services(robot_name)
             await DaemonEvent.notify()
+
+            robot_sys = str(robot_name).rsplit('-', 1)
+            active_sys_ids.append(int(robot_sys[1]))
 
 async def start_services(robot_name: str):
     if robot_name not in daemons:
