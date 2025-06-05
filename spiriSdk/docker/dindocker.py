@@ -79,7 +79,7 @@ class Container:
                         return
                 else:
                     logger.info(f"Starting container spirisdk_{self.container_name} using image {self.image_name}")
-                
+                    print(f"Starting container spirisdk_{self.container_name} using ports {self.ports}")
                     docker_args = {
                         "image": self.image_name,
                         "name": "spirisdk_"+self.container_name,
@@ -259,7 +259,11 @@ class DockerInDocker(Container):
         init=False
     )
     ports: Dict[str, Optional[int]] = field(
-        default_factory=lambda: {"2375/tcp": None},  # Publish Docker port
+        default_factory=lambda: {
+            "2375/tcp": None, 
+            "14550/udp": 14550,  # <-- this line forwards UDP port 14550 from container to host
+            "1900/udp": 1900,    # add others as needed
+            "14555/udp": 14555},  # Publish Docker port
         init=False
     )
     robot_data_root: Path = field(init=False)

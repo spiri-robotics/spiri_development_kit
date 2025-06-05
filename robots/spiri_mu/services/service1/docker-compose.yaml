@@ -21,7 +21,6 @@ services:
     command: >
       mavproxy.py --non-interactive
       --master tcp:127.0.0.1:$SERIAL0_PORT
-      --out udpout:$HOST_IP:14550
       --out udpout:0.0.0.0:$MAVROS2_PORT
       --out udpout:0.0.0.0:$MAVROS1_PORT
       --out udpout:0.0.0.0:18761
