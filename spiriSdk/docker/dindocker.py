@@ -169,6 +169,66 @@ class Container:
                 logger.error(f"Error during cleanup: {e}")
             self.container = None
 
+    def inject_file(self, content: str, container_path: str, mode: int = 0o644) -> None:
+        """Inject a file with given content into the container.
+        
+        Args:
+            content: String content to write to the file
+            container_path: Absolute path where file should be created in container
+            mode: File permissions (default: 0o644)
+            
+        Raises:
+            RuntimeError: If container isn't running or injection fails
+        """
+        if self.container is None:
+            raise RuntimeError("Container not running")
+
+        try:
+            # Create parent directories if needed
+            dir_path = str(Path(container_path).parent)
+            self.container.exec_run(f"mkdir -p {dir_path}")
+            
+            # Create a temporary file with the content
+            temp_file = Path(f"/tmp/inject_{uuid.uuid4().hex[:8]}")
+            temp_file.write_text(content)
+            
+            try:
+                # Copy file into container
+                self.container.put_archive(
+                    path=dir_path,
+                    data=self._create_tar_archive(temp_file, container_path)
+                )
+                
+                # Set permissions
+                self.container.exec_run(f"chmod {oct(mode)[2:]} {container_path}")
+            finally:
+                temp_file.unlink()  # Clean up temp file
+                
+        except Exception as e:
+            raise RuntimeError(f"Failed to inject file: {str(e)}")
+
+    def _create_tar_archive(self, src_path: Path, dest_path: str) -> bytes:
+        """Create a tar archive containing a single file.
+        
+        Args:
+            src_path: Path to source file on host
+            dest_path: Destination path in container
+            
+        Returns:
+            bytes: Tar archive data
+        """
+        import io
+        import tarfile
+        
+        tar_stream = io.BytesIO()
+        with tarfile.open(fileobj=tar_stream, mode='w') as tar:
+            tarinfo = tar.gettarinfo(str(src_path), arcname=dest_path)
+            with src_path.open('rb') as f:
+                tar.addfile(tarinfo, f)
+        
+        tar_stream.seek(0)
+        return tar_stream.read()
+
 @dataclass
 class DockerRegistryProxy(Container):
     """This is a hack as currently there's no good way to cache pulls from
