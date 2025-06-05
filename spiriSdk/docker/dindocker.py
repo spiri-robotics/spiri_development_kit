@@ -8,6 +8,8 @@ from typing import Optional, Dict, Any
 from loguru import logger
 from dotenv import load_dotenv
 from dataclasses import dataclass, field
+import hashlib
+import base64
 
 CURRENT_PRIMARY_GROUP = os.getgid()
 
@@ -181,11 +183,11 @@ class DockerRegistryProxy(Container):
             "DISABLE_IPV6": "true",  # Disable IPv6
         }
     )
-    #volumes: Dict[str, Dict[str, str]] = field(
-        # default_factory=lambda: {
-        #     str(Path(os.environ.get("SDK_ROOT", ".")) / "cache" / "certs"): {"bind": "/certs", "mode": "rw"}
-        # }
-    #)
+    volumes: Dict[str, Dict[str, str]] = field(
+        default_factory=lambda: {
+            str(Path(os.environ.get("SDK_ROOT", ".")) / "cache" / "certs"): {"bind": "/certs", "mode": "rw"}
+        }
+    )
 
     def get_cacert(self) -> str:
         """Get the CA certificate for the registry mirror.
@@ -301,16 +303,6 @@ class DockerInDocker(Container):
             
         if self.registry_proxy:
             self.registry_proxy.ensure_started()
-            # Get CA cert from proxy and store it in robot_data_root
-            ca_cert = self.registry_proxy.get_cacert()
-            cert_path = self.robot_data_root / "ca.crt"
-            with open(cert_path, 'w') as f:
-                f.write(ca_cert)
-            
-            # Add volume for the CA cert
-            self.volumes.update({
-                str(cert_path): {"bind": "/usr/local/share/ca-certificates/registry-ca.crt", "mode": "ro"}
-            })
 
             # Set proxy environment variables
             proxy_ip = self.registry_proxy.get_ip()
@@ -322,10 +314,12 @@ class DockerInDocker(Container):
 
         super().ensure_started()  # Use base class implementation
 
-
         if self.registry_proxy:
-            # Update CA certificates in the DinD container
-            self.container.exec_run("update-ca-certificates")
+            #Inject the actual cacert file
+            pass
+
+
+
 
         # Additional DinD-specific readiness check
         logger.debug("Checking Docker daemon readiness...")
