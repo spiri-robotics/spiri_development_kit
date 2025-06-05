@@ -169,14 +169,13 @@ class Container:
                 logger.error(f"Error during cleanup: {e}")
             self.container = None
 
-    def inject_file(self, content: str, container_path: str, mode: int = 0o644, absolute_path: bool = False) -> None:
+    def inject_file(self, content: str, container_path: str, mode: int = 0o644) -> None:
         """Inject a file with given content into the container.
         
         Args:
             content: String content to write to the file
-            container_path: Path where file should be created in container
+            container_path: Absolute path where file should be created in container
             mode: File permissions (default: 0o644)
-            absolute_path: If True, treat container_path as absolute path (default: False)
             
         Raises:
             RuntimeError: If container isn't running or injection fails
@@ -185,16 +184,12 @@ class Container:
             raise RuntimeError("Container not running")
 
         try:
-            # Handle path based on absolute_path flag
-            if absolute_path:
-                dest_path = container_path
-                archive_path = container_path
-            else:
-                dest_path = container_path
-                archive_path = f"./{container_path}"
+            # Ensure path is absolute
+            if not container_path.startswith('/'):
+                container_path = f'/{container_path}'
 
             # Create parent directories if needed
-            dir_path = str(Path(dest_path).parent)
+            dir_path = str(Path(container_path).parent)
             self.container.exec_run(f"mkdir -p {dir_path}")
             
             # Create a temporary file with the content
@@ -390,8 +385,7 @@ class DockerInDocker(Container):
                 self.inject_file(
                     content=cacert,
                     container_path="/usr/local/share/ca-certificates/registry-proxy-ca.crt",
-                    mode=0o644,
-                    absolute_path=True
+                    mode=0o644
                 )
                 # Update CA certificates
                 self.container.exec_run("update-ca-certificates")
