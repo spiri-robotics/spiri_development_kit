@@ -66,15 +66,21 @@ def display(robotID):
 
         # display current settings dynamically
         if settingType == 'bool':
-            with ui.row().classes('items-center justify-between w-[25%]'):
-                def on_toggle(e, k):
-                    settings[k] = e.value
+            if val == 1:
+                bool_value = True
+            else:
+                bool_value = False
 
+            def on_toggle(e, k):
+                if e.value == True:
+                    settings[k] = 1
+                else:
+                    settings[k] = 0
+            
+            with ui.row().classes('items-center justify-between w-[35%]'):
                 ui.label(f'{formatted_key}:')
-                ui.switch(
-                    value=val,
-                    on_change=lambda e, k=key: on_toggle(e.sender, k)
-                )
+                ui.switch(value=bool_value, on_change=lambda e, k=key: on_toggle(e.sender, k))
+
         elif settingType == ('int' or 'float'):
             min_val = defSettingPath.get('min', None)
             max_val = defSettingPath.get('max', None)
@@ -112,7 +118,6 @@ def save_changes(robotID):
     with open(config_file_path, 'w') as f:
         for key, val in settings.items():
             f.write(f'{key}={val}\n')
-            print(f'{key}={val}')
 
 def clear_changes(robotID):
     display.refresh(robotID)
