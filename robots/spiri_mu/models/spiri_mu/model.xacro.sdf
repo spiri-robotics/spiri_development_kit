@@ -4,9 +4,10 @@
     <xacro:arg name="fdm_port_in" default="9002"/>
     <xacro:arg name="gstreamer_udp_port" default="5600"/>
     <xacro:arg name="sim_drone_count" default="0"/>
+    <xacro:arg name="drone_ip" default="0.0.0.0"/>
 
     <include>
-      <uri>model://spiri_mu_base</uri>
+      <uri>model://robots/spiri_mu/models/spiri_mu_base</uri>
     </include>
 
     <joint name="gimbal_joint" type="fixed">
@@ -39,7 +40,7 @@
         <geometry>
           <mesh>
           <scale>0.01 0.01 0.01</scale>
-            <uri>model://spiri_gimbal/meshes/mu2_gimbal_base.fbx</uri>
+            <uri>model://robots/spiri_mu/models/spiri_gimbal/meshes/mu2_gimbal_base.fbx</uri>
           </mesh>
         </geometry>
         <material>
@@ -67,7 +68,7 @@
         <geometry>
           <mesh>
             <scale>0.01 0.01 0.01</scale>
-            <uri>model://spiri_gimbal/meshes/mu2_gimbal_yaw.fbx</uri>
+            <uri>model://robots/spiri_mu/models/spiri_gimbal/meshes/mu2_gimbal_yaw.fbx</uri>
           </mesh>
         </geometry>
         <material>
@@ -80,7 +81,7 @@
         <geometry>
           <mesh>
             <scale>0.01 0.01 0.01</scale>
-            <uri>model://spiri_gimbal/meshes/mu2_gimbal_yaw.fbx</uri>
+            <uri>model://robots/spiri_mu/models/spiri_gimbal/meshes/mu2_gimbal_yaw.fbx</uri>
           </mesh>
         </geometry>
       </collision>
@@ -117,7 +118,7 @@
         <geometry>
           <mesh>
             <scale>0.01 0.01 0.01</scale>
-            <uri>model://spiri_gimbal/meshes/mu2_gimbal_roll.fbx</uri>
+            <uri>model://robots/spiri_mu/models/spiri_gimbal/meshes/mu2_gimbal_roll.fbx</uri>
           </mesh>
         </geometry>
         <material>
@@ -159,7 +160,7 @@
         <geometry>
           <mesh>
             <scale>0.01 0.01 0.01</scale>
-            <uri>model://spiri_gimbal/meshes/mu2_gimbal_pitch.fbx</uri>
+            <uri>model://robots/spiri_mu/models/spiri_gimbal/meshes/mu2_gimbal_pitch.fbx</uri>
           </mesh>
         </geometry>
         <material>
@@ -193,7 +194,7 @@
         
         <plugin name="GstCameraPlugin"
             filename="GstCameraPlugin">
-          <udp_host>0.0.0.0</udp_host>
+          <udp_host>$(arg drone_ip)</udp_host>
           <udp_port>$(arg gstreamer_udp_port)</udp_port>
           <use_basic_pipeline>true</use_basic_pipeline>
           <use_cuda>false</use_cuda>

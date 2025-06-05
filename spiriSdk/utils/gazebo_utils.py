@@ -2,10 +2,10 @@ from pathlib import Path
 import subprocess
 import os
 robot_paths = {
-    'spiri_mu': '/robots/spiri_mu/models/spiri_mu/model.sdf',
-    'spiri_mu_no_gimbal': '/robots/spiri_mu_no_gimbal/models/spiri_mu/model.sdf',
-    'dummy_test': '/robots/dummy_test/models/car_008/model.sdf',
-    'ARC': '/robots/ARC/models/ARC_simplified/model.sdf'
+    'spiri_mu': 'robots/spiri_mu/models/spiri_mu',
+    'spiri_mu_no_gimbal': 'robots/spiri_mu_no_gimbal/models/spiri_mu',
+    'dummy_test': 'robots/dummy_test/models/car_008',
+    'ARC': 'robots/ARC/models/ARC_simplified'
 }
 
 class Gazebo:
@@ -58,6 +58,7 @@ class Gazebo:
         await self.kill_all_worlds()
         await world.run_world(run_value)
         self.worlds[name] = world
+        await self.get_running_worlds()
         print(f'start:{world.name}')
 
     async def kill_all_worlds(self):
@@ -105,6 +106,10 @@ class Robot:
         self.name = name
         self.path = robot_paths.get(type)
         self.position = position
+        self.sitl_port = '5501'
+        self.ip = '127.0.0.1'
+
+        self.get_robot_network_config()
 
         if self.position == None:
             self.position = [len(self.parent.robots.keys()) + 1, 0, 0, 0, 0, 0]
@@ -112,14 +117,42 @@ class Robot:
                 self.position[2] = 0.2
         else:
             print("smthn wrong")
-    
+
+    def get_robot_network_config(self) -> None:
+        config_path = Path(f'/data/{self.name}/config.env')
+        if config_path.exists():
+            with open(config_path) as f:
+                for line in f:
+                    if line.startswith('HOST_IP='):
+                        self.ip = line.strip().split('=', 1)[1]
+                    elif line.startswith('SITL_PORT='):
+                        self.sitl_port =line.strip().split('=', 1)[1]
+
     async def launch_robot(self) -> None:
         """Launch the robot in the Gazebo simulator."""
+        XACRO_CMD = [
+            "xacro",
+            f"fdm_port_in:={self.sitl_port}",
+            f"drone_ip:={self.ip}",
+            "model.xacro.sdf",
+            "-o",
+            "model.sdf",
+        ]
+        ROS2_CMD = f"ros2 run ros_gz_sim create -world {self.parent.name} -file {self.path}/model.sdf -name {self.name} -x {self.position[0]} -y {self.position[1]} -z {self.position[2]}"
 
-        ROS2_CMD = f"ros2 run ros_gz_sim create -world {self.parent.name} -file {self.path} -name {self.name} -x {self.position[0]} -y {self.position[1]} -z {self.position[2]}"
+        xacro_proc = subprocess.Popen(
+            XACRO_CMD,
+            cwd=f"{self.path}",
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+
         ros2_gz_create_proc = subprocess.Popen(
             ROS2_CMD.split(),
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE
         )
-
+        
+        out, err = ros2_gz_create_proc.communicate(timeout=3)
+        ros2_gz_create_proc.kill()
+        return
