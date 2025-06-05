@@ -375,8 +375,18 @@ class DockerInDocker(Container):
         super().ensure_started()  # Use base class implementation
 
         if self.registry_proxy:
-            #Inject the actual cacert file
-            pass
+            # Inject the CA certificate into the container
+            try:
+                cacert = self.registry_proxy.get_cacert()
+                self.inject_file(
+                    content=cacert,
+                    container_path="/usr/local/share/ca-certificates/registry-proxy-ca.crt",
+                    mode=0o644
+                )
+                # Update CA certificates
+                self.container.exec_run("update-ca-certificates")
+            except Exception as e:
+                logger.error(f"Failed to inject CA certificate: {e}")
 
 
 
