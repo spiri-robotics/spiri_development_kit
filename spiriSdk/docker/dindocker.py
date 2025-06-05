@@ -10,6 +10,7 @@ from dotenv import load_dotenv
 from dataclasses import dataclass, field
 import hashlib
 import base64
+import requests
 
 CURRENT_PRIMARY_GROUP = os.getgid()
 
@@ -264,11 +265,11 @@ class DockerRegistryProxy(Container):
         
         # Wait for cert to be generated (max 120 seconds)
         for attempt in range(120):
-            result = self.container.exec_run("cat /certs/fullchain.pem")
-            if result.exit_code == 0:
-                cert = result.output.decode("utf-8").strip()
-                if cert:  # Only return if we got non-empty content
-                    return cert
+            try:
+                response = requests.get(f"http://{self.get_ip()}:3128/ca.crt")  # Ensure the proxy is up
+                return response.text
+            except Exception as e:
+                logger.debug(f"Attempt {attempt + 1}: Failed to fetch CA cert: {e}")
             
             # Additional debug info
             if attempt % 5 == 0:  # Every 5 seconds
@@ -355,7 +356,7 @@ class DockerInDocker(Container):
                 
         self.command = [
             f'--host=unix:///dind-sockets/spirisdk_{self.container_name}.socket'
-        ]\
+        ]
 
     def ensure_started(self) -> None:
         """Start the Docker-in-Docker container with specialized configuration."""
@@ -510,9 +511,7 @@ class DockerInDocker(Container):
             except subprocess.CalledProcessError as e:
                 last_exception = e
                 logger.warning(f"Compose attempt {attempt} failed: {str(e)}")
-                logger.warning(f"Compose attempt {attempt} failed: {str(e)}")
                 if attempt < max_attempts:
-                    await asyncio.sleep(5)  # Wait before retry
                     await asyncio.sleep(5)  # Wait before retry
 
         raise RuntimeError(
