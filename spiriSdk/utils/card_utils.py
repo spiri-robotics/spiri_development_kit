@@ -2,7 +2,7 @@ import os, asyncio, httpx
 from nicegui import ui
 from spiriSdk.utils.daemon_utils import daemons, stop_container, start_container, restart_container, display_daemon_status, DaemonEvent
 from spiriSdk.utils.new_robot_utils import delete_robot, save_robot_config, inputChecker
-from spiriSdk.pages.tools import tools, gz
+from spiriSdk.pages.tools import tools, gz_world
 from spiriSdk.pages.new_robots import new_robots
 from spiriSdk.pages.edit_robot import edit_robot, save_changes, clear_changes
 
@@ -88,7 +88,6 @@ class RobotContainer:
         names = daemons.keys()
         self.destination.clear()
         with self.destination:
-            worlds = []
             await self.displayButtons()
 
             for robotName in names:
@@ -131,8 +130,7 @@ class RobotContainer:
                             
                             async def add_to_world(robot=robotName):
                                 robotType = str(robot).split('-')[0]
-                                world = gz.worlds[gz.running_worlds[0]]
-                                await world.prep_bot(robot, robotType)
+                                await gz_world.prep_bot(robot, robotType)
                                 ui.notify(f'Added {robot} to world')
                                 
                                                     
