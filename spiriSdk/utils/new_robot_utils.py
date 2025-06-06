@@ -50,8 +50,6 @@ class inputChecker:
         self.update()
 
 def ensure_options_yaml():
-    print('ensure options called')
-
     robots = []
     for folder in os.listdir(ROBOTS_DIR):
         folder_path = os.path.join(ROBOTS_DIR, folder)

@@ -32,9 +32,6 @@ services:
       --out udp:0.0.0.0:$GCS_PORT      
     ipc: host
     ports:
-      - "$SERIAL0_PORT:5760"
-      - "$SITL_PORT:14550"
-      - "$GCS_PORT:14555"
       - "$MAVROS1_PORT:14551"
       - "$MAVROS2_PORT:14552"
     restart: always
@@ -45,7 +42,6 @@ services:
       - RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
     command: ros2 launch mavros apm.launch fcu_url:="udp://0.0.0.0:$MAVROS2_PORT@:14555" namespace:="$ROBOT_NAME" tgt_system:="$DRONE_SYS_ID"
     ipc: host
-    network_mode: host
     restart: always
     depends_on:
       ardupilot:
@@ -57,8 +53,6 @@ services:
         limits:
           # cpus: '0.01'
           memory: 200M
-    ports:
-      - "$MAVROS2_PORT:14552"
     ulimits:
       nofile:
         soft: 1024
