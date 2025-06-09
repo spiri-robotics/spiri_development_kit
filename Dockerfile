@@ -25,12 +25,9 @@ ADD entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 ENTRYPOINT [ "/entrypoint.sh" ]
 
-USER ubuntu
-
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
-ADD --chown=ubuntu:ubuntu . /app
+ADD . /app
 WORKDIR /app
 RUN uv sync --locked
-
 
 CMD ["uv", "run", "python", "-m", "spiriSdk.main"]

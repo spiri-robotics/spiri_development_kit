@@ -61,7 +61,10 @@ class World:
             else:
                 cmd = ['gz', 'sim', f'{WORLD_PATHS[self.name]}.world']
             subprocess.Popen(cmd)
-            print('world has started')
+            print(cmd)
+            running_world = await get_running_worlds()
+            if (running_world) != []:
+                print('world started')
         except FileNotFoundError:
             print(f"File not found: {self.name}. Make sure it is installed and available in the PATH.")
 
@@ -71,6 +74,7 @@ class World:
         self.models = {
         
         }
+        time.sleep(1)
         await self.run_world(run_value)
     
     def end_gz_proc(self) -> None:

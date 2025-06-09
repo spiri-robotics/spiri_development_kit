@@ -19,7 +19,7 @@
         }
       }
     },
-    "remoteUser": "ubuntu",
+    "remoteUser": "root",
     "forwardPorts": [8197],
     "postCreateCommand": "echo 'Container is ready for development!'"
   }
