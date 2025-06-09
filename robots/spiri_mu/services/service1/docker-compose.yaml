@@ -24,6 +24,7 @@ services:
     command: >
       mavproxy.py --non-interactive
       --master tcp:ardupilot:${SERIAL0_PORT}
+      --out tcp:0.0.0.0:5770
       --out udpout:0.0.0.0:${MAVROS2_PORT}
       --out udpout:0.0.0.0:${MAVROS1_PORT}
       --out udpout:0.0.0.0:18761
