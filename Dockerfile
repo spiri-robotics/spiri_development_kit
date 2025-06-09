@@ -21,12 +21,16 @@ COPY --from=git.spirirobotics.com/spiri/gazebo-resources:main /plugins /plugins
 ENV GZ_SIM_SYSTEM_PLUGIN_PATH=/plugins
 ENV GZ_SIM_RESOURCE_PATH=/worlds
 
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
-ADD . /app
-WORKDIR /app
-RUN uv sync --locked
 ADD entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 ENTRYPOINT [ "/entrypoint.sh" ]
+
+USER ubuntu
+
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+ADD --chown=ubuntu:ubuntu . /app
+WORKDIR /app
+RUN uv sync --locked
+
 
 CMD ["uv", "run", "python", "-m", "spiriSdk.main"]
