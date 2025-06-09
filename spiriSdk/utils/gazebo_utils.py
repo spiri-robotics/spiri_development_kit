@@ -1,4 +1,5 @@
 from pathlib import Path
+from dataclasses import field
 import subprocess
 import os
 import time
@@ -39,14 +40,15 @@ async def get_running_worlds() -> list:
 
 class World:
     def __init__(self, name):
+        self.sdk_root: Path = Path(os.environ.get("SDK_ROOT", "."))
         self.name = name
         self.models: dict[str:Model]  = {}
 
     def get_name(self) -> str:
         return self.name
     
-    async def prep_bot(self, model_name: str ='bot', model_type: str='spiri_mu_no_gimbal'):
-        model = Model(self, model_name, model_type)
+    async def prep_bot(self, model_name: str ='bot', model_type: str='spiri_mu_no_gimbal', ip: str='127.0.0.1'):
+        model = Model(self, model_name, model_type, ip)
         await model.launch_model()
         self.models.update({model_name:model})
 
@@ -83,29 +85,27 @@ class World:
             print(f"Error running command: {e}")
 
 class Model:
-    def __init__(self, parent: World, name: str, type: str ='spiri-mu', position: list[int] = None):
+    def __init__(self, parent: World, name: str, type: str ='spiri-mu', ip: str = '127.0.0.1', position: list[int] = None):
         self.parent: World = parent
         self.name = name
         self.path = MODEL_PATHS.get(type)
         self.position = position
         self.sitl_port = '5501'
-        self.ip = '127.0.0.1'
+        self.ip = ip
 
-        self.get_model_network_config()
+        self.get_model_sitl_port()
 
         if self.position == None:
             self.position = [len(self.parent.models.keys()) + 1, 0, 0, 0, 0, 0]
         if type == 'spiri_mu' or type == 'spiri_mu_no_gimbal':
             self.position[2] = self.position[2] + 0.195
 
-    def get_model_network_config(self) -> None:
+    def get_model_sitl_port(self) -> None:
         config_path = Path(f'/data/{self.name}/config.env')
         if config_path.exists():
             with open(config_path) as f:
                 for line in f:
-                    if line.startswith('HOST_IP='):
-                        self.ip = line.strip().split('=', 1)[1]
-                    elif line.startswith('SITL_PORT='):
+                    if line.startswith('SITL_PORT='):
                         self.sitl_port =line.strip().split('=', 1)[1]
 
     async def launch_model(self) -> None:
