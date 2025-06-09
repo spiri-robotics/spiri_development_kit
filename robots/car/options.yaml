@@ -1,10 +1,10 @@
 x-spiri-options:
   CAR_NAME:
-    help-text: The custom name of the robot
+    help-text: The robot's custom name
     type: text
     value: ARC
   CAR_SYS_ID:
-    help-text: The system ID of the drone
+    help-text: The robot's system ID - each robot must have a unique ID!
     type: int
     max: 255
     min: 0
@@ -12,6 +12,6 @@ x-spiri-options:
     step: 1
     value: 1
   INSTANCE:
-    help-text: Whether the vehicle should be instanced
+    help-text: If the robot should be instanced - required for Gazebo
     type: bool
-    value: False
+    value: 0
