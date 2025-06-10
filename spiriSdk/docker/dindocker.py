@@ -264,7 +264,7 @@ class DockerInDocker(Container):
             "14550/udp": 14550,  # <-- this line forwards UDP port 14550 from container to host
             "1900/udp": 1900,    # add others as needed
             "14555/udp": 14555, 
-            "5770/tcp": 5770},  # Publish Docker port
+            "5761/tcp": 5761},  # Publish Docker port
         init=False
     )
     robot_data_root: Path = field(init=False)

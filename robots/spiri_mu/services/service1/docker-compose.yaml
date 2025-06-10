@@ -11,30 +11,32 @@ services:
       - -c
       - |
         ./Tools/autotest/sim_vehicle.py -v ${ARDUPILOT_VEHICLE} --no-rebuild \
-        --no-mavproxy --enable-dds --sysid ${DRONE_SYS_ID} -I$INSTANCE --out=tcp:0.0.0.0:${SERIAL0_PORT} \
+        --no-mavproxy --enable-dds --sysid ${DRONE_SYS_ID} -I$INSTANCE -- --out=tcp:0.0.0.0:${SERIAL0_PORT} \
     stdin_open: true
     tty: true
     ports: 
       - "${SERIAL0_PORT}:5760"
-      - "${SITL_PORT}:14550"
-      - "${GCS_PORT}:14555"
       
   mavproxy:
     image: git.spirirobotics.com/spiri/services-mavproxy:main
     command: >
       mavproxy.py --non-interactive
       --master tcp:ardupilot:${SERIAL0_PORT}
-      --out tcp:0.0.0.0:5770
       --out udpout:0.0.0.0:${MAVROS2_PORT}
       --out udpout:0.0.0.0:${MAVROS1_PORT}
       --out udpout:0.0.0.0:18761
       --out udpout:127.0.0.1:14555
       --sitl 127.0.0.1:${SITL_PORT}
       --out udp:0.0.0.0:${GCS_PORT}
-    ipc: host
+      --out tcp:0.0.0.0:5761
+    depends_on:
+      ardupilot:
+        condition: service_started
     ports:
       - "${MAVROS1_PORT}:14551"
-      - "5770:5770"
+      - "${SITL_PORT}:14550"
+      - "${GCS_PORT}:14555"
+      - "5761:5761"
     restart: always
 
   mavros2:
