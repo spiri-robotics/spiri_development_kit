@@ -28,7 +28,7 @@ async def get_running_worlds() -> list:
             for line in output.strip().split('\n'):
                 if line:
                     parts = line.split()
-                    command = ' '.join(parts[10:])  # Command starts around field 11
+                    command = ' '.join(parts[10:])
                     for token in command.split():
                         if token.endswith('.world'):
                             world_file = os.path.basename(token)
@@ -80,6 +80,11 @@ class World:
     def end_gz_proc(self) -> None:
         try:
             KILL_GZ_CMD = f"pkill -f 'gz sim {WORLD_PATHS[self.name]}.world'"
+            dead_world_models = {} 
+            dead_world_models.update(self.models)
+            for model in dead_world_models.values(): 
+                model.kill_model()
+            models = {}
             remove_gazebo_proc = subprocess.Popen(
                 KILL_GZ_CMD, 
                 shell=True, 
@@ -141,7 +146,7 @@ class Model:
         ros2_gz_create_proc.kill()
         return
     
-    async def kill_model(self):
+    def kill_model(self):
         
         # http://osrf-distributions.s3.amazonaws.com/gazebo/api/7.1.0/classgazebo_1_1physics_1_1Entity.html
         ENTITY_TYPE_MODEL = 0x00000002
@@ -169,5 +174,6 @@ class Model:
         
         out, err = remove_entity_proc.communicate(timeout=3)
         remove_entity_proc.kill()
+        del self.parent.models[self.name]
 
 gz_world = World('empty_world')

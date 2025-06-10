@@ -3,6 +3,7 @@ from nicegui import ui
 from spiriSdk.utils.daemon_utils import daemons, stop_container, start_container, restart_container, display_daemon_status, DaemonEvent
 from spiriSdk.utils.new_robot_utils import delete_robot, save_robot_config, inputChecker
 from spiriSdk.pages.tools import tools, gz_world
+from spiriSdk.utils.gazebo_utils import get_running_worlds
 from spiriSdk.pages.new_robots import new_robots
 from spiriSdk.pages.edit_robot import edit_robot, save_changes, clear_changes
 
@@ -20,6 +21,12 @@ def copy_text(command):
     ''')
     ui.notify("Copied to clipboard!")
 
+def is_robot_alive(name):
+    if name in gz_world.models.keys():
+        return True
+    else:
+        return False
+    
 async def addRobot():
     with ui.dialog() as d, ui.card(align_items='stretch').classes('w-full'):
         checker = inputChecker()
@@ -116,6 +123,12 @@ class RobotContainer:
                                 async def polling_loop():
                                     while True:
                                         await update_status(name, label)
+                                        if not is_robot_alive(robotName):
+                                            if gz_toggle:
+                                                gz_toggle._state = True
+                                                gz_toggle.update()
+                                        if await get_running_worlds() == []:
+                                            gz_world.models = {}
                                         await asyncio.sleep(5)
                                 asyncio.create_task(polling_loop())
 
@@ -137,13 +150,16 @@ class RobotContainer:
                                 robotType = str(robot).split('-')[0]
                                 await gz_world.prep_bot(robot, robotType)
                                 ui.notify(f'Added {robot} to world')
+
+                            async def remove_from_world(robot=robotName):
+                                robot = gz_world.models[robot].kill_model()
                                 
                                                     
                             ui.button('Start', on_click=make_start, icon='play_arrow', color='positive').classes('m-1 text-base')
                             ui.button('Stop', on_click=make_stop, icon='stop', color='warning').classes('m-1 text-base')
                             ui.button('Restart', on_click=make_restart, icon='refresh', color='secondary').classes('m-1 mr-10 text-base')
 
-                            ui.button('Add robot to world', on_click=add_to_world).classes('m-1 mr-10 text-base').props('color=secondary')
+                            gz_toggle = ToggleButton(on_label="add to gz sim", off_label="remove from gz sim", on_switch=add_to_world, off_switch=remove_from_world).classes('m-1 mr-10 text-base')
 
                             async def delete(n,):
                                 if await delete_robot(n):
@@ -203,3 +219,29 @@ class RobotContainer:
                 with ui.row(align_items='center').classes('w-full justify-center mt-[20vh]'):
                     ui.spinner(size='40px')
                     ui.label('Starting Containers...').classes('text-base')
+
+class ToggleButton(ui.button):
+    def __init__(self, *args, on_label="on", off_label="off", on_switch=None, off_switch=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._state = True
+        self.color = "positive"
+        self.on_label = on_label
+        self.off_label = off_label
+        self.on_switch = on_switch
+        self.off_switch = off_switch
+        self.on('click', self.toggle)
+
+    async def toggle(self) -> None:
+        if self._state:
+            await self.on_switch()
+        elif not self._state:
+            await self.off_switch()
+        self._state = not self._state
+        self.update()
+    
+    def update(self) -> None:
+        self.color = "positive" if self._state else "warning"
+        label = self.on_label if self._state else self.off_label
+        self.props(f'color={self.color}')
+        self.set_text(label)
+        super().update()
