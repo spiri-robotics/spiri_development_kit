@@ -29,5 +29,5 @@ x-spiri-options:
     value: 1904
   INSTANCE:
     help-text: If the robot should be instanced - required for Gazebo
-    type: bool
+    type: int
     value: 0
