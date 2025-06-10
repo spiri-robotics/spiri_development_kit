@@ -14,30 +14,40 @@ services:
         --no-mavproxy --enable-dds --sysid $DRONE_SYS_ID -I$INSTANCE        
     stdin_open: true
     tty: true
-    network_mode: host
+    ports:
+      - $SERIAL0_PORT:$SERIAL0_PORT/tcp
+    expose:
+      - $SERIAL0_PORT
+      - $SITL_PORT
+    networks:
+      - spiri-mu-net
 
   mavproxy:
     image: git.spirirobotics.com/spiri/services-mavproxy:main
     command: >
       mavproxy.py --non-interactive
-      --master tcp:127.0.0.1:$SERIAL0_PORT
+      --master tcp:ardupilot:$SERIAL0_PORT
       --out udpout:192.168.1.213:14550
-      --out udpout:0.0.0.0:$MAVROS2_PORT
+      --out udpout:mavros2:$MAVROS2_PORT
       --out udpout:0.0.0.0:$MAVROS1_PORT
       --out udpout:0.0.0.0:18761
-      --sitl 127.0.0.1:$SITL_PORT
-      --out udp:0.0.0.0:$GCS_PORT      
-    ipc: host
-    network_mode: host
+      --sitl ardupilot:$SITL_PORT
+      --out tcpin:0.0.0.0:$GCS_PORT      
+    ports:
+      - $GCS_PORT:$GCS_PORT/tcp
+    expose:
+      - $SERIAL0_PORT
     restart: always
+    networks:
+      - spiri-mu-net
 
   mavros2:
     image: git.spirirobotics.com/spiri/services-ros2-mavros:main
     environment:
       - RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
     command: ros2 launch mavros apm.launch fcu_url:="udp://0.0.0.0:$MAVROS2_PORT@:14555" namespace:="$ROBOT_NAME" tgt_system:="$DRONE_SYS_ID"
-    ipc: host
-    network_mode: host
+    expose:
+      - $MAVROS2_PORT
     restart: always
     depends_on:
       ardupilot:
@@ -53,3 +63,9 @@ services:
       nofile:
         soft: 1024
         hard: 524288
+    networks:
+      - spiri-mu-net
+
+networks:
+  spiri-mu-net:
+    driver: bridge

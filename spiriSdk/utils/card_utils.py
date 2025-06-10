@@ -166,6 +166,7 @@ class RobotContainer:
                     if str.join("-", robotName.split("-")[:1]) == "spiri_mu":
                         with ui.card_section():
                             url = f'http://{daemons[robotName].get_ip()}:{80}'
+                            ui.label(f'Robot IP: {daemons[robotName].get_ip()}')
                             loading = ui.spinner(size='lg')
                             i = 0
                             while not await is_service_ready(url) and i < 6:
