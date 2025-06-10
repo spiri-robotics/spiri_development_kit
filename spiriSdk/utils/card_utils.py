@@ -9,7 +9,7 @@ from spiriSdk.pages.edit_robot import edit_robot, save_changes, clear_changes
 async def is_service_ready(url: str, timeout: float = 0.5) -> bool:
     try:
         async with httpx.AsyncClient() as client:
-            response = await client.get(url, timeout=timeout)
+            response = await client.get(url, timeout=timeout)            
             return response.status_code == 200
     except Exception:
         return False

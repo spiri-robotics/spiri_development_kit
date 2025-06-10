@@ -21,6 +21,7 @@ x-spiri-options:
       Blimp,
       Rover
     ]
+    value: ArduCopter
   MAVROS2_PORT:
     help-text: Port to be used by the MAVROS2 bridge
     type: int

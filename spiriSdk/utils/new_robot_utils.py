@@ -95,8 +95,10 @@ def ensure_options_yaml():
 
                 compose_file = service_folders[0] / "docker-compose.yaml"
                 if not compose_file.exists():
-                    ui.notify(f"{compose_file} not found!", type="error")
-                    continue
+                    compose_file = service_folders[0] / "docker-compose.yml"
+                    if not compose_file.exists():
+                        ui.notify(f"{compose_file} not found!", type="error")
+                        continue
         
                 compose_text = compose_file.read_text()
                 variables = set(re.findall(r'\$[{]?([A-Z_][A-Z0-9_]*)[}]?', compose_text))
@@ -260,7 +262,7 @@ def display_robot_options(robot_name, selected_additions, selected_options, opti
                 dropdown_options = option.get('options', [])
                 if isinstance(dropdown_options, list):
                     ui.select(
-                        dropdown_options, 
+                        options=dropdown_options, 
                         label=formatted_key,
                         value=current_value,
                         on_change=lambda e, k=key: selected_options.update({k: e.value}),
