@@ -11,7 +11,7 @@ services:
       - -c
       - |
         ./Tools/autotest/sim_vehicle.py -v ${ARDUPILOT_VEHICLE} --no-rebuild \
-        --no-mavproxy --enable-dds --sysid ${DRONE_SYS_ID} -I$INSTANCE -j 4
+        --no-mavproxy --enable-dds --sysid ${DRONE_SYS_ID} -I$INSTANCE --out=tcp:0.0.0.0:${SERIAL0_PORT} \
     stdin_open: true
     tty: true
     ports: 
@@ -34,6 +34,7 @@ services:
     ipc: host
     ports:
       - "${MAVROS1_PORT}:14551"
+      - "5770:5770"
     restart: always
 
   mavros2:
