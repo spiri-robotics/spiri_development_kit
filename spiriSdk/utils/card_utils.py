@@ -51,11 +51,12 @@ async def addRobot():
 
 async def editRobot(robotName, drop: ui.dropdown_button):
     with ui.dialog() as d, ui.card(align_items='stretch').classes('w-full'):
-        await edit_robot(robotName)
+        checker = inputChecker()
+        await edit_robot(robotName, checker)
 
         def close():
             d.close()
-            clear_changes(robotName)
+            clear_changes(robotName, checker)
             drop.close()
 
         async def saveClose(robotName):
@@ -66,7 +67,12 @@ async def editRobot(robotName, drop: ui.dropdown_button):
 
         with ui.card_actions().props('align=center'):
             ui.button('Cancel', on_click=close, color='secondary').classes('text-base')
-            ui.button('Save', on_click=lambda r=robotName: saveClose(r), color='secondary').classes('text-base')
+            # Save button is disabled unless all fields are valid
+            ui.button(
+                'Save', 
+                on_click=lambda r=robotName: saveClose(r), 
+                color='secondary'
+            ).classes('text-base').bind_enabled_from(checker, 'isValid')
     d.open()
 
 
