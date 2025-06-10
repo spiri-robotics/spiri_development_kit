@@ -15,11 +15,7 @@ x-spiri-options:
     help-text: Type of vehicle to be used by ArduPilot
     # Options: ArduPlane, ArduCopter, ArduRover, ArduSub 
     type: text
-    value: ArduCopter
-  MAVROS1_PORT:
-    help-text: Port to be used by the MAVROS1 bridge
-    type: int
-    value: 1900
+    value: ArduCopter 
   MAVROS2_PORT:
     help-text: Port to be used by the MAVROS2 bridge
     type: int
