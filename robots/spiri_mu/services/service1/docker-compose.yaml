@@ -29,7 +29,6 @@ services:
       --master tcp:ardupilot:$SERIAL0_PORT
       --out udpout:192.168.1.213:14550
       --out udpout:mavros2:$MAVROS2_PORT
-      --out udpout:0.0.0.0:$MAVROS1_PORT
       --out udpout:0.0.0.0:18761
       --sitl ardupilot:$SITL_PORT
       --out tcpin:0.0.0.0:$GCS_PORT      

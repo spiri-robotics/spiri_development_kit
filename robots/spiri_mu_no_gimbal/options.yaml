@@ -21,26 +21,22 @@ x-spiri-options:
       Blimp,
       Rover
     ]
-  MAVROS1_PORT:
-    help-text: Port to be used by the MAVROS1 bridge
-    type: int
-    value: 1900
   MAVROS2_PORT:
     help-text: Port to be used by the MAVROS2 bridge
     type: int
-    value: 1901
+    value: 14552
   GCS_PORT:
     help-text: Port to be used by the GCS
     type: int
-    value: 1902
+    value: 14555
   SERIAL0_PORT:
     help-text: Port to be used by the serial device
     type: int
-    value: 1903
+    value: 5760
   SITL_PORT:
     help-text: Port to be used by the SITL
     type: int
-    value: 1904
+    value: 5510
   INSTANCE:
     help-text: If the robot should be instanced - required for Gazebo
     type: int
