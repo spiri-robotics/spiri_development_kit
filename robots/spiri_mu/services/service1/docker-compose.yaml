@@ -31,7 +31,6 @@ services:
       --out udpout:0.0.0.0:18761
       --sitl ardupilot:$SITL_PORT
       --out tcpin:0.0.0.0:$GCS_PORT      
-      --out udpout:0.0.0.0:$GCS_PORT
       --out udpout:172.17.0.1:$GCS_PORT
     ports:
       - $GCS_PORT:$GCS_PORT/tcp

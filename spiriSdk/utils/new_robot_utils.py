@@ -144,8 +144,8 @@ async def save_robot_config(robot_type, selected_options):
     daemons[folder_name] = new_daemon
     active_sys_ids.append(robot_id)
 
-    await start_services(folder_name)
     await DaemonEvent.notify()
+    await start_services(folder_name)
 
     # ui.notify(f"Saved config.env and started daemon for {folder_name}")
     ui.notify(f"Robot {folder_name} added successfully!")
@@ -153,12 +153,12 @@ async def save_robot_config(robot_type, selected_options):
 async def delete_robot(robot_name) -> bool:
     robot_path = os.path.join(ROOT_DIR, "data", robot_name)
     daemon = daemons.pop(robot_name)
+    await DaemonEvent.notify()
     daemon.cleanup()
     robot_sys = str(robot_name).rsplit('-', 1)
     active_sys_ids.remove(int(robot_sys[1]))
     if os.path.exists(robot_path):
         shutil.rmtree(robot_path)
-    await DaemonEvent.notify()
     return True
 
 def display_robot_options(robot_name, selected_additions, selected_options, options_container, checker: inputChecker):
