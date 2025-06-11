@@ -54,8 +54,6 @@ services:
         condition: service_started
       mavproxy:
         condition: service_started
-    ports:
-      - "${MAVROS2_PORT}:14552"
     deploy:
       resources:
         limits:
