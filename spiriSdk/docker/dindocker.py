@@ -321,10 +321,9 @@ class DockerInDocker(Container):
     privileged: bool = field(default=True, init=False)
     environment: Dict[str, str] = field(
         default_factory=lambda: {
-           #"DOCKER_TLS_CERTDIR": ""
-
-                                 
-            },  # Disable TLS
+            "BUILDKIT_HOST": "/var/run/docker-host.sock",  # Use custom socket for BuildKit
+            "DOCKER_BUILDKIT": "1",  # Enable BuildKit
+            },
         init=False
     )
     ports: Dict[str, Optional[int]] = field(
@@ -354,7 +353,9 @@ class DockerInDocker(Container):
         self.volumes.update({
             str(self.robot_data_root): {"bind": "/data", "mode": "rw"},
             str(self.socket_dir): {"bind": "/dind-sockets", "mode": "rw"},
-            str(self.robot_root): {"bind": f"/robots/{self.robot_type}", "mode": "rw"}
+            str(self.robot_root): {"bind": f"/robots/{self.robot_type}", "mode": "rw"},
+            #Host docker socket
+            str("/var/run/docker.sock"): {"bind": "/var/run/docker-host.sock", "mode": "rw"}
         })
                 
         self.command = [
