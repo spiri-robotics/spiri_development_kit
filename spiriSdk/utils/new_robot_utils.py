@@ -125,7 +125,7 @@ async def save_robot_config(robot_type, selected_options):
     elif robot_type == "car":
         robot_id = selected_options.get('CAR_SYS_ID', uuid.uuid4().hex[:6])
     else:   
-        robot_id = selected_options.get('DRONE_SYS_ID', uuid.uuid4().hex[:6])
+        robot_id = selected_options.get('MAVLINK_SYS_ID', uuid.uuid4().hex[:6])
     folder_name = f"{robot_type}-{robot_id}"
     folder_path = os.path.join(ROOT_DIR, "data", folder_name)
 
@@ -135,6 +135,7 @@ async def save_robot_config(robot_type, selected_options):
     with open(config_path, "w") as f:
         for key, value in selected_options.items():
             f.write(f"{key}={value}\n")
+        f.write('HOST_IP=172.17.0.1\n')
 
     new_daemon = DockerInDocker(image_name="docker:dind", container_name=folder_name)
     await run.io_bound(new_daemon.ensure_started)

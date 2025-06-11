@@ -31,7 +31,8 @@ services:
       --out udpout:mavros2:14552
       --out udpout:0.0.0.0:18761
       --sitl ardupilot:5510
-      --out tcpin:0.0.0.0:14550      
+      --out tcpin:0.0.0.0:14550     
+      --out udpout:$HOST_IP:14550 
     ports:
       - 14550:14550/tcp
     expose:
