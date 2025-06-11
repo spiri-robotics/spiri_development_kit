@@ -48,11 +48,10 @@
       <static>true</static>
       <uri>file://worlds/yarmouth_airport/models/airport</uri>
     </include>
-    <include>
+    <!-- <include>
       <static>true</static>
       <uri>file://worlds/yarmouth_airport/models/ground</uri>
-      <pose>0 0 0 0 0 0</pose>
-    </include>
+    </include> -->
     <!--
     <include>
       <uri>model://../models/spiri-mu</uri>
