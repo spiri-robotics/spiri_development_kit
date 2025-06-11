@@ -10,8 +10,8 @@ services:
       - /bin/bash
       - -c
       - |
-        ./Tools/autotest/sim_vehicle.py -v $ARDUPILOT_VEHICLE --no-rebuild \
-        --no-mavproxy --enable-dds --sysid $DRONE_SYS_ID -I$INSTANCE        
+        ./Tools/autotest/sim_vehicle.py -v ${ARDUPILOT_VEHICLE} --no-rebuild \
+        --no-mavproxy --enable-dds --sysid ${DRONE_SYS_ID} \
     stdin_open: true
     tty: true
     ports:
@@ -27,11 +27,12 @@ services:
     command: >
       mavproxy.py --non-interactive
       --master tcp:ardupilot:$SERIAL0_PORT
-      --out udpout:192.168.1.213:14550
       --out udpout:mavros2:$MAVROS2_PORT
       --out udpout:0.0.0.0:18761
       --sitl ardupilot:$SITL_PORT
       --out tcpin:0.0.0.0:$GCS_PORT      
+      --out udpout:0.0.0.0:$GCS_PORT
+      --out udpout:$HOST_IP:$GCS_PORT
     ports:
       - $GCS_PORT:$GCS_PORT/tcp
     expose:
