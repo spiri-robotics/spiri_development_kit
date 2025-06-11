@@ -71,8 +71,10 @@ async def start_services(robot_name: str):
 
             compose_path = os.path.join(service_path, "docker-compose.yaml")
             if not os.path.exists(compose_path):
-                print(f"docker-compose.yaml not found for {robot_name}/{service} at {compose_path}. Skipping.")
-                continue
+                compose_path = os.path.join(service_path, "docker-compose.yml")
+                if not os.path.exists(compose_path):
+                    print(f"docker-compose.yaml not found for {robot_name}/{service} at {compose_path}. Skipping.")
+                    continue
 
             # Step 3: Load compose YAML
             try:
@@ -89,6 +91,9 @@ async def start_services(robot_name: str):
                 inside_path = f"/robots/{robot_type}/services/{service}"
                 command = f"docker compose --env-file=/data/config.env -f {inside_path}/docker-compose.yaml up -d"
                 result = await run.io_bound(lambda robot_name=robot_name: daemons[robot_name].container.exec_run(command, workdir=inside_path))
+                if "no such file" in result.output.decode():
+                    command = f"docker compose --env-file=/data/config.env -f {inside_path}/docker-compose.yml up -d"
+                    result = await run.io_bound(lambda robot_name=robot_name: daemons[robot_name].container.exec_run(command, workdir=inside_path))
                 print(result.output.decode())
 
     except Exception as e:

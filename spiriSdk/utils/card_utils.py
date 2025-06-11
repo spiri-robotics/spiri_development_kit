@@ -9,7 +9,7 @@ from spiriSdk.pages.edit_robot import edit_robot, save_changes, clear_changes
 async def is_service_ready(url: str, timeout: float = 0.5) -> bool:
     try:
         async with httpx.AsyncClient() as client:
-            response = await client.get(url, timeout=timeout)
+            response = await client.get(url, timeout=timeout)            
             return response.status_code == 200
     except Exception:
         return False
@@ -172,6 +172,7 @@ class RobotContainer:
                     if str.join("-", robotName.split("-")[:1]) == "spiri_mu":
                         with ui.card_section():
                             url = f'http://{daemons[robotName].get_ip()}:{80}'
+                            ui.label(f'Robot IP: {daemons[robotName].get_ip()}')
                             loading = ui.spinner(size='lg')
                             i = 0
                             while not await is_service_ready(url) and i < 6:

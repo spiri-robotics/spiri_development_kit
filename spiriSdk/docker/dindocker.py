@@ -268,6 +268,7 @@ class DockerRegistryProxy(Container):
         for attempt in range(120):
             try:
                 response = requests.get(f"http://{self.get_ip()}:3128/ca.crt")  # Ensure the proxy is up
+                logger.info('Response received')
                 return response.text
             except Exception as e:
                 logger.debug(f"Attempt {attempt + 1}: Failed to fetch CA cert: {e}")
