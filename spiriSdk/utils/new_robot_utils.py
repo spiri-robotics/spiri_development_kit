@@ -194,6 +194,8 @@ def display_robot_options(robot_name, selected_additions, selected_options, opti
             help_text = option.get('help-text', False)
             option_type = option.get('type', 'text')
             current_value = option.get('value', '')
+            if current_value == 'None':
+                current_value = None
 
             formatted_key = str(key).replace("_", " ").title()
             for og, new in format_rules.items():

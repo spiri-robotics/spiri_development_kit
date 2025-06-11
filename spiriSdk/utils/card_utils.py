@@ -167,42 +167,18 @@ class RobotContainer:
                         with ui.card_section():
                             command = f"DOCKER_HOST=unix:///tmp/dind-sockets/spirisdk_{robotName}.socket"
                             ui.code(command, language='bash').classes('text-sm text-gray-600 dark:text-gray-200')
+                            
+                    ui.label(f'Robot IP: {daemons[robotName].get_ip()}')
                         
-                    # Display the robot's web interface if applicable
+                    # Link to the robot's web interface if applicable
                     if str.join("-", robotName.split("-")[:1]) == "spiri_mu":
-                        with ui.card_section():
-                            url = f'http://{daemons[robotName].get_ip()}:{80}'
-                            ui.label(f'Robot IP: {daemons[robotName].get_ip()}')
-                            loading = ui.spinner(size='lg')
-                            i = 0
-                            while not await is_service_ready(url) and i < 6:
-                                await asyncio.sleep(1)
-                                i += 1
-
-                            loading.set_visibility(False)
-
-                            if await is_service_ready(url):
-                                ui.link(f'Access the Web Interface at: {url}', url, new_tab=True).classes('text-sm text-gray-200 py-3')
-                                ui.html(f'<iframe src="{url}" width="1000" height="600"></iframe>')
-                            else: 
-                                ui.label('Robot GUI unavailable, please try again later').classes('text-sm text-gray-600 dark:text-gray-300')
+                        url = f'http://{daemons[robotName].get_ip()}:{80}'
+                        ui.link(f'Access the Web Interface at: {url}', url, new_tab=True).classes('text-sm text-gray-200 py-3')
+                                
                     if str.join("-", robotName.split("-")[:1]) == "ARC":
-                        with ui.card_section():
-                            url = f'http://{daemons[robotName].get_ip()}:{80}'
-                            loading = ui.spinner(size='lg')
-                            i = 0
-                            while not await is_service_ready(url) and i < 6:
-                                await asyncio.sleep(1)
-                                i += 1
-
-                            loading.set_visibility(False)
-
-                            if await is_service_ready(url):
-                                ui.link(f'Access the Web Interface at: {url}', url, new_tab=True).classes('text-sm text-gray-200 py-3')
-                                ui.html(f'<iframe src="{url}" width="1000" height="600"></iframe>')
-                            else: 
-                                ui.label('Web interface not available, please try again later').classes('text-sm text-gray-600 dark:text-gray-300')
-
+                        url = f'http://{daemons[robotName].get_ip()}:{80}'
+                        ui.link(f'Access the Web Interface at: {url}', url, new_tab=True).classes('text-sm text-gray-200 py-3')
+                                
     def show_loading(self) -> None:
         if len(daemons) == 0:
             pass

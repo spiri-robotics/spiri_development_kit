@@ -82,7 +82,7 @@ class Container:
                         return
                 else:
                     logger.info(f"Starting container spirisdk_{self.container_name} using image {self.image_name}")
-                
+                    print(f"Starting container spirisdk_{self.container_name} using ports {self.ports}")
                     docker_args = {
                         "image": self.image_name,
                         "name": "spirisdk_"+self.container_name,

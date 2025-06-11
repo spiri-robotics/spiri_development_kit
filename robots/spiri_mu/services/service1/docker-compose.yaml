@@ -11,7 +11,7 @@ services:
       - -c
       - |
         ./Tools/autotest/sim_vehicle.py -v ArduCopter --no-rebuild \
-        --no-mavproxy --enable-dds --sysid $MAVLINK_SYS_ID    
+        --no-mavproxy --enable-dds --sysid $MAVLINK_SYS_ID \
     stdin_open: true
     tty: true
     ports:
