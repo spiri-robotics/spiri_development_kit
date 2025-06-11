@@ -9,7 +9,7 @@ from spiriSdk.pages.edit_robot import edit_robot, save_changes, clear_changes
 async def is_service_ready(url: str, timeout: float = 0.5) -> bool:
     try:
         async with httpx.AsyncClient() as client:
-            response = await client.get(url, timeout=timeout)
+            response = await client.get(url, timeout=timeout)            
             return response.status_code == 200
     except Exception:
         return False
@@ -40,29 +40,39 @@ async def addRobot():
 
         with ui.card_actions().props('align=center'):
             ui.button('Cancel', color='secondary', on_click=d.close).classes('text-base')
-            addBtn = ui.button('Add', color='secondary', on_click=lambda e: submit(e.sender)).classes('text-base')
-            addBtn.bind_enabled_from(checker, 'isValid')
+            # Add button is disabled until all input fields have valid values
+            ui.button(
+                'Add', 
+                color='secondary', 
+                on_click=lambda e: submit(e.sender)
+            ).classes('text-base').bind_enabled_from(checker, 'isValid')
     
     d.open()
 
 async def editRobot(robotName, drop: ui.dropdown_button):
     with ui.dialog() as d, ui.card(align_items='stretch').classes('w-full'):
-        await edit_robot(robotName)
+        checker = inputChecker()
+        await edit_robot(robotName, checker)
 
         def close():
             d.close()
-            clear_changes(robotName)
+            clear_changes(robotName, checker)
             drop.close()
 
         async def saveClose(robotName):
             save_changes(robotName)
             close()
-            from spiriSdk.pages.home import container
-            await container.displayCards()
+            # from spiriSdk.pages.home import container
+            # await container.displayCards()
 
         with ui.card_actions().props('align=center'):
             ui.button('Cancel', on_click=close, color='secondary').classes('text-base')
-            ui.button('Save', on_click=lambda r=robotName: saveClose(r), color='secondary').classes('text-base')
+            # Save button is disabled unless all fields are valid
+            ui.button(
+                'Save', 
+                on_click=lambda r=robotName: saveClose(r), 
+                color='secondary'
+            ).classes('text-base').bind_enabled_from(checker, 'isValid')
     d.open()
 
 
@@ -162,6 +172,7 @@ class RobotContainer:
                     if str.join("-", robotName.split("-")[:1]) == "spiri_mu":
                         with ui.card_section():
                             url = f'http://{daemons[robotName].get_ip()}:{80}'
+                            ui.label(f'Robot IP: {daemons[robotName].get_ip()}')
                             loading = ui.spinner(size='lg')
                             i = 0
                             while not await is_service_ready(url) and i < 6:
