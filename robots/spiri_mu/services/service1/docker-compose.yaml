@@ -15,7 +15,10 @@ services:
     stdin_open: true
     tty: true
     ports:
-      - "${SERIAL0_PORT}:5760"
+      - $SERIAL0_PORT:$SERIAL0_PORT/tcp
+    expose:
+      - $SERIAL0_PORT
+      - $SITL_PORT
 
   mavproxy:
     image: git.spirirobotics.com/spiri/services-mavproxy:main
