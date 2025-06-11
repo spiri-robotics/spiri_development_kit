@@ -1,115 +1,184 @@
 from pathlib import Path
+from dataclasses import field
 import subprocess
 import os
-robot_paths = {
-    'spiri_mu': '/robots/spiri_mu/models/spiri_mu/model.sdf',
-    'spiri_mu_no_gimbal': '/robots/spiri_mu_no_gimbal/models/spiri_mu/model.sdf',
-    'dummy_test': '/robots/dummy_test/models/car_008/model.sdf',
-    'ARC': '/robots/ARC/models/ARC_simplified/model.sdf'
+import time
+
+MODEL_PATHS = {
+    'spiri_mu': 'robots/spiri_mu/models/spiri_mu',
+    'spiri_mu_no_gimbal': 'robots/spiri_mu_no_gimbal/models/spiri_mu',
+    'dummy_test': 'robots/dummy_test/models/car_008',
+    'ARC': 'robots/ARC/models/ARC_simplified'
 }
 
-class Gazebo:
-    def __init__(self):
-        self.worlds = {}
-        self.running_worlds = ['empty_world']
-        self.running_robots = []
-        self.find_worlds()
+WORLD_PATHS = {
+    'empty_world': 'worlds/empty_world/worlds/empty_world',
+    'citadel_hill': 'worlds/citadel_hill/worlds/citadel_hill',
+    'yarmouth_airport': 'worlds/yarmouth_airport/worlds/yarmouth_airport'
+}
+def is_robot_alive(name):
+    if name in gz_world.models.keys():
+        return True
+    else:
+        return False
 
-    def find_worlds(self, p: Path = Path('./worlds')) -> dict:
-        """Find all worlds in the given directory."""
-        self.worlds = {'empty_world': World(self, 'empty_world')}
-        try:
-            for subdir in p.iterdir():
-                if subdir.is_dir():
-                    for world in subdir.rglob('*.world'):
-                        world = World(self, subdir.name)
-                        self.worlds.update({subdir.name: None})
-                        print(subdir.name)
-        except FileNotFoundError:
-            print(f"Directory not found: {p}. Make sure it exists.")
-        
-    async def get_running_worlds(self) -> list:
+async def get_running_worlds() -> list:
         """Get a list of running Gazebo world names."""
         try:
+            running_worlds = []
             cmd = "ps aux | grep '[g]z sim'"
             process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
             output, _ = process.communicate()
             output = output.decode('utf-8')
-            self.running_worlds.clear()
             for line in output.strip().split('\n'):
                 if line:
                     parts = line.split()
-                    command = ' '.join(parts[10:])  # Command starts around field 11
+                    command = ' '.join(parts[10:])
                     for token in command.split():
                         if token.endswith('.world'):
                             world_file = os.path.basename(token)
                             world_name = os.path.splitext(world_file)[0]
-                            self.running_worlds.append(world_name)
-
-            for name in self.worlds.keys():
-                if name not in self.running_worlds:
-                    self.worlds[name] = None
-
+                            running_worlds.append(world_name)
+            return running_worlds
         except subprocess.CalledProcessError as e:
             print(f"Error running command: {e}")
-    
-    async def start_world(self, name, run_value):
-        world = World(self, name)
-        await world.run_world(run_value)
-        self.worlds[name] = world
-        print(f'start:{world.name}')
 
 class World:
-    def __init__(self, parent, name: str):
-        self.parent: Gazebo = parent
+    def __init__(self, name):
+        self.sdk_root: Path = Path(os.environ.get("SDK_ROOT", "."))
         self.name = name
-        self.running = False
-        self.robots = {
-
-        }
+        self.models: dict[str:Model]  = {}
 
     def get_name(self) -> str:
         return self.name
     
-    async def prep_bot(self, robot_name: str ='bot', robot_type: str='spiri_mu_no_gimbal'):
-        bot = Robot(self, robot_name, robot_type)
-        await bot.launch_robot()
-        self.robots.update({robot_name:bot})
+    async def prep_bot(self, model_name: str ='bot', model_type: str='spiri_mu_no_gimbal', ip: str='127.0.0.1'):
+        model = Model(self, model_name, model_type, ip)
+        await model.launch_model()
+        self.models.update({model_name:model})
 
-    async def run_world(self, auto_run: str = '') -> None:
+    async def run_world(self, run_value) -> None:
         """Run world in Gazebo simulator."""
         print(f"Running world: {self.name}")
         try:
-            if auto_run == 'Running':
-                cmd = ['gz', 'sim', '-r', f'./worlds/{self.name}/worlds/{self.name}.world']
+            if run_value == 'Running':
+                cmd = ['gz', 'sim', '-r', f'{WORLD_PATHS[self.name]}.world']
             else:
-                cmd = ['gz', 'sim', f'./worlds/{self.name}/worlds/{self.name}.world']
+                cmd = ['gz', 'sim', f'{WORLD_PATHS[self.name]}.world']
             subprocess.Popen(cmd)
-        
+            print(cmd)
+            running_world = await get_running_worlds()
+            if (running_world) != []:
+                print('world started')
         except FileNotFoundError:
             print(f"File not found: {self.name}. Make sure it is installed and available in the PATH.")
 
-class Robot:
-    def __init__(self, parent: World, name: str, type: str ='spiri-mu', position: list[int] = None):
+    async def reset(self, name, run_value):
+        self.end_gz_proc()
+        self.name = name
+        self.models = {
+        
+        }
+        time.sleep(1)
+        await self.run_world(run_value)
+    
+    def end_gz_proc(self) -> None:
+        try:
+            KILL_GZ_CMD = f"pkill -f 'gz sim {WORLD_PATHS[self.name]}.world'"
+            dead_world_models = {} 
+            dead_world_models.update(self.models)
+            for model in dead_world_models.values(): 
+                model.kill_model()
+            models = {}
+            remove_gazebo_proc = subprocess.Popen(
+                KILL_GZ_CMD, 
+                shell=True, 
+                stdout=subprocess.PIPE
+            )
+        except subprocess.CalledProcessError as e:
+            print(f"Error running command: {e}")
+
+class Model:
+    def __init__(self, parent: World, name: str, type: str ='spiri-mu', ip: str = '127.0.0.1', position: list[int] = None):
         self.parent: World = parent
         self.name = name
-        self.path = robot_paths.get(type)
+        self.path = MODEL_PATHS.get(type)
         self.position = position
+        self.sitl_port = '5501'
+        self.ip = ip
+
+        self.get_model_sitl_port()
 
         if self.position == None:
-            self.position = [len(self.parent.robots.keys()) + 1, 0, 0, 0, 0, 0]
-            if type == 'spiri_mu' or type == 'spiri_mu_no_gimbal':
-                self.position[2] = 0.2
-        else:
-            print("smthn wrong")
-    
-    async def launch_robot(self) -> None:
-        """Launch the robot in the Gazebo simulator."""
+            self.position = [len(self.parent.models.keys()) + 1, 0, 0, 0, 0, 0]
+        if type == 'spiri_mu' or type == 'spiri_mu_no_gimbal':
+            self.position[2] = self.position[2] + 0.195
 
-        ROS2_CMD = f"ros2 run ros_gz_sim create -world {self.parent.name} -file {self.path} -name {self.name} -x {self.position[0]} -y {self.position[1]} -z {self.position[2]}"
+    def get_model_sitl_port(self) -> None:
+        config_path = Path(f'/data/{self.name}/config.env')
+        if config_path.exists():
+            with open(config_path) as f:
+                for line in f:
+                    if line.startswith('SITL_PORT='):
+                        self.sitl_port =line.strip().split('=', 1)[1]
+
+    async def launch_model(self) -> None:
+        """Launch the model in the Gazebo simulator."""
+        XACRO_CMD = [
+            "xacro",
+            f"fdm_port_in:={self.sitl_port}",
+            f"drone_ip:={self.ip}",
+            "model.xacro.sdf",
+            "-o",
+            "model.sdf",
+        ]
+        ROS2_CMD = f"ros2 run ros_gz_sim create -world {self.parent.name} -file {self.path}/model.sdf -name {self.name} -x {self.position[0]} -y {self.position[1]} -z {self.position[2]}"
+
+        xacro_proc = subprocess.Popen(
+            XACRO_CMD,
+            cwd=f"{self.path}",
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+
         ros2_gz_create_proc = subprocess.Popen(
             ROS2_CMD.split(),
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE
         )
+        
+        out, err = ros2_gz_create_proc.communicate(timeout=3)
+        ros2_gz_create_proc.kill()
+        return
+    
+    def kill_model(self):
+        
+        # http://osrf-distributions.s3.amazonaws.com/gazebo/api/7.1.0/classgazebo_1_1physics_1_1Entity.html
+        ENTITY_TYPE_MODEL = 0x00000002
+        REQUEST_ARG = f"name: '{self.name}' type: {ENTITY_TYPE_MODEL}"
+        
+        GZ_SERVICE_CMD = [
+            "gz",
+            "service",
+            "-s",
+            f"/world/{self.parent.name}/remove",
+            "--reqtype",
+            "gz.msgs.Entity",
+            "--reptype",
+            "gz.msgs.Boolean",
+            "--timeout",
+            "5000",
+            "--req",
+            REQUEST_ARG
+        ]
+        remove_entity_proc = subprocess.Popen(
+            GZ_SERVICE_CMD,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+        
+        out, err = remove_entity_proc.communicate(timeout=3)
+        remove_entity_proc.kill()
+        del self.parent.models[self.name]
 
+gz_world = World('empty_world')
