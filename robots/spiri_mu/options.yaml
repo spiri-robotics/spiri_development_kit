@@ -29,7 +29,7 @@ x-spiri-options:
   GCS_PORT:
     help-text: Port to be used by the GCS
     type: int
-    value: 14555
+    value: 14550
   SERIAL0_PORT:
     help-text: Port to be used by the serial device
     type: int
