@@ -82,7 +82,7 @@ class Container:
                         return
                 else:
                     logger.info(f"Starting container spirisdk_{self.container_name} using image {self.image_name}")
-                
+                    print(f"Starting container spirisdk_{self.container_name} using ports {self.ports}")
                     docker_args = {
                         "image": self.image_name,
                         "name": "spirisdk_"+self.container_name,
@@ -248,6 +248,12 @@ class DockerRegistryProxy(Container):
             "DISABLE_IPV6": "true",  # Disable IPv6
         }
     )
+    #(pwd)/docker_mirror_cache:/docker_mirror_cache
+    volumes: Dict[str, Dict[str, str]] = field(
+        default_factory=lambda: {
+            str(Path(os.environ.get("SDK_ROOT", ".")) / "cache" / "docker_images"): {"bind": "/docker_mirror_cache", "mode": "rw"},
+        }
+    )
 
     def get_cacert(self) -> str:
         """Get the CA certificate for the registry mirror.
@@ -262,6 +268,7 @@ class DockerRegistryProxy(Container):
         for attempt in range(120):
             try:
                 response = requests.get(f"http://{self.get_ip()}:3128/ca.crt")  # Ensure the proxy is up
+                logger.info('Response received')
                 return response.text
             except Exception as e:
                 logger.debug(f"Attempt {attempt + 1}: Failed to fetch CA cert: {e}")
@@ -321,7 +328,8 @@ class DockerInDocker(Container):
         init=False
     )
     ports: Dict[str, Optional[int]] = field(
-        default_factory=lambda: {"2375/tcp": None},  # Publish Docker port
+        default_factory=lambda: {
+            "2375/tcp": None},  # Publish Docker port
         init=False
     )
     robot_data_root: Path = field(init=False)

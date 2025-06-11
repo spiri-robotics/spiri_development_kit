@@ -18,5 +18,4 @@ async def home():
     await container.displayButtons()
     container.show_loading()
     
-    if container.is_empty():
-        await DaemonEvent.notify()
+    await DaemonEvent.notify()
