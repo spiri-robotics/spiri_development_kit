@@ -252,6 +252,8 @@ class DockerRegistryProxy(Container):
     volumes: Dict[str, Dict[str, str]] = field(
         default_factory=lambda: {
             str(Path(os.environ.get("SDK_ROOT", ".")) / "cache" / "docker_images"): {"bind": "/docker_mirror_cache", "mode": "rw"},
+            str(Path(os.environ.get("SDK_ROOT", ".")) / "cache" / "cacert"): {"bind": "/ca", "mode": "rw"},
+
         }
     )
 
@@ -348,14 +350,17 @@ class DockerInDocker(Container):
         
         # Create socket directory if it doesn't exist
         self.socket_dir.mkdir(mode=0o777, parents=True, exist_ok=True)
-
-        
+        lib_docker_cache = self.sdk_root / "cache" / "dind-cache" / self.container_name / "docker"
+        lib_docker_cache.mkdir(parents=True, exist_ok=True)
         self.volumes.update({
             str(self.robot_data_root): {"bind": "/data", "mode": "rw"},
             str(self.socket_dir): {"bind": "/dind-sockets", "mode": "rw"},
             str(self.robot_root): {"bind": f"/robots/{self.robot_type}", "mode": "rw"},
             #Host docker socket
-            str("/var/run/docker.sock"): {"bind": "/var/run/docker-host.sock", "mode": "rw"}
+            "/var/run/docker.sock": {"bind": "/var/run/docker-host.sock", "mode": "rw"},
+            # Cache directory for Docker-in-Docker
+            str(lib_docker_cache): {"bind": "/var/lib/docker", "mode": "rw"},
+            
         })
                 
         self.command = [
