@@ -11,7 +11,6 @@ ROBOTS_DIR = os.path.join(ROOT_DIR, 'robots')
 robots = [folder for folder in os.listdir(ROBOTS_DIR) if os.path.isdir(os.path.join(ROBOTS_DIR, folder))]
 
 class inputChecker:
-
     def __init__(self):
         self.inputs = {}
         self.isValid = False
@@ -51,23 +50,30 @@ class inputChecker:
             self.inputs[i] = False
         self.update()
 
-    def checkNumber(self, i: ui.number):
+    def checkNumber(self, i: ui.number|None, ogValue: int|float = 0):
+        self.inputs[i] = False
         if i.value:
             if 'Port' in i.label:
                 if i.value >= 1000:
                     self.inputs[i] = True
-                else:
-                    self.inputs[i] = False
             elif 'System ID' in i.label:
-                if i.value in active_sys_ids:
-                    self.inputs[i] = False
-                else:
+                if i.value not in active_sys_ids:
                     self.inputs[i] = True
+                elif ogValue:
+                    if float(i.value) == float(ogValue):
+                        self.inputs[i] = True
             else:
                 self.inputs[i] = True
-        else:
-            self.inputs[i] = False
         self.update()
+
+    def checkForChanges(self, ogSettings, newSettings):
+        self.update()
+        if self.isValid == True:
+            for key in newSettings:
+                if newSettings[key] != ogSettings[key]:
+                    return
+            self.isValid = False
+            return
 
 def ensure_options_yaml():
     robots = []
@@ -89,8 +95,10 @@ def ensure_options_yaml():
 
                 compose_file = service_folders[0] / "docker-compose.yaml"
                 if not compose_file.exists():
-                    ui.notify(f"{compose_file} not found!", type="error")
-                    continue
+                    compose_file = service_folders[0] / "docker-compose.yml"
+                    if not compose_file.exists():
+                        ui.notify(f"{compose_file} not found!", type="error")
+                        continue
         
                 compose_text = compose_file.read_text()
                 variables = set(re.findall(r'\$[{]?([A-Z_][A-Z0-9_]*)[}]?', compose_text))
@@ -244,6 +252,7 @@ def display_robot_options(robot_name, selected_additions, selected_options, opti
                 ).classes('w-full pb-1')
                 
                 if 'SYS_ID' in key:
+                    numInput.props('hint="System ID cannot be changed once set"')
                     checker.addNotValid(numInput)
                 else:
                     checker.addValid(numInput)
@@ -253,7 +262,7 @@ def display_robot_options(robot_name, selected_additions, selected_options, opti
                 dropdown_options = option.get('options', [])
                 if isinstance(dropdown_options, list):
                     ui.select(
-                        dropdown_options, 
+                        options=dropdown_options, 
                         label=formatted_key,
                         value=current_value,
                         on_change=lambda e, k=key: selected_options.update({k: e.value}),

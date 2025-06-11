@@ -12,22 +12,24 @@ x-spiri-options:
     step: 1
     value: 1
   ARDUPILOT_VEHICLE:
-    help-text: Type of vehicle to be used by ArduPilot
-    # Options: ArduPlane, ArduCopter, ArduRover, ArduSub 
-    type: text
+    help-text: ArduPilot vehicle type
+    type: dropdown
+    options: [
+      ArduCopter,
+      ArduPlane,
+      ArduSub,
+      Blimp,
+      Rover
+    ]
     value: ArduCopter
-  MAVROS1_PORT:
-    help-text: Port to be used by the MAVROS1 bridge
-    type: int
-    value: 1900
   MAVROS2_PORT:
     help-text: Port to be used by the MAVROS2 bridge
     type: int
-    value: 14555
+    value: 14552
   GCS_PORT:
     help-text: Port to be used by the GCS
     type: int
-    value: 14550
+    value: 14555
   SERIAL0_PORT:
     help-text: Port to be used by the serial device
     type: int
@@ -35,8 +37,4 @@ x-spiri-options:
   SITL_PORT:
     help-text: Port to be used by the SITL
     type: int
-    value: 5501
-  INSTANCE:
-    help-text: If the robot should be instanced - required for Gazebo
-    type: bool
-    value: 0
+    value: 5510

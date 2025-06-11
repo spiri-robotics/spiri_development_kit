@@ -11,36 +11,41 @@ services:
       - -c
       - |
         ./Tools/autotest/sim_vehicle.py -v ${ARDUPILOT_VEHICLE} --no-rebuild \
-        --no-mavproxy --enable-dds --sysid ${DRONE_SYS_ID} -I$INSTANCE -j 4
+        --no-mavproxy --enable-dds --sysid ${DRONE_SYS_ID} \
     stdin_open: true
     tty: true
-    ports: 
-      - "${SERIAL0_PORT}:5760"
-      - "${SITL_PORT}:14550"
-      - "${GCS_PORT}:14555"
-      
+    ports:
+      - $SERIAL0_PORT:$SERIAL0_PORT/tcp
+    expose:
+      - $SERIAL0_PORT
+      - $SITL_PORT
+    networks:
+      - spiri-mu-net
+
   mavproxy:
     image: git.spirirobotics.com/spiri/services-mavproxy:main
     command: >
       mavproxy.py --non-interactive
-      --master tcp:ardupilot:${SERIAL0_PORT}
-      --out udpout:0.0.0.0:${MAVROS2_PORT}
-      --out udpout:0.0.0.0:${MAVROS1_PORT}
+      --master tcp:ardupilot:$SERIAL0_PORT
+      --out udpout:mavros2:$MAVROS2_PORT
       --out udpout:0.0.0.0:18761
-      --out udpout:127.0.0.1:14555
-      --sitl 127.0.0.1:${SITL_PORT}
-      --out udp:0.0.0.0:${GCS_PORT}
-    ipc: host
+      --sitl ardupilot:$SITL_PORT
+      --out tcpin:0.0.0.0:$GCS_PORT      
     ports:
-      - "${MAVROS1_PORT}:14551"
+      - $GCS_PORT:$GCS_PORT/tcp
+    expose:
+      - $SERIAL0_PORT
     restart: always
+    networks:
+      - spiri-mu-net
 
   mavros2:
     image: git.spirirobotics.com/spiri/services-ros2-mavros:main
     environment:
       - RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
-    command: ros2 launch mavros apm.launch fcu_url:="udp://0.0.0.0:${MAVROS2_PORT}@:14555" namespace:="${ROBOT_NAME}" tgt_system:="${DRONE_SYS_ID}"
-    ipc: host
+    command: ros2 launch mavros apm.launch fcu_url:="udp://0.0.0.0:$MAVROS2_PORT@:14555" namespace:="$ROBOT_NAME" tgt_system:="$DRONE_SYS_ID"
+    expose:
+      - $MAVROS2_PORT
     restart: always
     depends_on:
       ardupilot:
@@ -58,3 +63,9 @@ services:
       nofile:
         soft: 1024
         hard: 524288
+    networks:
+      - spiri-mu-net
+
+networks:
+  spiri-mu-net:
+    driver: bridge
