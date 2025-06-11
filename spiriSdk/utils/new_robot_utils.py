@@ -127,9 +127,6 @@ async def save_robot_config(robot_type, selected_options):
     else:   
         robot_id = selected_options.get('DRONE_SYS_ID', uuid.uuid4().hex[:6])
     folder_name = f"{robot_type}-{robot_id}"
-    if folder_name in daemons:
-        ui.notify(f"Robot {folder_name} already exists. Please choose a different robot type or ID.", type="error")
-        return
     folder_path = os.path.join(ROOT_DIR, "data", folder_name)
 
     os.makedirs(folder_path, exist_ok=True)
@@ -253,20 +250,29 @@ def display_robot_options(robot_name, selected_additions, selected_options, opti
                 
                 if 'SYS_ID' in key:
                     numInput.props('hint="System ID cannot be changed once set"')
+                    numInput.classes('pb-4')
                     checker.addNotValid(numInput)
                 else:
                     checker.addValid(numInput)
             
             elif option_type == 'dropdown':
+                def handleDropdown(e, k):
+                    selected_options[k] = e.value
+                    checker.checkSelect(e)
+
                 # Ensure the dropdown options are a list
                 dropdown_options = option.get('options', [])
                 if isinstance(dropdown_options, list):
-                    ui.select(
+                    drop = ui.select(
                         options=dropdown_options, 
                         label=formatted_key,
                         value=current_value,
-                        on_change=lambda e, k=key: selected_options.update({k: e.value}),
+                        on_change=lambda e, k=key: handleDropdown(e.sender, k),
                     ).classes('w-full')
+                    if drop.value is not None:
+                        checker.addValid(drop)
+                    else:
+                        checker.addNotValid(drop)
                 else:
                     ui.label(f"Invalid dropdown options for {key}").classes('text-body2')
             
