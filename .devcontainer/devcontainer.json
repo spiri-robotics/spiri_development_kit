@@ -28,8 +28,7 @@
     },
     "containerEnv": {
         "DISPLAY": "${env:DISPLAY}",
-        "ROS_LOCALHOST_ONLY": "1",
-        "ROS_DOMAIN_ID": "42",
+        "SDK_ROOT": "${localWorkspaceFolder}",
         "QT_X11_NO_MITSHM": "1",
         "XAUTHORITY": "/tmp/.docker.xauth"
     },
@@ -43,7 +42,9 @@
         "source=/tmp/.X11-unix,target=/tmp/.X11-unix,type=bind,consistency=cached",
         "source=/dev/dri,target=/dev/dri,type=bind,consistency=cached",
         "source=${env:XAUTHORITY},target=/tmp/.docker.xauth,type=bind,consistency=cached",
-        "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
+        "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind",
+        "source=/tmp/dind-sockets/,target=/tmp/dind-sockets,type=bind,consistency=cached",
+        "source=${localWorkspaceFolder},target=${localWorkspaceFolder},type=bind,consistency=cached",
     ],
     "postCreateCommand": "uv sync --locked"
 }
