@@ -329,11 +329,7 @@ class DockerInDocker(Container):
     )
     ports: Dict[str, Optional[int]] = field(
         default_factory=lambda: {
-            "2375/tcp": None, 
-            "14550/udp": 14550,  # <-- this line forwards UDP port 14550 from container to host
-            "1900/udp": 1900,    # add others as needed
-            "14555/udp": 14555, 
-            "5761/tcp": 5761},  # Publish Docker port
+            "2375/tcp": None},  # Publish Docker port
         init=False
     )
     robot_data_root: Path = field(init=False)
