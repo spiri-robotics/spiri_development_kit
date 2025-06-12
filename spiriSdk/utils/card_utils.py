@@ -2,9 +2,11 @@ import os, asyncio, httpx
 from nicegui import ui
 from spiriSdk.utils.daemon_utils import daemons, stop_container, start_container, restart_container, display_daemon_status, DaemonEvent
 from spiriSdk.utils.new_robot_utils import delete_robot, save_robot_config, inputChecker
-from spiriSdk.pages.tools import tools, gz
+from spiriSdk.pages.tools import tools, gz_world
+from spiriSdk.utils.gazebo_utils import get_running_worlds, is_robot_alive
 from spiriSdk.pages.new_robots import new_robots
 from spiriSdk.pages.edit_robot import edit_robot, save_changes, clear_changes
+from spiriSdk.ui.ToggleButton import ToggleButton
 
 async def is_service_ready(url: str, timeout: float = 0.5) -> bool:
     try:
@@ -19,7 +21,7 @@ def copy_text(command):
         navigator.clipboard.writeText("{command}");
     ''')
     ui.notify("Copied to clipboard!")
-
+    
 async def addRobot():
     with ui.dialog() as d, ui.card(align_items='stretch').classes('w-full'):
         checker = inputChecker()
@@ -98,7 +100,6 @@ class RobotContainer:
         names = daemons.keys()
         self.destination.clear()
         with self.destination:
-            worlds = []
             await self.displayButtons()
 
             for robotName in names:
@@ -123,6 +124,12 @@ class RobotContainer:
                                 async def polling_loop():
                                     while True:
                                         await update_status(name, label)
+                                        if not is_robot_alive(robotName):
+                                            if gz_toggle:
+                                                gz_toggle._state = True
+                                                gz_toggle.update()
+                                        if await get_running_worlds() == []:
+                                            gz_world.models = {}
                                         await asyncio.sleep(5)
                                 asyncio.create_task(polling_loop())
 
@@ -140,17 +147,20 @@ class RobotContainer:
                                 await restart_container(robot)
                             
                             async def add_to_world(robot=robotName):
+                                # ip = daemons[robotName].get_ip()
                                 robotType = str(robot).split('-')[0]
-                                world = gz.worlds[gz.running_worlds[0]]
-                                await world.prep_bot(robot, robotType)
+                                await gz_world.prep_bot(robot, robotType)
                                 ui.notify(f'Added {robot} to world')
+
+                            async def remove_from_world(robot=robotName):
+                                robot = gz_world.models[robot].kill_model()
                                 
                                                     
                             ui.button('Start', on_click=make_start, icon='play_arrow', color='positive').classes('m-1 text-base')
                             ui.button('Stop', on_click=make_stop, icon='stop', color='warning').classes('m-1 text-base')
                             ui.button('Restart', on_click=make_restart, icon='refresh', color='secondary').classes('m-1 mr-10 text-base')
 
-                            ui.button('Add robot to world', on_click=add_to_world).classes('m-1 mr-10 text-base').props('color=secondary')
+                            gz_toggle = ToggleButton(on_label="add to gz sim", off_label="remove from gz sim", on_switch=add_to_world, off_switch=remove_from_world).classes('m-1 mr-10 text-base')
 
                             async def delete(n,):
                                 if await delete_robot(n):

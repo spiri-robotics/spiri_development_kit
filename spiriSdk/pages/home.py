@@ -14,9 +14,4 @@ async def home():
     destination = ui.card().classes('w-full p-0 shadow-none dark:bg-[#212428]')
     global container
     container = RobotContainer(destination)
-
-    await container.displayButtons()
-    container.show_loading()
-    
-    if container.is_empty():
-        await DaemonEvent.notify()
+    await DaemonEvent.notify()

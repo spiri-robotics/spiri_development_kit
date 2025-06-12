@@ -27,7 +27,6 @@ services:
     command: >
       mavproxy.py --non-interactive
       --master tcp:ardupilot:5760
-      --out udpout:192.168.1.213:14550
       --out udpout:mavros2:14552
       --out udpout:0.0.0.0:18761
       --sitl ardupilot:5510

@@ -328,7 +328,8 @@ class DockerInDocker(Container):
         init=False
     )
     ports: Dict[str, Optional[int]] = field(
-        default_factory=lambda: {"2375/tcp": None},  # Publish Docker port
+        default_factory=lambda: {
+            "2375/tcp": None},  # Publish Docker port
         init=False
     )
     robot_data_root: Path = field(init=False)
