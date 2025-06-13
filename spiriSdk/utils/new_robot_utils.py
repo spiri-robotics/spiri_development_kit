@@ -230,7 +230,7 @@ def display_robot_options(robot_name, selected_options, options_container, check
                     textVal = current_value
                     
                 ui.input(
-                    label=f'{formatted_key}*', 
+                    label=f'{formatted_key}', 
                     value=textVal, 
                     placeholder=current_value, 
                     on_change=lambda e, k=key: handleText(e.sender, k)
