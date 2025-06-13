@@ -35,9 +35,8 @@ async def home():
 
     if required_host not in registries or required_auth not in auth_registries:
         with ui.card().classes('w-full p-4 bg-red-100 dark:bg-red-800 text-red-900 dark:text-red-100'):
-            ui.label("Warning: Required registry or authentication entry is missing.").classes('text-lg')
-            ui.label(f"Please add '{required_host}' to REGISTRIES and '{required_auth}' to AUTH_REGISTRIES in your .env file.").classes('text-sm')
-    
+            ui.label("Warning: Required Spiri authentication entry is missing, please check the settings page.").classes('text-lg')
+            
     destination = ui.card().classes('w-full p-0 shadow-none dark:bg-[#212428]')
     global container
     container = RobotContainer(destination)
