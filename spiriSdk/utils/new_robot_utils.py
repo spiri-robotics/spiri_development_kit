@@ -159,7 +159,7 @@ async def delete_robot(robot_name) -> bool:
         shutil.rmtree(robot_path)
     return True
 
-def display_robot_options(robot_name, selected_additions, selected_options, options_container, checker: inputChecker):
+def display_robot_options(robot_name, selected_options, options_container, checker: inputChecker):
     options_path = os.path.join(ROBOTS_DIR, robot_name, 'options.yaml')
     if not os.path.exists(options_path):
         ui.notify(f"No options.yaml found for {robot_name}")
