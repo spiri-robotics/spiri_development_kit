@@ -11,7 +11,14 @@ x-spiri-options:
     precision: 0
     step: 1
     value: 1
-  INSTANCE:
-    help-text: If the robot should be instanced - required for Gazebo
-    type: int
-    value: 0
+  ARDUPILOT_VEHICLE:
+    help-text: ArduPilot vehicle type
+    type: dropdown
+    options: [
+      ArduCopter,
+      ArduPlane,
+      ArduSub,
+      Blimp,
+      Rover
+    ]
+    value: None

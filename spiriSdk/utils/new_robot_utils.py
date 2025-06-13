@@ -125,11 +125,8 @@ async def save_robot_config(robot_type, selected_options):
     elif robot_type == "car":
         robot_id = selected_options.get('CAR_SYS_ID', uuid.uuid4().hex[:6])
     else:   
-        robot_id = selected_options.get('DRONE_SYS_ID', uuid.uuid4().hex[:6])
+        robot_id = selected_options.get('MAVLINK_SYS_ID', uuid.uuid4().hex[:6])
     folder_name = f"{robot_type}-{robot_id}"
-    if folder_name in daemons:
-        ui.notify(f"Robot {folder_name} already exists. Please choose a different robot type or ID.", type="error")
-        return
     folder_path = os.path.join(ROOT_DIR, "data", folder_name)
 
     os.makedirs(folder_path, exist_ok=True)
@@ -138,6 +135,7 @@ async def save_robot_config(robot_type, selected_options):
     with open(config_path, "w") as f:
         for key, value in selected_options.items():
             f.write(f"{key}={value}\n")
+        f.write('HOST_IP=172.17.0.1\n')
 
     new_daemon = DockerInDocker(image_name="docker:dind", container_name=folder_name)
     await run.io_bound(new_daemon.ensure_started)
@@ -161,7 +159,7 @@ async def delete_robot(robot_name) -> bool:
         shutil.rmtree(robot_path)
     return True
 
-def display_robot_options(robot_name, selected_additions, selected_options, options_container, checker: inputChecker):
+def display_robot_options(robot_name, selected_options, options_container, checker: inputChecker):
     options_path = os.path.join(ROBOTS_DIR, robot_name, 'options.yaml')
     if not os.path.exists(options_path):
         ui.notify(f"No options.yaml found for {robot_name}")
@@ -196,6 +194,8 @@ def display_robot_options(robot_name, selected_additions, selected_options, opti
             help_text = option.get('help-text', False)
             option_type = option.get('type', 'text')
             current_value = option.get('value', '')
+            if current_value == 'None':
+                current_value = None
 
             formatted_key = str(key).replace("_", " ").title()
             for og, new in format_rules.items():
@@ -253,20 +253,29 @@ def display_robot_options(robot_name, selected_additions, selected_options, opti
                 
                 if 'SYS_ID' in key:
                     numInput.props('hint="System ID cannot be changed once set"')
+                    numInput.classes('pb-4')
                     checker.addNotValid(numInput)
                 else:
                     checker.addValid(numInput)
             
             elif option_type == 'dropdown':
+                def handleDropdown(e, k):
+                    selected_options[k] = e.value
+                    checker.checkSelect(e)
+
                 # Ensure the dropdown options are a list
                 dropdown_options = option.get('options', [])
                 if isinstance(dropdown_options, list):
-                    ui.select(
+                    drop = ui.select(
                         options=dropdown_options, 
                         label=formatted_key,
                         value=current_value,
-                        on_change=lambda e, k=key: selected_options.update({k: e.value}),
+                        on_change=lambda e, k=key: handleDropdown(e.sender, k),
                     ).classes('w-full')
+                    if drop.value is not None:
+                        checker.addValid(drop)
+                    else:
+                        checker.addNotValid(drop)
                 else:
                     ui.label(f"Invalid dropdown options for {key}").classes('text-body2')
             

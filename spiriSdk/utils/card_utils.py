@@ -1,11 +1,10 @@
 import os, asyncio, httpx
 from nicegui import ui
-from spiriSdk.utils.daemon_utils import daemons, stop_container, start_container, restart_container, display_daemon_status, DaemonEvent
+from spiriSdk.utils.daemon_utils import daemons, display_daemon_status, DaemonEvent
 from spiriSdk.utils.new_robot_utils import delete_robot, save_robot_config, inputChecker
 from spiriSdk.pages.tools import tools, gz_world
 from spiriSdk.utils.gazebo_utils import get_running_worlds, is_robot_alive
 from spiriSdk.pages.new_robots import new_robots
-from spiriSdk.pages.edit_robot import edit_robot, save_changes, clear_changes
 from spiriSdk.ui.ToggleButton import ToggleButton
 
 async def is_service_ready(url: str, timeout: float = 0.5) -> bool:
@@ -50,34 +49,6 @@ async def addRobot():
             ).classes('text-base').bind_enabled_from(checker, 'isValid')
     
     d.open()
-
-async def editRobot(robotName, drop: ui.dropdown_button):
-    with ui.dialog() as d, ui.card(align_items='stretch').classes('w-full'):
-        checker = inputChecker()
-        await edit_robot(robotName, checker)
-
-        def close():
-            d.close()
-            clear_changes(robotName, checker)
-            drop.close()
-
-        async def saveClose(robotName):
-            save_changes(robotName)
-            close()
-            # from spiriSdk.pages.home import container
-            # await container.displayCards()
-
-        with ui.card_actions().props('align=center'):
-            ui.button('Cancel', on_click=close, color='secondary').classes('text-base')
-            # Save button is disabled unless all fields are valid
-            ui.button(
-                'Save', 
-                on_click=lambda r=robotName: saveClose(r), 
-                color='secondary'
-            ).classes('text-base').bind_enabled_from(checker, 'isValid')
-    d.open()
-
-
 
 class RobotContainer:
 
@@ -136,15 +107,6 @@ class RobotContainer:
                             start_polling(robotName, label_status)
                         ui.space()
                         with ui.card_actions():
-                            def make_stop(robot=robotName):
-                                message = stop_container(robot)
-                                ui.notify(message)
-
-                            async def make_start(robot=robotName):
-                                await start_container(robot)
-
-                            async def make_restart(robot=robotName):
-                                await restart_container(robot)
                             
                             async def add_to_world(robot=robotName):
                                 # ip = daemons[robotName].get_ip()
@@ -155,39 +117,43 @@ class RobotContainer:
                             async def remove_from_world(robot=robotName):
                                 robot = gz_world.models[robot].kill_model()
                                 
-                                                    
-                            ui.button('Start', on_click=make_start, icon='play_arrow', color='positive').classes('m-1 text-base')
-                            ui.button('Stop', on_click=make_stop, icon='stop', color='warning').classes('m-1 text-base')
-                            ui.button('Restart', on_click=make_restart, icon='refresh', color='secondary').classes('m-1 mr-10 text-base')
-
                             gz_toggle = ToggleButton(on_label="add to gz sim", off_label="remove from gz sim", on_switch=add_to_world, off_switch=remove_from_world).classes('m-1 mr-10 text-base')
 
-                            async def delete(n,):
-                                if await delete_robot(n):
-                                    ui.notify(f'{n} deleted')
-                                else:
-                                    ui.notify('error deleting robot')
+                            async def delete(n):
+                                notif = ui.notification(timeout=False)
+                                for i in range(1):
+                                    notif.message = 'Deleting...'
+                                    notif.spinner=True
+                                    await asyncio.sleep(0.1)
 
-                            with ui.dropdown_button(icon='settings', color='secondary').classes('text-base') as drop:
-                                ui.item('Edit', on_click=lambda n=robotName, d=drop: editRobot(n, d))
-                                ui.item('Delete', on_click=lambda n=robotName: delete(n))
+                                if await delete_robot(n):
+                                    notif.message = f'{n} deleted'
+                                    notif.type = 'positive'
+                                else:
+                                    notif.message = 'error deleting robot'
+                                    notif.type = 'negative'
+                                
+                                notif.spinner = False
+                                await asyncio.sleep(4)
+                                notif.dismiss()
+
+                            ui.button(icon='delete', on_click=lambda n=robotName: delete(n), color='secondary').classes('text-base')
 
                     # Display the robot's Docker services command            
-                    with ui.row(align_items="start").classes('w-full'):
-                        with ui.card_section():
+                    with ui.card_section():
+                        with ui.column():
                             command = f"DOCKER_HOST=unix:///tmp/dind-sockets/spirisdk_{robotName}.socket"
-                            ui.code(command, language='bash').classes('text-sm text-gray-600 dark:text-gray-200')
+                            ui.code(command, language='bash').classes('text-sm text-gray-600 dark:text-gray-200 mb-4')
+                            ui.label(f'Robot IP: {daemons[robotName].get_ip()}')
                             
-                    ui.label(f'Robot IP: {daemons[robotName].get_ip()}')
-                        
-                    # Display the robot's web interface if applicable
-                    if str.join("-", robotName.split("-")[:1]) == "spiri_mu":
-                        url = f'http://{daemons[robotName].get_ip()}:{80}'
-                        ui.link(f'Access the Web Interface at: {url}', url, new_tab=True).classes('text-sm text-gray-200 py-3')
-                                
-                    if str.join("-", robotName.split("-")[:1]) == "ARC":
-                        url = f'http://{daemons[robotName].get_ip()}:{80}'
-                        ui.link(f'Access the Web Interface at: {url}', url, new_tab=True).classes('text-sm text-gray-200 py-3')
+                            # Link to the robot's web interface if applicable
+                            if "spiri_mu" in str.join("-", robotName.split("-")[:1]):
+                                url = f'http://{daemons[robotName].get_ip()}:{80}'
+                                ui.link(f'Access the Web Interface at: {url}', url, new_tab=True).classes('text-sm dark:text-gray-200 py-3')
+                                        
+                            if str.join("-", robotName.split("-")[:1]) == "ARC":
+                                url = f'http://{daemons[robotName].get_ip()}:{80}'
+                                ui.link(f'Access the Web Interface at: {url}', url, new_tab=True).classes('text-sm dark:text-gray-200 py-3')
                                 
     def show_loading(self) -> None:
         if len(daemons) == 0:

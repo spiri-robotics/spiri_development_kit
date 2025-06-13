@@ -101,52 +101,6 @@ async def start_services(robot_name: str):
     except Exception as e:
         return f"Error starting services for {robot_name}: {str(e)}"
 
-async def on_shutdown():
-    for daemon in daemons.values():
-        await run.io_bound(daemon.cleanup)
-    daemons.clear()
-
-async def start_container(robot_name: str):
-    print(f"Starting container for {robot_name}...")
-    await run.io_bound(daemons[robot_name].ensure_started)
-    ui.notify(f"Container {robot_name} started.")
-
-def stop_container(robot_name: str) -> str:
-    if robot_name not in daemons:
-        return f"No daemon found for {robot_name}."
-
-    container = daemons[robot_name].container
-    if container is None:
-        return f"No container found for {robot_name}. It may have already been removed."
-
-    try:
-        container.reload()
-    except NotFound:
-        daemons[robot_name].container = None
-        return f"Container {robot_name} is already removed."
-
-    if container.status != "running":
-        return f"Container {robot_name} is not running or has already stopped."
-
-    try:
-        container.stop()
-        return f"Container {robot_name} stopped."
-    except NotFound:
-        daemons[robot_name].container = None
-        return f"Container {robot_name} was already removed before stopping."
-    except APIError as e:
-        if e.response is not None and e.response.status_code == 404:
-            daemons[robot_name].container = None
-            return f"Container {robot_name} was already removed before stopping."
-        else:
-            raise
-
-async def restart_container(robot_name: str):
-    message = await run.io_bound(lambda: stop_container(robot_name))
-    ui.notify(message)
-    await start_container(robot_name)
-    ui.notify(f"Container {robot_name} restarted.")
-
 async def display_daemon_status(robot_name):
     try:
         container = daemons[robot_name].container

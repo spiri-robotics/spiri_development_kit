@@ -253,7 +253,6 @@ class DockerRegistryProxy(Container):
         default_factory=lambda: {
             str(Path(os.environ.get("SDK_ROOT", ".")) / "cache" / "docker_images"): {"bind": "/docker_mirror_cache", "mode": "rw"},
             str(Path(os.environ.get("SDK_ROOT", ".")) / "cache" / "cacert"): {"bind": "/ca", "mode": "rw"},
-
         }
     )
 
@@ -360,7 +359,6 @@ class DockerInDocker(Container):
             "/var/run/docker.sock": {"bind": "/var/run/docker-host.sock", "mode": "rw"},
             # Cache directory for Docker-in-Docker
             str(lib_docker_cache): {"bind": "/var/lib/docker", "mode": "rw"},
-            
         })
                 
         self.command = [
