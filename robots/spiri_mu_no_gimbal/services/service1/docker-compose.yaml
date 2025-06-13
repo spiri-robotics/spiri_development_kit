@@ -1,6 +1,8 @@
 x-spiri-sdk-doc: |
   Runs the core services for a simulated Spiri Mu  
 
+x-spiri-sdk-autostart: True
+
 services:
   ardupilot:
     image: git.spirirobotics.com/spiri/ardupilot:spiri-master
@@ -8,33 +10,44 @@ services:
       - /bin/bash
       - -c
       - |
-        ./Tools/autotest/sim_vehicle.py $ARDUPILOT_VEHICLE --no-rebuild \
-        --no-mavproxy --enable-dds --sysid $DRONE_SYS_ID -I$INSTANCE        
+        ./Tools/autotest/sim_vehicle.py ArduCopter --no-rebuild \
+        --no-mavproxy --enable-dds --sysid $MAVLINK_SYS_ID      
     stdin_open: true
     tty: true
-    network_mode: host
+    ports:
+      - 5760:5760/tcp
+    expose:
+      - '5760'
+      - '5510'
+    networks:
+      - spiri-mu-net
 
   mavproxy:
     image: git.spirirobotics.com/spiri/services-mavproxy:main
     command: >
       mavproxy.py --non-interactive
-      --master tcp:127.0.0.1:$SERIAL0_PORT
-      --out udpout:0.0.0.0:$MAVROS2_PORT
-      --out udpout:0.0.0.0:$MAVROS1_PORT
+      --master tcp:ardupilot:5760
+      --out udpout:192.168.1.213:14550
+      --out udpout:mavros2:14552
       --out udpout:0.0.0.0:18761
-      --sitl 127.0.0.1:$SITL_PORT
-      --out udp:0.0.0.0:$GCS_PORT      
-    ipc: host
-    network_mode: host
+      --sitl ardupilot:5510
+      --out tcpin:0.0.0.0:14550     
+      --out udpout:$HOST_IP:14550 
+    ports:
+      - 14550:14550/tcp
+    expose:
+      - '5760'
     restart: always
+    networks:
+      - spiri-mu-net
 
   mavros2:
     image: git.spirirobotics.com/spiri/services-ros2-mavros:main
     environment:
       - RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
-    command: ros2 launch mavros apm.launch fcu_url:="udp://0.0.0.0:$MAVROS2_PORT@:14555" namespace:="$ROBOT_NAME" tgt_system:="$DRONE_SYS_ID"
-    ipc: host
-    network_mode: host
+    command: ros2 launch mavros apm.launch fcu_url:="udp://0.0.0.0:14552@:14555" namespace:="$ROBOT_NAME" tgt_system:="$MAVLINK_SYS_ID"
+    expose:
+      - '14552'
     restart: always
     depends_on:
       ardupilot:
@@ -50,3 +63,9 @@ services:
       nofile:
         soft: 1024
         hard: 524288
+    networks:
+      - spiri-mu-net
+
+networks:
+  spiri-mu-net:
+    driver: bridge

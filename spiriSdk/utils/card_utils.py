@@ -180,7 +180,7 @@ class RobotContainer:
                             
                     ui.label(f'Robot IP: {daemons[robotName].get_ip()}')
                         
-                    # Display the robot's web interface if applicable
+                    # Link to the robot's web interface if applicable
                     if str.join("-", robotName.split("-")[:1]) == "spiri_mu":
                         url = f'http://{daemons[robotName].get_ip()}:{80}'
                         ui.link(f'Access the Web Interface at: {url}', url, new_tab=True).classes('text-sm text-gray-200 py-3')

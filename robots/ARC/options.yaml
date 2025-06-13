@@ -11,19 +11,3 @@ x-spiri-options:
     precision: 0
     step: 1
     value: 1
-  GCS_PORT:
-    help-text: Port to be used by the GCS
-    type: int
-    value: 14555
-  SERIAL0_PORT:
-    help-text: Port to be used by the serial device
-    type: int
-    value: 5760
-  SITL_PORT:
-    help-text: Port to be used by the SITL
-    type: int
-    value: 5510
-  INSTANCE:
-    help-text: If the robot should be instanced - required for Gazebo
-    type: int
-    value: 0

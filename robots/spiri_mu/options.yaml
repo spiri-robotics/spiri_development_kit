@@ -3,7 +3,7 @@ x-spiri-options:
     help-text: The robot's custom name
     type: text
     value: Enby
-  DRONE_SYS_ID:
+  MAVLINK_SYS_ID:
     help-text: The robot's system ID - each robot must have a unique ID!
     type: int
     max: 255
@@ -11,30 +11,3 @@ x-spiri-options:
     precision: 0
     step: 1
     value: 1
-  ARDUPILOT_VEHICLE:
-    help-text: ArduPilot vehicle type
-    type: dropdown
-    options: [
-      ArduCopter,
-      ArduPlane,
-      ArduSub,
-      Blimp,
-      Rover
-    ]
-    value: ArduCopter
-  MAVROS2_PORT:
-    help-text: Port to be used by the MAVROS2 bridge
-    type: int
-    value: 14552
-  GCS_PORT:
-    help-text: Port to be used by the GCS
-    type: int
-    value: 14550
-  SERIAL0_PORT:
-    help-text: Port to be used by the serial device
-    type: int
-    value: 5760
-  SITL_PORT:
-    help-text: Port to be used by the SITL
-    type: int
-    value: 5510
