@@ -5,6 +5,7 @@ from spiriSdk.ui.styles import styles
 ENV_FILE_PATH = Path('.env')
 
 auth_registries = []
+registries = []
 
 def read_env():
     """Parse .env file into a dictionary, stripping quotation marks."""
@@ -25,6 +26,12 @@ def write_env(env_dict):
 
 @ui.page('/settings')
 async def settings():
+    ui.label("Settings").classes('text-6xl')
+    ui.separator()
+    
+    global auth_registries, registries
+    auth_registries = []
+    registries = []
     await header()
     await styles()
     env_data = read_env()
@@ -33,32 +40,8 @@ async def settings():
     ui.label("Edit the list of sites that require authentication here")
     ui.separator()
 
-    ### --- REGISTRIES SECTION ---
-    ui.label("Docker Registries (REGISTRIES)").classes('text-xl mt-4')
     registries = env_data.get("REGISTRIES", "").split(",") if env_data.get("REGISTRIES") else []
     registries = [r.strip() for r in registries if r.strip()]
-    registry_list = ui.column()
-
-    def refresh_registry_ui():
-        registry_list.clear()
-        for registry in registries:
-            with registry_list:
-                with ui.row():
-                    ui.label(registry)
-                    ui.button("", icon='delete', on_click=lambda r=registry: delete_registry(r), color='secondary')
-
-    def delete_registry(registry):
-        registries.remove(registry)
-        update_env()
-        refresh_registry_ui()
-
-    def add_registry():
-        new_reg = new_registry_input.value.strip()
-        if new_reg and new_reg not in registries:
-            registries.append(new_reg)
-            update_env()
-            refresh_registry_ui()
-            new_registry_input.value = ""
 
     def update_env():
         env_data["REGISTRIES"] = ",".join(registries)
@@ -68,13 +51,7 @@ async def settings():
         write_env(env_data)
         ui.notify("✅ Environment file updated")
 
-    refresh_registry_ui()
-    with ui.row().classes("mt-2"):
-        new_registry_input = ui.input(label="Add Registry")
-        ui.button("Add", on_click=add_registry, color='secondary')
-
     ### --- AUTH_REGISTRIES SECTION ---
-    ui.separator()
     ui.label("Authenticated Registries (AUTH_REGISTRIES)").classes('text-xl mt-6')
 
     auth_registries_raw = env_data.get("AUTH_REGISTRIES", "")
@@ -97,7 +74,9 @@ async def settings():
 
     def delete_auth(host, user):
         global auth_registries
+        global registries
         auth_registries = [entry for entry in auth_registries if not (entry[0] == host and entry[1] == user)]
+        registries = [r for r in registries if r != host]
         update_env()
         refresh_auth_ui()
 
@@ -107,6 +86,7 @@ async def settings():
         token = token_input.value.strip()
         if host and user and token and [host, user, token] not in auth_registries:
             auth_registries.append([host, user, token])
+            registries.append(host)
             update_env()
             refresh_auth_ui()
             host_input.value = ""
