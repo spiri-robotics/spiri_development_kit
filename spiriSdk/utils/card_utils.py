@@ -1,11 +1,12 @@
 import os, asyncio, httpx
 from nicegui import ui
 from spiriSdk.utils.daemon_utils import daemons, stop_container, start_container, restart_container, display_daemon_status, DaemonEvent
-from spiriSdk.utils.new_robot_utils import delete_robot, save_robot_config, inputChecker
+from spiriSdk.utils.new_robot_utils import delete_robot, save_robot_config
 from spiriSdk.pages.tools import tools, gz_world
 from spiriSdk.utils.gazebo_utils import get_running_worlds, is_robot_alive
 from spiriSdk.pages.new_robots import new_robots
 from spiriSdk.ui.ToggleButton import ToggleButton
+from spiriSdk.utils.InputChecker import InputChecker
 
 async def is_service_ready(url: str, timeout: float = 0.5) -> bool:
     try:
@@ -23,7 +24,7 @@ def copy_text(command):
     
 async def addRobot():
     with ui.dialog() as d, ui.card(align_items='stretch').classes('w-full'):
-        checker = inputChecker()
+        checker = InputChecker()
         await new_robots(checker)
 
         async def submit(button):
