@@ -168,9 +168,7 @@ class RobotContainer:
                                 else:
                                     ui.notify('error deleting robot')
 
-                            with ui.dropdown_button(icon='settings', color='secondary').classes('text-base') as drop:
-                                ui.item('Edit', on_click=lambda n=robotName, d=drop: editRobot(n, d))
-                                ui.item('Delete', on_click=lambda n=robotName: delete(n))
+                            ui.button(icon='delete', on_click=lambda n=robotName: delete(n), color='secondary').classes('text-base') 
 
                     # Display the robot's Docker services command            
                     with ui.row(align_items="start").classes('w-full'):

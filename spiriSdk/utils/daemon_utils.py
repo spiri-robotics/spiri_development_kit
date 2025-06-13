@@ -101,11 +101,6 @@ async def start_services(robot_name: str):
     except Exception as e:
         return f"Error starting services for {robot_name}: {str(e)}"
 
-async def on_shutdown():
-    for daemon in daemons.values():
-        await run.io_bound(daemon.cleanup)
-    daemons.clear()
-
 async def start_container(robot_name: str):
     print(f"Starting container for {robot_name}...")
     await run.io_bound(daemons[robot_name].ensure_started)
