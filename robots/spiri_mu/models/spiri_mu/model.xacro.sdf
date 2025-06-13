@@ -382,7 +382,7 @@
     <plugin name="ArduPilotPlugin"
       filename="ArduPilotPlugin">
       <!-- Port settings -->
-      <fdm_addr>0.0.0.0</fdm_addr>
+      <fdm_addr>$(arg drone_ip)</fdm_addr>
       <fdm_port_in>$(arg fdm_port_in)</fdm_port_in>
       <connectionTimeoutMaxCount>5</connectionTimeoutMaxCount>
       <lock_step>1</lock_step>
