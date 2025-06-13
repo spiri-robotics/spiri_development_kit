@@ -77,11 +77,24 @@ class RobotContainer:
             for robotName in names:
 
                 ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+                DATA_DIR = os.path.join(ROOT_DIR, 'data')
+                config_file = os.path.join(DATA_DIR, robotName, 'config.env')
+                alias = robotName
+                with open(config_file) as f:
+                    for line in f:
+                        if 'ALIAS' in line:
+                            alias = line.split('=', 1)
+                            alias = alias[1].strip()
+                            break
 
                 with ui.card().classes('w-full'):
                     with ui.row(align_items='stretch').classes('w-full'):
                         with ui.card_section():
-                            ui.label(f'{robotName}').classes('mb-5 text-lg font-semibold text-gray-900 dark:text-gray-100')
+                            if alias == robotName or alias == robotName:
+                                ui.label(f'{robotName}').classes('mb-5 text-lg font-semibold text-gray-900 dark:text-gray-100')
+                            else:
+                                ui.label(f'{alias}').classes('text-lg font-semibold text-gray-900 dark:text-gray-100')
+                                ui.label(f'{robotName}').classes('mb-5 text-base font-normal text-gray-900 dark:text-gray-100')
                             label_status = ui.label('Status: Loading...').classes('text-sm text-gray-600 dark:text-gray-300')
 
                             async def update_status(name, label):
@@ -162,11 +175,11 @@ class RobotContainer:
                             ui.label(f'Robot IP: {daemons[robotName].get_ip()}')
                             
                             # Link to the robot's web interface if applicable
-                            if "spiri_mu" in str.join("-", robotName.split("-")[:1]):
+                            if "spiri_mu" in str.join("_", robotName.split("_")[:1]):
                                 url = f'http://{daemons[robotName].get_ip()}:{80}'
                                 ui.link(f'Access the Web Interface at: {url}', url, new_tab=True).classes('text-sm dark:text-gray-200 py-3')
                                         
-                            if str.join("-", robotName.split("-")[:1]) == "ARC":
+                            if str.join("_", robotName.split("_")[:1]) == "ARC":
                                 url = f'http://{daemons[robotName].get_ip()}:{80}'
                                 ui.link(f'Access the Web Interface at: {url}', url, new_tab=True).classes('text-sm dark:text-gray-200 py-3')
                                 

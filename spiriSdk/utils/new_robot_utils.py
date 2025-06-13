@@ -62,7 +62,7 @@ async def save_robot_config(robot_type, selected_options):
         robot_id = selected_options.get('CAR_SYS_ID', uuid.uuid4().hex[:6])
     else:   
         robot_id = selected_options.get('MAVLINK_SYS_ID', uuid.uuid4().hex[:6])
-    folder_name = f"{robot_type}-{robot_id}"
+    folder_name = f"{robot_type}_{robot_id}"
     folder_path = os.path.join(ROOT_DIR, "data", folder_name)
 
     os.makedirs(folder_path, exist_ok=True)
@@ -70,7 +70,12 @@ async def save_robot_config(robot_type, selected_options):
     config_path = os.path.join(folder_path, "config.env")
     with open(config_path, "w") as f:
         for key, value in selected_options.items():
-            f.write(f"{key}={value}\n")
+            if 'NAME' in key:
+                f.write(f'{key}={folder_name}\n')
+                if value:
+                    f.write(f'ALIAS={value}\n')
+            else:
+                f.write(f"{key}={value}\n")
         f.write('HOST_IP=172.17.0.1\n')
 
     new_daemon = DockerInDocker(image_name="docker:dind", container_name=folder_name)
@@ -89,7 +94,7 @@ async def delete_robot(robot_name) -> bool:
     daemon = daemons.pop(robot_name)
     await DaemonEvent.notify()
     daemon.cleanup()
-    robot_sys = str(robot_name).rsplit('-', 1)
+    robot_sys = str(robot_name).rsplit('_', 1)
     active_sys_ids.remove(int(robot_sys[1]))
     if os.path.exists(robot_path):
         shutil.rmtree(robot_path)
@@ -218,24 +223,15 @@ def display_robot_options(robot_name, selected_options, options_container, check
             else:
                 def handleText(e: ui.input, k):
                     selected_options.update({k: e.value})
-                    checker.checkText(e)
 
                 if 'NAME' in key:
                     textVal = ''
                 else:
                     textVal = current_value
                     
-                textInput = ui.input(
+                ui.input(
                     label=f'{formatted_key}*', 
                     value=textVal, 
                     placeholder=current_value, 
-                    on_change=lambda e, k=key: handleText(e.sender, k),
-                    validation={
-                        'Field cannot be empty': lambda value: len(value) > 0
-                    }
+                    on_change=lambda e, k=key: handleText(e.sender, k)
                 ).classes('w-full pb-1')
-
-                if 'NAME' in key:
-                    checker.add(textInput, False)
-                else:
-                    checker.add(textInput, True)
