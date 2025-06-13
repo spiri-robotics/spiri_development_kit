@@ -10,6 +10,7 @@ container = None
 async def home():
     await styles()
     await header()
+    ui.notify("Welcome to Spiri SDK!")
     
     destination = ui.card().classes('w-full p-0 shadow-none dark:bg-[#212428]')
     global container
