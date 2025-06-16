@@ -1,5 +1,6 @@
 from nicegui import ui
 from datetime import datetime
+from spiriSdk.utils.settings_utils import dark, on
 import subprocess
 
 def get_battery_status():
@@ -90,7 +91,8 @@ def wifi_icon(signal):
         return 'network_wifi_1_bar'
     else:
         return "signal_wifi_off"
-
+    
+on = True  # Default dark mode state
 
 async def header():
     with ui.header().classes('items-center'):
@@ -99,6 +101,28 @@ async def header():
             ui.button('', icon='settings', on_click=lambda: ui.navigate.to('/settings'), color='secondary').classes('text-base')
 
         ui.space()
+
+        dark = ui.dark_mode()
+        dark.value = on
+
+        def toggle_dark():
+            global on
+            dark.value = not dark.value
+            on = dark.value
+            dark_btn.props('icon="dark_mode"' if dark.value else 'icon="light_mode"')
+
+        # Button with dynamic icon
+        dark_btn = ui.button(
+            '', 
+            icon='dark_mode' if dark.value else 'light_mode', 
+            on_click=toggle_dark, 
+            color='secondary'
+        ).classes('text-2xl text-secondary')
+
+        # Update icon when dark mode changes
+        def update_icon():
+            dark_btn.props('icon="dark_mode"' if dark.value else 'icon="light_mode"')
+        dark.bind_value(update_icon)
 
         @ui.refreshable
         def clock():

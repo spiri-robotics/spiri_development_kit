@@ -1,5 +1,6 @@
 from nicegui import ui
 from spiriSdk.pages import home, settings
+from spiriSdk.utils.settings_utils import dark
 from spiriSdk.utils.daemon_utils import init_daemons
 from spiriSdk.utils.new_robot_utils import ensure_options_yaml
 from nicegui import app, ui

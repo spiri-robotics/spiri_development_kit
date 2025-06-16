@@ -2,7 +2,7 @@ from nicegui import ui
 from spiriSdk.pages.header import header
 from pathlib import Path
 from spiriSdk.ui.styles import styles
-from spiriSdk.utils.settings_utils import get_dark_mode
+from spiriSdk.utils.settings_utils import dark
 ENV_FILE_PATH = Path('.env')
 
 auth_registries = []
@@ -28,14 +28,6 @@ def write_env(env_dict):
 @ui.page('/settings')
 async def settings():
     ui.label("Settings").classes('text-6xl')
-    ui.separator()
-
-    with ui.row().classes('items-center'):
-        ui.icon('dark_mode')
-        dark = get_dark_mode()  # Call here, after app is initialized
-        dark_switch = ui.switch('Dark mode')
-        dark_switch.bind_value_to(dark, 'value')
-
     ui.separator()
     
     global auth_registries, registries
