@@ -55,6 +55,22 @@ async def settings():
     ### --- AUTH_REGISTRIES SECTION ---
     ui.label("Authenticated Registries (AUTH_REGISTRIES)").classes('text-xl mt-6')
 
+    with ui.card().classes('w-full p-4 bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100'):
+        with ui.row().classes('items-center mb-2'):
+            ui.icon('info', size='24px').classes('text-blue-500')
+            ui.label("How to authenticate with the Spiri Gitea repository:").classes('font-bold text-lg')
+        ui.markdown(
+            """
+    - **hostname:** `git.spirirobotics.com`
+    - **username:** *Your Gitea username*
+    - **token:**  
+    1. Go to your Gitea profile picture → **Settings** → **Applications**
+    2. Name a token and give it **read** permissions for both packages and repos
+    3. Click **Generate Token** and copy the resulting token printed at the top of the page
+    4. You have acquired your Gitea access token!
+            """
+        ).classes('text-base')
+
     auth_registries_raw = env_data.get("AUTH_REGISTRIES", "")
     for entry in auth_registries_raw.split(","):
         parts = entry.strip().split(":")

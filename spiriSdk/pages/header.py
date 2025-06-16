@@ -46,6 +46,7 @@ def battery_icon(percent, charging):
     percent = int(percent.replace("%", "")) if percent != "Unknown" else 0
 
     if charging:
+        print('charging')
         if percent > 95:
             return "battery_charging_full"
         elif percent >= 85:
@@ -60,7 +61,10 @@ def battery_icon(percent, charging):
             return "battery_charging_30"
         elif percent > 0:
             return "battery_charging_20"
+        else:
+            return "battery_alert"
     else:
+        print('not charging')
         if percent > 95:
             return "battery_full"
         elif percent >= 85:
@@ -90,7 +94,8 @@ def wifi_icon(signal):
         return 'network_wifi_1_bar'
     else:
         return "signal_wifi_off"
-
+    
+on = True  # Default dark mode state
 
 async def header():
     with ui.header().classes('items-center'):
@@ -100,10 +105,32 @@ async def header():
 
         ui.space()
 
+        dark = ui.dark_mode()
+        dark.value = on
+
+        def toggle_dark():
+            global on
+            dark.value = not dark.value
+            on = dark.value
+            dark_btn.props('icon="dark_mode"' if dark.value else 'icon="light_mode"')
+
+        # Button with dynamic icon
+        dark_btn = ui.button(
+            '', 
+            icon='dark_mode' if dark.value else 'light_mode', 
+            on_click=toggle_dark, 
+            color='secondary'
+        )
+
+        # Update icon when dark mode changes
+        def update_icon():
+            dark_btn.props('icon="dark_mode"' if dark.value else 'icon="light_mode"')
+        dark.bind_value(update_icon)
+
         @ui.refreshable
         def clock():
             dateTime = datetime.astimezone(datetime.now())
-            ui.label(dateTime.strftime('%A %B %m %Y')).classes('text-xl text-secondary')
+            ui.label(dateTime.strftime('%A %B %d %Y')).classes('text-xl text-secondary')
             ui.label(dateTime.strftime('%X %Z')).classes('text-xl text-secondary')
 
         ui.timer(1.0, clock.refresh)
