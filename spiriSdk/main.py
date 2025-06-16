@@ -17,7 +17,7 @@ app.on_startup(on_startup)
 #Work-around for https://github.com/encode/uvicorn/discussions/1833 in uvicorns reload implementation
 os.chdir(str(Path(__file__).parent.resolve()))
 
-ui.run(title='Spiri SDK', 
+ui.run(title='Spiri SDK',
         favicon=favicon,
         dark=None,
         port=8197,
