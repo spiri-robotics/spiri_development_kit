@@ -104,9 +104,8 @@ class Model:
         self.name = name
         self.path = MODEL_PATHS.get(type)
         self.position = position
-        self.sitl_port = '5501'
+        self.sitl_port = '9002'
         self.ip = ip
-
         self.get_model_sitl_port()
 
         if self.position == None:
@@ -116,14 +115,15 @@ class Model:
 
     def get_model_sitl_port(self) -> None:
         config_path = Path(f'/data/{self.name}/config.env')
-        if config_path.exists():
-            with open(config_path) as f:
-                for line in f:
-                    if line.startswith('SITL_PORT='):
-                        self.sitl_port =line.strip().split('=', 1)[1]
+        with open(config_path) as f:
+            for line in f:
+                if line.startswith('SITL_PORT='):
+                    self.sitl_port =line.strip().split('=', 1)[1]
 
     async def launch_model(self) -> None:
         """Launch the model in the Gazebo simulator."""
+        print("adding model")
+        print(self.path)
         XACRO_CMD = [
             "xacro",
             f"fdm_port_in:={self.sitl_port}",

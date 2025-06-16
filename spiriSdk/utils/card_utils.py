@@ -114,6 +114,7 @@ class RobotContainer:
                             
                             async def add_to_world(robot=robotName):
                                 ip = daemons[robotName].get_ip()
+                                # ip = '0.0.0.0'
                                 robotType = str(robot).split('-')[0]
                                 await gz_world.prep_bot(robot, robotType, ip)
                                 ui.notify(f'Added {robot} to world')

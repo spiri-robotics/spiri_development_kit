@@ -6,6 +6,7 @@
     <xacro:arg name="sim_drone_count" default="0"/>
     <xacro:arg name="drone_ip" default="0.0.0.0"/>
 
+
     <include>
       <uri>model://robots/spiri_mu/models/spiri_mu_base</uri>
     </include>
