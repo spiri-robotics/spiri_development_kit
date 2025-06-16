@@ -14,6 +14,10 @@ async def on_startup():
 
 app.on_startup(on_startup)
 
+#If SDK_ROOT is not set, use the current directory
+if 'SDK_ROOT' not in os.environ:
+    os.environ['SDK_ROOT'] = str(Path(__file__).parent.resolve())
+
 #Work-around for https://github.com/encode/uvicorn/discussions/1833 in uvicorns reload implementation
 os.chdir(str(Path(__file__).parent.resolve()))
 
