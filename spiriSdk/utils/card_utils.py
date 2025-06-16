@@ -89,97 +89,58 @@ class RobotContainer:
                                 alias = alias[1].strip()
                                 break
 
-                    # with ui.card().classes('w-full'):
-                    #     with ui.row(align_items='stretch').classes('w-full'):
-                            # with ui.card_section():
-                                # if alias == robotName or alias == robotName:
-                                #     ui.label(f'{robotName}').classes('mb-5 text-lg font-semibold text-gray-900 dark:text-gray-100')
-                                # else:
-                                #     ui.label(f'{alias}').classes('text-lg font-semibold text-gray-900 dark:text-gray-100')
-                                #     ui.label(f'{robotName}').classes('mb-5 text-base font-normal text-gray-900 dark:text-gray-100')
-                                # label_status = ui.label('Status: Loading...').classes('text-sm text-gray-600 dark:text-gray-300')
+                    async def update_status(name, label: ui.label):
+                        status = await display_daemon_status(name)
+                        label.text = f'{status}'
+                        if status == 'Running':
+                            label.classes('text-[#4eb04c]')
+                        elif status == 'Stopped':
+                            label.classes('text-[#d43131]')
 
-                                # async def update_status(name, label: ui.label):
-                                #     status = await display_daemon_status(name)
-                                #     label.text = f'{status}'
-                                #     if status == 'Running':
-                                #         label.classes('text-[#4eb04c]')
-                                #     elif status == 'Stopped':
-                                #         label.classes('text-[#d43131]')
+                    def start_polling(name, label):
+                        async def polling_loop():
+                            while True:
+                                await update_status(name, label)
+                                if not is_robot_alive(robotName):
+                                    if gz_toggle:
+                                        gz_toggle._state = True
+                                        gz_toggle.update()
+                                if await get_running_worlds() == []:
+                                    gz_world.models = {}
+                                await asyncio.sleep(5)
+                        asyncio.create_task(polling_loop())
 
-                                # # Initial status
-                                # await update_status(robotName, label_status)
+                    async def add_to_world(robot=robotName):
+                        # ip = daemons[robotName].get_ip()
+                        robotType = str(robot).rsplit('_', 1)[0]
+                        await gz_world.prep_bot(robot, robotType)
+                        ui.notify(f'Added {robot} to world')
 
-                                # # Periodic update
-                                # def start_polling(name, label):
-                                #     async def polling_loop():
-                                #         while True:
-                                #             await update_status(name, label)
-                                #             if not is_robot_alive(robotName):
-                                #                 if gz_toggle:
-                                #                     gz_toggle._state = True
-                                #                     gz_toggle.update()
-                                #             if await get_running_worlds() == []:
-                                #                 gz_world.models = {}
-                                #             await asyncio.sleep(5)
-                                #     asyncio.create_task(polling_loop())
+                    async def remove_from_world(robot=robotName):
+                        robot = gz_world.models[robot].kill_model()
 
-                                # start_polling(robotName, label_status)
-                            # # ui.space()
-                            # with ui.card_actions():
-                                
-                            #     async def add_to_world(robot=robotName):
-                            #         # ip = daemons[robotName].get_ip()
-                            #         robotType = str(robot).split('-')[0]
-                            #         await gz_world.prep_bot(robot, robotType)
-                            #         ui.notify(f'Added {robot} to world')
+                    async def delete(n):
+                        notif = ui.notification(timeout=False)
+                        for i in range(1):
+                            notif.message = 'Deleting...'
+                            notif.spinner=True
+                            await asyncio.sleep(0.1)
 
-                            #     async def remove_from_world(robot=robotName):
-                            #         robot = gz_world.models[robot].kill_model()
-                                    
-                            #     gz_toggle = ToggleButton(on_label="add to gz sim", off_label="remove from gz sim", on_switch=add_to_world, off_switch=remove_from_world).classes('m-1 mr-10 text-base')
-
-                            #     async def delete(n):
-                            #         notif = ui.notification(timeout=False)
-                            #         for i in range(1):
-                            #             notif.message = 'Deleting...'
-                            #             notif.spinner=True
-                            #             await asyncio.sleep(0.1)
-
-                            #         if await delete_robot(n):
-                            #             notif.message = f'{n} deleted'
-                            #             notif.type = 'positive'
-                            #         else:
-                            #             notif.message = 'error deleting robot'
-                            #             notif.type = 'negative'
-                                    
-                            #         notif.spinner = False
-                            #         await asyncio.sleep(4)
-                            #         notif.dismiss()
-
-                            #     ui.button(icon='delete', on_click=lambda n=robotName: delete(n), color='secondary').classes('text-base')
-
-                        # Display the robot's Docker services command            
-                        # with ui.card_section():
-                        #     with ui.column():
-                                # command = f"DOCKER_HOST=unix:///tmp/dind-sockets/spirisdk_{robotName}.socket"
-                                # ui.code(command, language='bash').classes('text-sm text-gray-600 dark:text-gray-200 mb-4')
-                                # ui.label(f'Robot IP: {daemons[robotName].get_ip()}')
-                                
-                                # Link to the robot's web interface if applicable
-                                # if "spiri_mu" in robotName:
-                                #     url = f'http://{daemons[robotName].get_ip()}:{80}'
-                                #     ui.link(f'Access the Web Interface at: {url}', url, new_tab=True).classes('text-sm dark:text-gray-200 py-3')
-                                            
-                                # if "ARC" in robotName:
-                                #     url = f'http://{daemons[robotName].get_ip()}:{80}'
-                                #     ui.link(f'Access the Web Interface at: {url}', url, new_tab=True).classes('text-sm dark:text-gray-200 py-3')
+                        if await delete_robot(n):
+                            notif.message = f'{n} deleted'
+                            notif.type = 'positive'
+                        else:
+                            notif.message = 'Error deleting robot'
+                            notif.type = 'negative'
+                        
+                        notif.spinner = False
+                        await asyncio.sleep(4)
+                        notif.dismiss()
 
                     with ui.card().classes('p-[calc(var(--nicegui-default-padding)*1.2)]'):
 
                         # Names and status
                         with ui.row(align_items='start').classes('w-full mb-2'):
-                            
                             with ui.card_section().classes('p-0'):
                                 if alias == robotName or alias == robotName:
                                     ui.label(f'{robotName}').classes('text-xl font-semibold text-gray-900 dark:text-gray-100')
@@ -192,96 +153,34 @@ class RobotContainer:
                             with ui.card_section().classes('p-0'):
                                 label_status = ui.label('Status Loading...').classes('text-base font-semibold')
 
-                                async def update_status(name, label: ui.label):
-                                    status = await display_daemon_status(name)
-                                    label.text = f'{status}'
-                                    if status == 'Running':
-                                        label.classes('text-[#4eb04c]')
-                                    elif status == 'Stopped':
-                                        label.classes('text-[#d43131]')
-
                                 # Initial status
                                 await update_status(robotName, label_status)
-
-                                # Periodic update
-                                def start_polling(name, label):
-                                    async def polling_loop():
-                                        while True:
-                                            await update_status(name, label)
-                                            if not is_robot_alive(robotName):
-                                                if gz_toggle:
-                                                    gz_toggle._state = True
-                                                    gz_toggle.update()
-                                            if await get_running_worlds() == []:
-                                                gz_world.models = {}
-                                            await asyncio.sleep(5)
-                                    asyncio.create_task(polling_loop())
 
                                 start_polling(robotName, label_status)
 
                         # Docker host
                         with ui.card_section().classes('w-full p-0 mb-2'):
                             with ui.row():
-                                def copy(comm):
-                                    ui.clipboard.write(comm)
-                                    ui.notify('Copied!')
                                 command = f"DOCKER_HOST=unix:///tmp/dind-sockets/spirisdk_{robotName}.socket"
                                 ui.code(command, language='bash').classes('text-sm text-gray-600 dark:text-gray-200')
-                                # ui.space()
-                                # ui.button('Copy', color='secondary', on_click=lambda comm = command: copy(comm))
 
                         # IP and web interface link
                         with ui.card_section().classes('w-full p-0 mb-2'):
-                            # with ui.column():
-                                ui.label(f'IP: {daemons[robotName].get_ip()}').classes('text-base')
-                                # Link to the robot's web interface if applicable
-                                if "spiri_mu" in robotName:
-                                    url = f'http://{daemons[robotName].get_ip()}:{80}'
-                                    ui.link(f'Access the Web Interface', url, new_tab=True).classes('text-base')
-                                            
-                                if "ARC" in robotName:
-                                    url = f'http://{daemons[robotName].get_ip()}:{80}'
-                                    ui.link(f'Access the Web Interface at: {url}', url, new_tab=True).classes('text-sm dark:text-gray-200 py-3')
+                            ui.label(f'IP: {daemons[robotName].get_ip()}').classes('text-base')
+
+                            # Link to the robot's web interface if applicable
+                            if "spiri_mu" in robotName:
+                                url = f'http://{daemons[robotName].get_ip()}:{80}'
+                                ui.link(f'Access the Web Interface', url, new_tab=True).classes('text-base')
+                                        
+                            if "ARC" in robotName:
+                                url = f'http://{daemons[robotName].get_ip()}:{80}'
+                                ui.link(f'Access the Web Interface at: {url}', url, new_tab=True).classes('text-sm dark:text-gray-200 py-3')
 
                         # Actions
                         with ui.card_section().classes('w-full p-0 mt-auto'):
                             with ui.row(align_items='end'):
-                                async def add_to_world(robot=robotName):
-                                    # ip = daemons[robotName].get_ip()
-                                    robotType = str(robot).split('-')[0]
-                                    await gz_world.prep_bot(robot, robotType)
-                                    ui.notify(f'Added {robot} to world')
-
-                                async def remove_from_world(robot=robotName):
-                                    robot = gz_world.models[robot].kill_model()
-
-                                async def delete(n):
-                                    notif = ui.notification(timeout=False)
-                                    for i in range(1):
-                                        notif.message = 'Deleting...'
-                                        notif.spinner=True
-                                        await asyncio.sleep(0.1)
-
-                                    if await delete_robot(n):
-                                        notif.message = f'{n} deleted'
-                                        notif.type = 'positive'
-                                    else:
-                                        notif.message = 'error deleting robot'
-                                        notif.type = 'negative'
-                                    
-                                    notif.spinner = False
-                                    await asyncio.sleep(4)
-                                    notif.dismiss()
 
                                 gz_toggle = ToggleButton(on_label="add to gz sim", off_label="remove from gz sim", on_switch=add_to_world, off_switch=remove_from_world).classes('text-base')
                                 ui.space()
                                 ui.button(icon='delete', on_click=lambda n=robotName: delete(n), color='warning').classes('text-base')
-                                
-    def show_loading(self) -> None:
-        if len(daemons) == 0:
-            pass
-        else:
-            with self.destination:
-                with ui.row(align_items='center').classes('w-full justify-center mt-[20vh]'):
-                    ui.spinner(size='40px')
-                    ui.label('Starting Containers...').classes('text-base')
