@@ -118,6 +118,7 @@ def display_robot_options(robot_name, selected_options, options_container, check
 
     format_rules = {
         'Arc': 'ARC',
+        'Mavlink': 'MAVLink',
         'Sys': 'System',
         'Id': 'ID',
         'Mavros': 'MAVROS',
@@ -193,8 +194,6 @@ def display_robot_options(robot_name, selected_options, options_container, check
                 ).classes('w-full pb-1')
                 
                 if 'SYS_ID' in key:
-                    numInput.props('hint="System ID cannot be changed once set"')
-                    numInput.classes('pb-4')
                     checker.add(numInput, False)
                 else:
                     checker.add(numInput, True)
