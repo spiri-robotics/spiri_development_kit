@@ -55,6 +55,7 @@ class RobotContainer:
     def __init__(self, destination) -> None:
         self.destination = destination
         DaemonEvent.subscribe(self.displayCards)
+        self.gz_toggles = {}
 
     def is_empty(self) -> bool:
         return len(list(self.destination.descendants())) == 0
@@ -95,10 +96,13 @@ class RobotContainer:
                                 async def polling_loop():
                                     while True:
                                         await update_status(name, label)
-                                        if not is_robot_alive(robotName):
-                                            if gz_toggle:
-                                                gz_toggle._state = True
-                                                gz_toggle.update()
+                                        toggle = self.gz_toggles.get(robotName)
+                                        if toggle:
+                                            if not is_robot_alive(robotName):
+                                                toggle._state = True
+                                            else:
+                                                toggle._state = False
+                                            toggle.update()
                                         if await get_running_worlds() == []:
                                             gz_world.models = {}
                                         await asyncio.sleep(5)
@@ -109,15 +113,22 @@ class RobotContainer:
                         with ui.card_actions():
                             
                             async def add_to_world(robot=robotName):
-                                # ip = daemons[robotName].get_ip()
+                                ip = daemons[robotName].get_ip()
                                 robotType = str(robot).split('-')[0]
-                                await gz_world.prep_bot(robot, robotType)
+                                await gz_world.prep_bot(robot, robotType, ip)
                                 ui.notify(f'Added {robot} to world')
 
                             async def remove_from_world(robot=robotName):
                                 robot = gz_world.models[robot].kill_model()
                                 
-                            gz_toggle = ToggleButton(on_label="add to gz sim", off_label="remove from gz sim", on_switch=add_to_world, off_switch=remove_from_world).classes('m-1 mr-10 text-base')
+                            toggle = ToggleButton(
+                                on_label="add to gz sim", 
+                                off_label="remove from gz sim", 
+                                on_switch=add_to_world, 
+                                off_switch=remove_from_world
+                            ).classes('m-1 mr-10 text-base')
+                            self.gz_toggles[robotName] = toggle
+
 
                             async def delete(n):
                                 notif = ui.notification(timeout=False)
