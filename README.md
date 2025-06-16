@@ -13,3 +13,8 @@ uv run python -m spiriSdk.main #Run the main code
 uv run pytest #Run tests
 docker compose up --build #Run in docker
 ```
+
+## Notes
+
+- To fix the big angry red error that will likely show up on startup, put the following line in the .env file in the root of your project, after "REGISTRIES=[...]" and "AUTH_REGISTRIES=[...]":
+    - WATCHFILES_IGNORE_PERMISSION_DENIED="True"
