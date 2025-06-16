@@ -34,7 +34,7 @@ async def init_daemons() -> dict:
             await run.io_bound(dind.ensure_started)
             await DaemonEvent.notify()
 
-            robot_sys = str(robot_name).rsplit('-', 1)
+            robot_sys = str(robot_name).rsplit('_', 1)
             active_sys_ids.append(int(robot_sys[1]))
     
     for robot_name in list(daemons.keys()):
@@ -58,7 +58,7 @@ async def start_services(robot_name: str):
         return f"Container {robot_name} is not running."
 
     try:
-        robot_type = "-".join(robot_name.split('-')[:-1])
+        robot_type = "_".join(robot_name.split('_')[:-1])
         services_dir = os.path.join(ROBOTS_DIR, robot_type, "services")
         print(f"Checking services in {services_dir} for {robot_name}...")
         if not os.path.exists(services_dir):
