@@ -1,6 +1,5 @@
 from nicegui import ui
 from spiriSdk.ui.styles import styles
-from spiriSdk.utils.settings_utils import dark
 from spiriSdk.pages.header import header
 from spiriSdk.utils.card_utils import RobotContainer
 from spiriSdk.utils.daemon_utils import DaemonEvent

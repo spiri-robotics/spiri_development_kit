@@ -1,6 +1,5 @@
 from nicegui import ui
 from datetime import datetime
-from spiriSdk.utils.settings_utils import dark, on
 import subprocess
 
 def get_battery_status():
