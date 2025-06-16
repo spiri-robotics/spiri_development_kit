@@ -120,7 +120,7 @@ async def header():
             icon='dark_mode' if dark.value else 'light_mode', 
             on_click=toggle_dark, 
             color='secondary'
-        ).classes('text-2xl text-secondary')
+        )
 
         # Update icon when dark mode changes
         def update_icon():

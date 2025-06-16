@@ -13,4 +13,4 @@ async def on_startup():
 
 app.on_startup(on_startup)
 
-ui.run(title='Spiri SDK', favicon=favicon, reload=True, dark=None, port=8197, show=True)
+ui.run(title='Spiri SDK', favicon=favicon, reload=True, port=8197, show=True)
