@@ -105,10 +105,11 @@ async def display_daemon_status(robot_name):
     try:
         container = daemons[robot_name].container
         if container is None:
-            return 'not created or removed'
+            return 'Not created or removed'
         container.reload()
-        return container.status
+        status = str(container.status)
+        return status.title()
     except docker.errors.NotFound:
-        return 'stopped'
+        return 'Stopped'
     except Exception as e:
-        return f'error: {str(e)}'
+        return f'Error: {str(e)}'
