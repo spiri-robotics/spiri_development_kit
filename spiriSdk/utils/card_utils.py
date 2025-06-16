@@ -1,5 +1,5 @@
 import os, asyncio, httpx
-from nicegui import ui
+from nicegui import ui, Client
 from spiriSdk.utils.daemon_utils import daemons, display_daemon_status, DaemonEvent
 from spiriSdk.utils.new_robot_utils import delete_robot, save_robot_config
 from spiriSdk.pages.tools import tools, gz_world
@@ -53,8 +53,9 @@ async def addRobot():
 
 class RobotContainer:
 
-    def __init__(self, destination) -> None:
+    def __init__(self, destination, client: Client) -> None:
         self.destination = destination
+        self.client = client
         DaemonEvent.subscribe(self.displayCards)
 
     def is_empty(self) -> bool:
@@ -70,9 +71,14 @@ class RobotContainer:
 
     async def displayCards(self) -> None:
         names = daemons.keys()
-        self.destination.clear()
+        if len(names) > 0:
+            n = ui.notification(timeout = 8)
+            n.message = 'Loading robots...'
+            n.spinner = True
+        if self.client.has_socket_connection:
+            self.destination.clear()
         with self.destination:
-            await self.displayButtons()
+            # await self.displayButtons()
 
             for robotName in names:
 
@@ -161,11 +167,11 @@ class RobotContainer:
                             ui.label(f'Robot IP: {daemons[robotName].get_ip()}')
                             
                             # Link to the robot's web interface if applicable
-                            if "spiri_mu" in str.join("_", robotName.split("_")[:1]):
+                            if "spiri_mu" in robotName:
                                 url = f'http://{daemons[robotName].get_ip()}:{80}'
                                 ui.link(f'Access the Web Interface at: {url}', url, new_tab=True).classes('text-sm dark:text-gray-200 py-3')
                                         
-                            if str.join("_", robotName.split("_")[:1]) == "ARC":
+                            if 'ARC' in robotName:
                                 url = f'http://{daemons[robotName].get_ip()}:{80}'
                                 ui.link(f'Access the Web Interface at: {url}', url, new_tab=True).classes('text-sm dark:text-gray-200 py-3')
                                 
