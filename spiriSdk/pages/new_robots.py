@@ -6,7 +6,6 @@ from spiriSdk.utils.InputChecker import InputChecker
 robots = ensure_options_yaml()
 selected_options = {}
 selected_robot = None
-# selected_additions = []
 
 options_container = None
 
@@ -16,10 +15,8 @@ def on_select(e: ui.select, checker: InputChecker):
     robot_name = str(e.value)
     global selected_robot
     selected_robot = robot_name
-    # selected_additions.clear()
     selected_options.clear()
     options_container.clear()
-    # selected_additions.append(robot_name)
     display_robot_options(robot_name, selected_options, options_container, checker)
     return selected_robot
 

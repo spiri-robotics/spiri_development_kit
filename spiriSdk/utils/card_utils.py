@@ -1,6 +1,6 @@
 import os, asyncio, httpx
 from nicegui import ui
-from spiriSdk.utils.daemon_utils import daemons, stop_container, start_container, restart_container, display_daemon_status, DaemonEvent
+from spiriSdk.utils.daemon_utils import daemons, display_daemon_status, DaemonEvent
 from spiriSdk.utils.new_robot_utils import delete_robot, save_robot_config
 from spiriSdk.pages.tools import tools, gz_world
 from spiriSdk.utils.gazebo_utils import get_running_worlds, is_robot_alive
@@ -120,16 +120,7 @@ class RobotContainer:
 
                             start_polling(robotName, label_status)
                         ui.space()
-                        with ui.card_actions().classes('p-[16px]'):
-                            def make_stop(robot=robotName):
-                                message = stop_container(robot)
-                                ui.notify(message)
-
-                            async def make_start(robot=robotName):
-                                await start_container(robot)
-
-                            async def make_restart(robot=robotName):
-                                await restart_container(robot)
+                        with ui.card_actions():
                             
                             async def add_to_world(robot=robotName):
                                 # ip = daemons[robotName].get_ip()
@@ -140,11 +131,6 @@ class RobotContainer:
                             async def remove_from_world(robot=robotName):
                                 robot = gz_world.models[robot].kill_model()
                                 
-                                                    
-                            ui.button('Start', on_click=make_start, icon='play_arrow', color='positive').classes('m-1 text-base')
-                            ui.button('Stop', on_click=make_stop, icon='stop', color='warning').classes('m-1 text-base')
-                            ui.button('Restart', on_click=make_restart, icon='refresh', color='secondary').classes('m-1 mr-10 text-base')
-
                             gz_toggle = ToggleButton(on_label="add to gz sim", off_label="remove from gz sim", on_switch=add_to_world, off_switch=remove_from_world).classes('m-1 mr-10 text-base')
 
                             async def delete(n):
