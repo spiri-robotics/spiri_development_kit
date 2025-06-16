@@ -31,9 +31,9 @@ async def home():
     auth_registries = env_data.get("AUTH_REGISTRIES", "").split(",") if env_data.get("AUTH_REGISTRIES") else []
 
     required_host = "git.spirirobotics.com"
-    required_auth = f"{required_host}:Aurora:bc1423e2fea3aa3e997028142b9844276be9ec28"
+    has_required_auth = any(entry.strip().startswith(f"{required_host}:") for entry in auth_registries)
 
-    if required_host not in registries or required_auth not in auth_registries:
+    if required_host not in registries or not has_required_auth:
         with ui.card().classes('w-full p-4 bg-red-100 dark:bg-red-800 text-red-900 dark:text-red-100'):
             ui.label("Warning: Required Spiri authentication entry is missing, please check the settings page.").classes('text-lg')
             
