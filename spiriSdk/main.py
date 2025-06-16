@@ -19,7 +19,6 @@ os.chdir(str(Path(__file__).parent.resolve()))
 
 ui.run(title='Spiri SDK',
         favicon=favicon,
-        dark=None,
         port=8197,
         show=True,
         #If 1833 gets resolves this will be a cleaner solution
