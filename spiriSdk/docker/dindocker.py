@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Optional, Dict, Any
 from loguru import logger
 from dataclasses import dataclass, field
-from spiriSdk.settings import CURRENT_PRIMARY_GROUP
+from spiriSdk.settings import CURRENT_PRIMARY_GROUP, SDK_ROOT
 
 
 def cleanup_docker_resources():
@@ -41,7 +41,7 @@ class Container:
     environment: Dict[str, str] = field(default_factory=dict)
     ports: Dict[str, Optional[int]] = field(default_factory=dict)
     ready_timeout: int = field(default=30)
-    sdk_root: Path = field(default_factory=lambda: Path(os.environ.get("SDK_ROOT", ".")).resolve())
+    sdk_root: Path = field(default_factory=lambda: SDK_ROOT)
     command: Optional[str] = field(default=None)
     entrypoint: Optional[str] = field(default=None)
 
@@ -49,7 +49,7 @@ class Container:
         """Register cleanup handler after initialization."""
         atexit.register(self.cleanup)
         # Ensure cache directory exists
-        cache_dir = Path(os.environ.get("SDK_ROOT", ".")) / "cache" / "certs"
+        cache_dir = SDK_ROOT / "cache" / "certs"
         cache_dir.mkdir(parents=True, exist_ok=True)
         # Ensure all volume paths are absolute
         self.volumes = {
@@ -248,8 +248,8 @@ class DockerRegistryProxy(Container):
     #(pwd)/docker_mirror_cache:/docker_mirror_cache
     volumes: Dict[str, Dict[str, str]] = field(
         default_factory=lambda: {
-            str(Path(os.environ.get("SDK_ROOT", ".")) / "cache" / "docker_images"): {"bind": "/docker_mirror_cache", "mode": "rw"},
-            str(Path(os.environ.get("SDK_ROOT", ".")) / "cache" / "cacert"): {"bind": "/ca", "mode": "rw"},
+            str(SDK_ROOT / "cache" / "docker_images"): {"bind": "/docker_mirror_cache", "mode": "rw"},
+            str(SDK_ROOT / "cache" / "cacert"): {"bind": "/ca", "mode": "rw"},
         }
     )
 
