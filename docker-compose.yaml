@@ -11,7 +11,7 @@ services:
       # Wayland socket
       #- ${XDG_RUNTIME_DIR}/wayland-0:${XDG_RUNTIME_DIR}/wayland-0
       # Access to GPU devices
-      - /dev/dri:/dev/dri      
+      - /dev/dri:/dev/dri
     ports:
       - "8198:8198"
     environment:

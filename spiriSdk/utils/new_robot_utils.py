@@ -3,77 +3,13 @@ from nicegui import ui, run
 from pathlib import Path
 from spiriSdk.docker.dindocker import DockerInDocker
 from spiriSdk.utils.daemon_utils import daemons, start_services, DaemonEvent, active_sys_ids
+from spiriSdk.utils.InputChecker import InputChecker
 
 ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 ROBOTS_DIR = os.path.join(ROOT_DIR, 'robots')
 
 # Get the list of robots dynamically from the robots folder
 robots = [folder for folder in os.listdir(ROBOTS_DIR) if os.path.isdir(os.path.join(ROBOTS_DIR, folder))]
-
-class inputChecker:
-    def __init__(self):
-        self.inputs = {}
-        self.isValid = False
-
-    def addValid(self, i):
-        self.inputs[i] = True
-        self.update()
-
-    def addNotValid(self, i):
-        self.inputs[i] = False
-        self.update()
-
-    def reset(self):
-        while len(self.inputs) > 1:
-            self.inputs.popitem()
-            self.update()
-
-    def update(self):
-        for v in self.inputs.values():
-            if v is False:
-                self.isValid = False
-                return
-        
-        self.isValid = True
-
-    def checkSelect(self, i: ui.select):
-        if i.value:
-            self.inputs[i] = True
-        else:
-            self.inputs[i] = False
-        self.update()
-    
-    def checkText(self, i: ui.input):
-        if i.value:
-            self.inputs[i] = True
-        else:
-            self.inputs[i] = False
-        self.update()
-
-    def checkNumber(self, i: ui.number|None, ogValue: int|float = 0):
-        self.inputs[i] = False
-        if i.value:
-            if 'Port' in i.label:
-                if i.value >= 1000:
-                    self.inputs[i] = True
-            elif 'System ID' in i.label:
-                if i.value not in active_sys_ids:
-                    self.inputs[i] = True
-                elif ogValue:
-                    if float(i.value) == float(ogValue):
-                        self.inputs[i] = True
-            else:
-                self.inputs[i] = True
-        self.update()
-
-    def checkForChanges(self, ogSettings, newSettings):
-        self.update()
-        if self.isValid == True:
-            for key in newSettings:
-                if newSettings[key] != ogSettings[key]:
-                    return
-            self.isValid = False
-            return
 
 def ensure_options_yaml():
     robots = []
@@ -126,7 +62,7 @@ async def save_robot_config(robot_type, selected_options):
         robot_id = selected_options.get('CAR_SYS_ID', uuid.uuid4().hex[:6])
     else:   
         robot_id = selected_options.get('MAVLINK_SYS_ID', uuid.uuid4().hex[:6])
-    folder_name = f"{robot_type}-{robot_id}"
+    folder_name = f"{robot_type}_{robot_id}"
     folder_path = os.path.join(ROOT_DIR, "data", folder_name)
 
     os.makedirs(folder_path, exist_ok=True)
@@ -134,7 +70,12 @@ async def save_robot_config(robot_type, selected_options):
     config_path = os.path.join(folder_path, "config.env")
     with open(config_path, "w") as f:
         for key, value in selected_options.items():
-            f.write(f"{key}={value}\n")
+            if 'NAME' in key:
+                f.write(f'{key}={folder_name}\n')
+                if value:
+                    f.write(f'ALIAS={value}\n')
+            else:
+                f.write(f"{key}={value}\n")
         f.write('HOST_IP=172.17.0.1\n')
 
     new_daemon = DockerInDocker(image_name="docker:dind", container_name=folder_name)
@@ -153,13 +94,13 @@ async def delete_robot(robot_name) -> bool:
     daemon = daemons.pop(robot_name)
     await DaemonEvent.notify()
     daemon.cleanup()
-    robot_sys = str(robot_name).rsplit('-', 1)
+    robot_sys = str(robot_name).rsplit('_', 1)
     active_sys_ids.remove(int(robot_sys[1]))
     if os.path.exists(robot_path):
         shutil.rmtree(robot_path)
     return True
 
-def display_robot_options(robot_name, selected_options, options_container, checker: inputChecker):
+def display_robot_options(robot_name, selected_options, options_container, checker: InputChecker):
     options_path = os.path.join(ROBOTS_DIR, robot_name, 'options.yaml')
     if not os.path.exists(options_path):
         ui.notify(f"No options.yaml found for {robot_name}")
@@ -177,6 +118,7 @@ def display_robot_options(robot_name, selected_options, options_container, check
 
     format_rules = {
         'Arc': 'ARC',
+        'Mavlink': 'MAVLink',
         'Sys': 'System',
         'Id': 'ID',
         'Mavros': 'MAVROS',
@@ -252,11 +194,9 @@ def display_robot_options(robot_name, selected_options, options_container, check
                 ).classes('w-full pb-1')
                 
                 if 'SYS_ID' in key:
-                    numInput.props('hint="System ID cannot be changed once set"')
-                    numInput.classes('pb-4')
-                    checker.addNotValid(numInput)
+                    checker.add(numInput, False)
                 else:
-                    checker.addValid(numInput)
+                    checker.add(numInput, True)
             
             elif option_type == 'dropdown':
                 def handleDropdown(e, k):
@@ -273,33 +213,24 @@ def display_robot_options(robot_name, selected_options, options_container, check
                         on_change=lambda e, k=key: handleDropdown(e.sender, k),
                     ).classes('w-full')
                     if drop.value is not None:
-                        checker.addValid(drop)
+                        checker.add(drop, True)
                     else:
-                        checker.addNotValid(drop)
+                        checker.add(drop, False)
                 else:
                     ui.label(f"Invalid dropdown options for {key}").classes('text-body2')
             
             else:
                 def handleText(e: ui.input, k):
                     selected_options.update({k: e.value})
-                    checker.checkText(e)
 
                 if 'NAME' in key:
                     textVal = ''
                 else:
                     textVal = current_value
                     
-                textInput = ui.input(
-                    label=f'{formatted_key}*', 
+                ui.input(
+                    label=f'{formatted_key}', 
                     value=textVal, 
                     placeholder=current_value, 
-                    on_change=lambda e, k=key: handleText(e.sender, k),
-                    validation={
-                        'Field cannot be empty': lambda value: len(value) > 0
-                    }
+                    on_change=lambda e, k=key: handleText(e.sender, k)
                 ).classes('w-full pb-1')
-
-                if 'NAME' in key:
-                    checker.addNotValid(textInput)
-                else:
-                    checker.addValid(textInput)
