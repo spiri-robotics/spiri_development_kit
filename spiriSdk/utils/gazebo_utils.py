@@ -115,7 +115,7 @@ class Model:
             self.position[2] = self.position[2] + 0.195
 
     def get_model_sitl_port(self) -> None:
-        config_path = Path(f'/data/{self.name}/config.env')
+        config_path = Path(f'data/{self.name}/config.env')
         if config_path.exists():
             with open(config_path) as f:
                 for line in f:
