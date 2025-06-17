@@ -13,7 +13,7 @@ services:
       # Access to GPU devices
       - /dev/dri:/dev/dri      
     ports:
-      - "8197:8197"
+      - "8198:8198"
     environment:
       # Display settings
       DISPLAY: "${DISPLAY}"
@@ -24,6 +24,9 @@ services:
       ROS_MASTER_URI: "http://ros-master:11311"
       RMW_IMPLEMENTATION: rmw_cyclonedds_cpp
       SDK_ROOT: ${PWD}
+    networks:
+      - spiri-mu-net
+      - default
     devices:
       # Provide access to GPU devices (supports non-NVIDIA GPUs)
       - /dev/dri:/dev/dri      

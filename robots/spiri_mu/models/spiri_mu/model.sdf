@@ -183,7 +183,7 @@
           <slew_rate>0.42514285714</slew_rate>
         </plugin>
         <plugin filename="GstCameraPlugin" name="GstCameraPlugin">
-          <udp_host>127.0.0.1</udp_host>
+          <udp_host>172.17.0.3</udp_host>
           <udp_port>5600</udp_port>
           <use_basic_pipeline>true</use_basic_pipeline>
           <use_cuda>false</use_cuda>
@@ -350,8 +350,8 @@
     </plugin>
     <plugin filename="ArduPilotPlugin" name="ArduPilotPlugin">
       <!-- Port settings -->
-      <fdm_addr>0.0.0.0</fdm_addr>
-      <fdm_port_in>5501</fdm_port_in>
+      <fdm_addr>172.17.0.3</fdm_addr>
+      <fdm_port_in>9002</fdm_port_in>
       <connectionTimeoutMaxCount>5</connectionTimeoutMaxCount>
       <lock_step>1</lock_step>
       <!-- Frame conventions
