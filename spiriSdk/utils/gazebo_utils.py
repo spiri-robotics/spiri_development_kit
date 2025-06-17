@@ -1,5 +1,6 @@
 from pathlib import Path
 from dataclasses import field
+from spiriSdk.utils.daemon_utils import ROBOTS_DIR, ROOT_DIR, DATA_DIR
 import subprocess
 import os
 import time
@@ -45,7 +46,6 @@ async def get_running_worlds() -> list:
 
 class World:
     def __init__(self, name):
-        self.sdk_root: Path = Path(os.environ.get("SDK_ROOT", "."))
         self.name = name
         self.models: dict[str:Model]  = {}
 
@@ -99,7 +99,7 @@ class World:
             print(f"Error running command: {e}")
 
 class Model:
-    def __init__(self, parent: World, name: str, type: str ='spiri-mu', ip: str = '127.0.0.1', position: list[int] = None):
+    def __init__(self, parent: World, name: str, type: str ='spiri_mu', ip: str = '127.0.0.1', position: list[int] = None):
         self.parent: World = parent
         self.name = name
         self.path = MODEL_PATHS.get(type)
@@ -114,7 +114,7 @@ class Model:
             self.position[2] = self.position[2] + 0.195
 
     def get_model_sitl_port(self) -> None:
-        config_path = Path(f'/data/{self.name}/config.env')
+        config_path = Path(f'data/{self.name}/config.env')
         with open(config_path) as f:
             for line in f:
                 if line.startswith('SITL_PORT='):
