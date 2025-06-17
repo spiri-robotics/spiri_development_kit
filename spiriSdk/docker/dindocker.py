@@ -2,17 +2,13 @@
 Container management classes including base Container and DockerInDocker implementations.
 """
 
-import docker, atexit, subprocess, time, os, uuid, asyncio
+import docker, atexit, subprocess, time, os, uuid, asyncio, requests
 from pathlib import Path
 from typing import Optional, Dict, Any
 from loguru import logger
-from dotenv import load_dotenv
 from dataclasses import dataclass, field
-import hashlib
-import base64
-import requests
+from spiriSdk.settings import CURRENT_PRIMARY_GROUP
 
-CURRENT_PRIMARY_GROUP = os.getgid()
 
 def cleanup_docker_resources():
     """Cleanup function to remove all stopped containers and unused images."""
@@ -113,6 +109,7 @@ class Container:
                     self.container = None
                     return self.ensure_started()  # retry from beginning
         except Exception as e:
+            print(self.volumes)
             raise RuntimeError(f"Failed to start container: {str(e)}")
 
         logger.debug("Waiting for container to be ready...")
@@ -290,7 +287,6 @@ dotenv_path = Path(".env")
 if not dotenv_path.exists():
     dotenv_path.write_text("REGISTRIES=\nAUTH_REGISTRIES=\n")
     logger.info(".env file created with empty REGISTRIES and AUTH_REGISTRIES")    
-load_dotenv()
     
 creds = {
     "REGISTRIES": os.getenv("REGISTRIES"),
