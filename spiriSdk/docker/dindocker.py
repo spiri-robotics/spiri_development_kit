@@ -11,8 +11,8 @@ from dataclasses import dataclass, field
 import hashlib
 import base64
 import requests
+from spiriSdk.settings import CURRENT_PRIMARY_GROUP, SDK_ROOT
 
-CURRENT_PRIMARY_GROUP = os.getgid()
 
 def cleanup_docker_resources():
     """Cleanup function to remove all stopped containers and unused images."""
@@ -45,7 +45,7 @@ class Container:
     environment: Dict[str, str] = field(default_factory=dict)
     ports: Dict[str, Optional[int]] = field(default_factory=dict)
     ready_timeout: int = field(default=30)
-    sdk_root: Path = field(default_factory=lambda: Path(os.environ.get("SDK_ROOT", ".")).resolve())
+    sdk_root: Path = field(default_factory=lambda: SDK_ROOT)
     command: Optional[str] = field(default=None)
     entrypoint: Optional[str] = field(default=None)
 
@@ -53,7 +53,7 @@ class Container:
         """Register cleanup handler after initialization."""
         atexit.register(self.cleanup)
         # Ensure cache directory exists
-        cache_dir = Path(os.environ.get("SDK_ROOT", ".")) / "cache" / "certs"
+        cache_dir = SDK_ROOT / "cache" / "certs"
         cache_dir.mkdir(parents=True, exist_ok=True)
         # Ensure all volume paths are absolute
         self.volumes = {
@@ -251,8 +251,8 @@ class DockerRegistryProxy(Container):
     #(pwd)/docker_mirror_cache:/docker_mirror_cache
     volumes: Dict[str, Dict[str, str]] = field(
         default_factory=lambda: {
-            str(Path(os.environ.get("SDK_ROOT", ".")) / "cache" / "docker_images"): {"bind": "/docker_mirror_cache", "mode": "rw"},
-            str(Path(os.environ.get("SDK_ROOT", ".")) / "cache" / "cacert"): {"bind": "/ca", "mode": "rw"},
+            str(SDK_ROOT / "cache" / "docker_images"): {"bind": "/docker_mirror_cache", "mode": "rw"},
+            str(SDK_ROOT / "cache" / "cacert"): {"bind": "/ca", "mode": "rw"},
         }
     )
 
@@ -290,7 +290,6 @@ dotenv_path = Path(".env")
 if not dotenv_path.exists():
     dotenv_path.write_text("REGISTRIES=\nAUTH_REGISTRIES=\n")
     logger.info(".env file created with empty REGISTRIES and AUTH_REGISTRIES")    
-load_dotenv()
     
 creds = {
     "REGISTRIES": os.getenv("REGISTRIES"),
