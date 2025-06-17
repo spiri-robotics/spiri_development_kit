@@ -1,4 +1,4 @@
-import os, yaml, re, uuid, shutil, asyncio
+import os, yaml, re, uuid, shutil
 from nicegui import ui, run
 from pathlib import Path
 from spiriSdk.docker.dindocker import DockerInDocker
@@ -93,6 +93,8 @@ async def delete_robot(robot_name) -> bool:
     robot_path = os.path.join(ROOT_DIR, "data", robot_name)
     daemon = daemons.pop(robot_name)
     await DaemonEvent.notify()
+    from spiriSdk.utils.card_utils import displayCards
+    displayCards.refresh()
     daemon.cleanup()
     robot_sys = str(robot_name).rsplit('_', 1)
     active_sys_ids.remove(int(robot_sys[1]))
