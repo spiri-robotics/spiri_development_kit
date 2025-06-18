@@ -48,6 +48,7 @@ class World:
     def __init__(self, name):
         self.name = name
         self.models: dict[str:Model]  = {}
+        self.run_value = ''
 
     def get_name(self) -> str:
         return self.name
@@ -60,8 +61,9 @@ class World:
     async def run_world(self, run_value) -> None:
         """Run world in Gazebo simulator."""
         print(f"Running world: {self.name}")
+        self.run_value = run_value
         try:
-            if run_value == 'Running':
+            if self.run_value == '-r ':
                 cmd = ['gz', 'sim', '-r', f'{WORLD_PATHS[self.name]}.world']
             else:
                 cmd = ['gz', 'sim', f'{WORLD_PATHS[self.name]}.world']
@@ -84,7 +86,8 @@ class World:
     
     def end_gz_proc(self) -> None:
         try:
-            KILL_GZ_CMD = f"pkill -f 'gz sim {WORLD_PATHS[self.name]}.world'"
+            KILL_GZ_CMD = f"pkill -f 'gz sim {self.run_value}{WORLD_PATHS[self.name]}.world'"
+            print(KILL_GZ_CMD)
             dead_world_models = {} 
             dead_world_models.update(self.models)
             for model in dead_world_models.values(): 

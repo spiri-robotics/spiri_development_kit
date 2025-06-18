@@ -36,7 +36,11 @@ async def tools():
         
         async def start_and_close(): 
             """function to combine starting the world and closing the dialog"""
-            await gz_world.reset(w.value, world_auto_run.value)
+            if (world_auto_run.value == 'Running'):
+                world_run_value = '-r '
+            else:
+                world_run_value = ''
+            await gz_world.reset(w.value, world_run_value)
             
             gz_dialog.close()
         

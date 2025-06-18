@@ -10,7 +10,7 @@ services:
       - /bin/bash
       - -c
       - |
-        ./Tools/autotest/sim_vehicle.py -v copter -f gazebo-mu --model=JSON --no-rebuild \
+        ./Tools/autotest/sim_vehicle.py -v copter -f gazebo-mu --no-rebuild \
         -I0 --no-mavproxy --enable-dds --sysid $MAVLINK_SYS_ID \
     stdin_open: true
     tty: true
