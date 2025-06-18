@@ -109,7 +109,6 @@ class Container:
                     self.container = None
                     return self.ensure_started()  # retry from beginning
         except Exception as e:
-            print(self.volumes)
             raise RuntimeError(f"Failed to start container: {str(e)}")
 
         logger.debug("Waiting for container to be ready...")
