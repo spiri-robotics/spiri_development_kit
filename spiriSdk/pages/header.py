@@ -18,7 +18,7 @@ def get_battery_status():
                 percent = line.split(":")[-1].strip()
             elif "state" in line:
                 state = line.split(":")[-1].strip().lower()
-                charging = state == "charging"
+                charging = state == "charging" or state == 'fully-charged'
 
         return percent, charging
     except:
@@ -46,23 +46,7 @@ def battery_icon(percent, charging):
     percent = int(percent.replace("%", "")) if percent != "Unknown" else 0
 
     if charging:
-        print('charging')
-        if percent > 95:
-            return "battery_charging_full"
-        elif percent >= 85:
-            return 'battery_charging_90'
-        elif percent >= 70:
-            return "battery_charging_80"
-        elif percent >= 50:
-            return "battery_charging_60"
-        elif percent >= 35:
-            return "battery_charging_50"
-        elif percent >= 20:
-            return "battery_charging_30"
-        elif percent > 0:
-            return "battery_charging_20"
-        else:
-            return "battery_alert"
+        return "battery_charging_full"
     else:
         print('not charging')
         if percent > 95:

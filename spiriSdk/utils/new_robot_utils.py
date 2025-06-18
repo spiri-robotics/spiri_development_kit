@@ -1,8 +1,8 @@
-import os, yaml, re, uuid, shutil, asyncio
+import os, yaml, re, uuid, shutil
 from nicegui import ui, run
 from pathlib import Path
 from spiriSdk.docker.dindocker import DockerInDocker
-from spiriSdk.utils.daemon_utils import daemons, start_services, DaemonEvent, active_sys_ids
+from spiriSdk.utils.daemon_utils import daemons, start_services, active_sys_ids
 from spiriSdk.utils.InputChecker import InputChecker
 
 ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
@@ -83,7 +83,8 @@ async def save_robot_config(robot_type, selected_options):
     daemons[folder_name] = new_daemon
     active_sys_ids.append(robot_id)
 
-    await DaemonEvent.notify()
+    from spiriSdk.utils.card_utils import displayCards
+    displayCards.refresh()
     await start_services(folder_name)
 
     # ui.notify(f"Saved config.env and started daemon for {folder_name}")
@@ -92,7 +93,8 @@ async def save_robot_config(robot_type, selected_options):
 async def delete_robot(robot_name) -> bool:
     robot_path = os.path.join(ROOT_DIR, "data", robot_name)
     daemon = daemons.pop(robot_name)
-    await DaemonEvent.notify()
+    from spiriSdk.utils.card_utils import displayCards
+    displayCards.refresh()
     daemon.cleanup()
     robot_sys = str(robot_name).rsplit('_', 1)
     active_sys_ids.remove(int(robot_sys[1]))
