@@ -114,10 +114,6 @@ def display_robot_options(robot_name, selected_options, options_container, check
     with open(options_path, 'r') as yaml_file:
         options = yaml.safe_load(yaml_file)
 
-    selected_options.clear()
-    for key, option in options.get('x-spiri-options', {}).items():
-        selected_options[key] = option.get('value')
-
     format_rules = {
         'Arc': 'ARC',
         'Mavlink': 'MAVLink',
@@ -129,12 +125,14 @@ def display_robot_options(robot_name, selected_options, options_container, check
         'Sitl': 'SITL'
     }
 
-    # Clear previous options UI
+    # Clear previous options and UI
+    selected_options.clear()
     options_container.clear()
 
     # Display options dynamically
     with options_container:
         for key, option in options.get('x-spiri-options', {}).items():
+            selected_options[key] = None
             help_text = option.get('help-text', False)
             option_type = option.get('type', 'text')
             current_value = option.get('value', '')
@@ -159,7 +157,7 @@ def display_robot_options(robot_name, selected_options, options_container, check
                 
                 with ui.row().classes('items-center justify-between w-[35%]'):
                     ui.label(formatted_key)
-                    ui.switch(value=bool_value, on_change=lambda e, k=key: on_toggle(e, k))
+                    ui.switch(value=bool_value, on_change=lambda e, k=key: on_toggle(e.sender, k))
 
             elif option_type == 'int' or option_type == 'float':
                 min_val = option.get('min', None)
