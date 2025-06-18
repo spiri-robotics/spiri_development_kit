@@ -82,11 +82,11 @@ def displayCards():
                         label.text = f'Status: {status}'
 
                     # Periodic update
-                    def start_polling(name, label):
+                    def start_polling(name, label, gz_toggle):
                         async def polling_loop():
                             while True:
                                 await update_status(name, label)
-                                if not is_robot_alive(robotName):
+                                if not is_robot_alive(name):
                                     if gz_toggle:
                                         gz_toggle._state = True
                                         gz_toggle.update()
@@ -95,20 +95,21 @@ def displayCards():
                                 await asyncio.sleep(5)
                         asyncio.create_task(polling_loop())
 
-                    start_polling(robotName, label_status)
                 ui.space()
                 with ui.card_actions():
                     
-                    async def add_to_world(robot=robotName):
+                    async def add_to_world(robot):
                         # ip = daemons[robotName].get_ip()
                         robotType = "_".join(str(robot).split('_')[0:2])
                         await gz_world.prep_bot(robot, robotType)
                         ui.notify(f'Added {robot} to world')
 
-                    async def remove_from_world(robot=robotName):
+                    async def remove_from_world(robot):
                         robot = gz_world.models[robot].kill_model()
                         
-                    gz_toggle = ToggleButton(on_label="add to gz sim", off_label="remove from gz sim", on_switch=add_to_world, off_switch=remove_from_world).classes('m-1 mr-10 text-base')
+                    gz_toggle = ToggleButton(on_label="add to gz sim", off_label="remove from gz sim", on_switch=lambda r=robotName: add_to_world(r), off_switch=lambda r=robotName: remove_from_world(r)).classes('m-1 mr-10 text-base')
+
+                    start_polling(robotName, label_status, gz_toggle)
 
                     async def delete(n):
                         notif = ui.notification(timeout=False)
