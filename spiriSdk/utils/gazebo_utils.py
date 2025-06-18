@@ -117,11 +117,12 @@ class Model:
             self.position[2] = self.position[2] + 0.195
 
     def get_model_sitl_port(self) -> None:
-        config_path = Path(f'data/{self.name}/config.env')
-        with open(config_path) as f:
-            for line in f:
-                if line.startswith('SITL_PORT='):
-                    self.sitl_port =line.strip().split('=', 1)[1]
+        config_path = Path(f'/data/{self.name}/config.env')
+        if config_path.exists():
+            with open(config_path) as f:
+                for line in f:
+                    if line.startswith('SITL_PORT='):
+                        self.sitl_port =line.strip().split('=', 1)[1]
 
     async def launch_model(self) -> None:
         """Launch the model in the Gazebo simulator."""
