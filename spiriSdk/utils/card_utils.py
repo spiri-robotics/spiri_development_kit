@@ -81,9 +81,6 @@ def displayCards():
                         status = await display_daemon_status(name)
                         label.text = f'Status: {status}'
 
-                    # Initial status
-                    # update_status(robotName, label_status)
-
                     # Periodic update
                     def start_polling(name, label):
                         async def polling_loop():
@@ -104,7 +101,7 @@ def displayCards():
                     
                     async def add_to_world(robot=robotName):
                         # ip = daemons[robotName].get_ip()
-                        robotType = str(robot).rsplit('_', 1)[0]
+                        robotType = "_".join(str(robot).split('_')[0:2])
                         await gz_world.prep_bot(robot, robotType)
                         ui.notify(f'Added {robot} to world')
 
