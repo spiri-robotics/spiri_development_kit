@@ -4,6 +4,7 @@ from spiriSdk.pages.header import header
 from spiriSdk.utils.card_utils import addRobot, displayCards
 from spiriSdk.pages.tools import tools
 from pathlib import Path
+import asyncio
 
 ENV_FILE_PATH = Path('.env')
 
@@ -38,4 +39,5 @@ async def home():
         ui.space()
         await tools()
 
+    await asyncio.sleep(0.5)
     displayCards()

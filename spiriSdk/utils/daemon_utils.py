@@ -10,21 +10,11 @@ ROBOTS_DIR = os.path.join(ROOT_DIR, 'robots')
 daemons = {}
 active_sys_ids = []
 
-class DaemonEvent:
-    _subscribers = []
-
-    @classmethod
-    def subscribe(cls, callback):
-        cls._subscribers.append(callback)
-
-    @classmethod
-    async def notify(cls):
-        for callback in cls._subscribers:
-            await callback()
-
 async def init_daemons() -> dict:
     global daemons
     print("Initializing Daemons...")
+    from spiriSdk.utils.card_utils import displayCards
+    
     for robot_name in os.listdir(DATA_DIR):
         robot_path = os.path.join(DATA_DIR, robot_name)
         if os.path.isdir(robot_path):
@@ -32,7 +22,7 @@ async def init_daemons() -> dict:
             daemons[robot_name] = dind
 
             await run.io_bound(dind.ensure_started)
-            await DaemonEvent.notify()
+            displayCards.refresh()
 
             robot_sys = str(robot_name).rsplit('_', 1)
             active_sys_ids.append(int(robot_sys[1]))
