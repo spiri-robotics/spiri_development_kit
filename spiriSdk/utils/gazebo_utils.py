@@ -8,7 +8,7 @@ import time
 MODEL_PATHS = {
     'spiri_mu': 'robots/spiri_mu/models/spiri_mu',
     'spiri_mu_no_gimbal': 'robots/spiri_mu_no_gimbal/models/spiri_mu',
-    'dummy_test': 'robots/dummy_test/models/car_008',
+    'dummy_test': 'robots/car/models/car_008',
     'ARC': 'robots/ARC/models/ARC_simplified'
 }
 
@@ -105,6 +105,7 @@ class Model:
     def __init__(self, parent: World, name: str, type: str ='spiri_mu', ip: str = '127.0.0.1', position: list[int] = None):
         self.parent: World = parent
         self.name = name
+        self.type = type
         self.path = MODEL_PATHS.get(type)
         self.position = position
         self.sitl_port = '9002'
@@ -128,22 +129,22 @@ class Model:
         """Launch the model in the Gazebo simulator."""
         print("adding model")
         print(self.path)
-        XACRO_CMD = [
-            "xacro",
-            f"fdm_port_in:={self.sitl_port}",
-            "model.xacro.sdf",
-            "-o",
-            "model.sdf",
-        ]
-        ROS2_CMD = f"ros2 run ros_gz_sim create -world {self.parent.name} -file {self.path}/model.sdf -name {self.name} -x {self.position[0]} -y {self.position[1]} -z {self.position[2]}"
-
-        xacro_proc = subprocess.Popen(
-            XACRO_CMD,
-            cwd=f"{self.path}",
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-        )
-
+        if (self.type == 'spiri_mu'):
+            XACRO_CMD = [
+                "xacro",
+                f"fdm_port_in:={self.sitl_port}",
+                "model.xacro.sdf",
+                "-o",
+                "model.sdf",
+            ]
+            xacro_proc = subprocess.Popen(
+                XACRO_CMD,
+                cwd=f"{self.path}",
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+            )
+            
+        ROS2_CMD = f"ros2 run ros_gz_sim create -world {self.parent.name} -file {self.path}/model.sdf -name {self.name} -x {self.position[0]} -y {self.position[1]} -z {self.position[2]}"        
         ros2_gz_create_proc = subprocess.Popen(
             ROS2_CMD.split(),
             stdout=subprocess.PIPE,

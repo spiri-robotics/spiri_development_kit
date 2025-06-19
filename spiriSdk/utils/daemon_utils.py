@@ -27,6 +27,7 @@ class DaemonEvent:
             await callback()
 
 async def init_daemons():
+async def init_daemons() -> dict:
     global daemons
     print("Initializing Daemons...")
     for robot_name in os.listdir(DATA_DIR):
