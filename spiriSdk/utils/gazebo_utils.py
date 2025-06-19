@@ -131,7 +131,6 @@ class Model:
         XACRO_CMD = [
             "xacro",
             f"fdm_port_in:={self.sitl_port}",
-            f"drone_ip:={self.ip}",
             "model.xacro.sdf",
             "-o",
             "model.sdf",

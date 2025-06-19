@@ -2,10 +2,14 @@ import os, docker, yaml
 from spiriSdk.docker.dindocker import DockerInDocker
 from nicegui import run, ui
 from docker.errors import NotFound, APIError
+from spiriSdk.settings import SIM_ADDRESS, SDK_ROOT, GROUND_CONTROL_ADDRESS
+from loguru import logger
+from pathlib import Path
+import dotenv
 
-ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
-DATA_DIR = os.path.join(ROOT_DIR, 'data')
-ROBOTS_DIR = os.path.join(ROOT_DIR, 'robots')
+DATA_DIR = str(SDK_ROOT/'data')
+ROBOTS_DIR = str(SDK_ROOT/'robots')
+ROOT_DIR = str(SDK_ROOT)
 
 daemons = {}
 active_sys_ids = []
@@ -22,11 +26,17 @@ class DaemonEvent:
         for callback in cls._subscribers:
             await callback()
 
-async def init_daemons() -> dict:
+async def init_daemons():
     global daemons
     print("Initializing Daemons...")
     for robot_name in os.listdir(DATA_DIR):
         robot_path = os.path.join(DATA_DIR, robot_name)
+        robot_env = Path(robot_path) / "config.env"
+        dotenv.set_key(robot_env, "SIM_ADDRESS", SIM_ADDRESS)
+        dotenv.set_key(robot_env, "GROUND_CONTROL_ADDRESS", GROUND_CONTROL_ADDRESS)
+        
+
+        
         if os.path.isdir(robot_path):
             dind = DockerInDocker("docker:dind", robot_name)
             daemons[robot_name] = dind
@@ -41,6 +51,7 @@ async def init_daemons() -> dict:
         await start_services(robot_name)
 
 async def start_services(robot_name: str):
+    
     if robot_name not in daemons:
         return f"No daemon found for {robot_name}."
 
@@ -86,11 +97,13 @@ async def start_services(robot_name: str):
                 print(f"Error reading {compose_path}: {e}")
                 continue
 
+            
             # Step 4: Check x-spiri-sdk-autostart
             if compose_data.get("x-spiri-sdk-autostart", True):
                 print(f"Autostarting: {robot_name}/{service}")
                 # Step 5: Run `docker compose up -d` inside the DinD container
                 inside_path = f"/robots/{robot_type}/services/{service}"
+                
                 command = f"docker compose --env-file=/data/config.env -f {inside_path}/docker-compose.yaml up -d"
                 result = await run.io_bound(lambda robot_name=robot_name: daemons[robot_name].container.exec_run(command, workdir=inside_path))
                 if "no such file" in result.output.decode():
