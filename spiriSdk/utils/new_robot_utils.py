@@ -1,8 +1,8 @@
-import os, yaml, re, uuid, shutil, asyncio
+import os, yaml, re, uuid, shutil
 from nicegui import ui, run
 from pathlib import Path
 from spiriSdk.docker.dindocker import DockerInDocker
-from spiriSdk.utils.daemon_utils import daemons, start_services, DaemonEvent, active_sys_ids
+from spiriSdk.utils.daemon_utils import daemons, start_services, active_sys_ids
 from spiriSdk.utils.InputChecker import InputChecker
 
 ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
@@ -83,7 +83,8 @@ async def save_robot_config(robot_type, selected_options):
     daemons[folder_name] = new_daemon
     active_sys_ids.append(robot_id)
 
-    await DaemonEvent.notify()
+    from spiriSdk.utils.card_utils import displayCards
+    displayCards.refresh()
     await start_services(folder_name)
 
     # ui.notify(f"Saved config.env and started daemon for {folder_name}")
@@ -92,7 +93,8 @@ async def save_robot_config(robot_type, selected_options):
 async def delete_robot(robot_name) -> bool:
     robot_path = os.path.join(ROOT_DIR, "data", robot_name)
     daemon = daemons.pop(robot_name)
-    await DaemonEvent.notify()
+    from spiriSdk.utils.card_utils import displayCards
+    displayCards.refresh()
     daemon.cleanup()
     robot_sys = str(robot_name).rsplit('_', 1)
     active_sys_ids.remove(int(robot_sys[1]))
@@ -112,10 +114,6 @@ def display_robot_options(robot_name, selected_options, options_container, check
     with open(options_path, 'r') as yaml_file:
         options = yaml.safe_load(yaml_file)
 
-    selected_options.clear()
-    for key, option in options.get('x-spiri-options', {}).items():
-        selected_options[key] = option.get('value')
-
     format_rules = {
         'Arc': 'ARC',
         'Mavlink': 'MAVLink',
@@ -127,12 +125,14 @@ def display_robot_options(robot_name, selected_options, options_container, check
         'Sitl': 'SITL'
     }
 
-    # Clear previous options UI
+    # Clear previous options and UI
+    selected_options.clear()
     options_container.clear()
 
     # Display options dynamically
     with options_container:
         for key, option in options.get('x-spiri-options', {}).items():
+            selected_options[key] = None
             help_text = option.get('help-text', False)
             option_type = option.get('type', 'text')
             current_value = option.get('value', '')
@@ -157,7 +157,7 @@ def display_robot_options(robot_name, selected_options, options_container, check
                 
                 with ui.row().classes('items-center justify-between w-[35%]'):
                     ui.label(formatted_key)
-                    ui.switch(value=bool_value, on_change=lambda e, k=key: on_toggle(e, k))
+                    ui.switch(value=bool_value, on_change=lambda e, k=key: on_toggle(e.sender, k))
 
             elif option_type == 'int' or option_type == 'float':
                 min_val = option.get('min', None)
