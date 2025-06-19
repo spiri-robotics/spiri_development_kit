@@ -1,9 +1,10 @@
 from nicegui import ui
 from spiriSdk.ui.styles import styles
 from spiriSdk.pages.header import header
-from spiriSdk.utils.card_utils import RobotContainer
-from spiriSdk.utils.daemon_utils import DaemonEvent
+from spiriSdk.utils.card_utils import addRobot, displayCards
+from spiriSdk.pages.tools import tools
 from pathlib import Path
+import asyncio
 
 ENV_FILE_PATH = Path('.env')
 
@@ -15,10 +16,6 @@ def read_env():
                 key, value = line.split('=', 1)
                 env[key.strip()] = value.strip().strip('"')
     return env
-
-container = None
-
-container = None
 
 @ui.page('/')
 async def home():
@@ -36,8 +33,11 @@ async def home():
     if required_host not in registries or not has_required_auth:
         with ui.card().classes('w-full p-4 bg-red-100 dark:bg-red-800 text-red-900 dark:text-red-100'):
             ui.label("Warning: Required Spiri authentication entry is missing, please check the settings page.").classes('text-lg')
-            
-    destination = ui.card().classes('w-full p-0 shadow-none dark:bg-[#212428]')
-    global container
-    container = RobotContainer(destination)
-    await DaemonEvent.notify()
+        
+    with ui.row().classes('justify-items-stretch w-full'):
+        ui.button('Add Robot', on_click=addRobot, color='secondary').classes('text-base')
+        ui.space()
+        await tools()
+
+    await asyncio.sleep(0.5)
+    displayCards()

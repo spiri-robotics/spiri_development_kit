@@ -6,14 +6,6 @@ class InputChecker:
         self.inputs = {}
         self.isValid = False
 
-    # def addValid(self, i):
-    #     self.inputs[i] = True
-    #     self.update()
-
-    # def addNotValid(self, i):
-    #     self.inputs[i] = False
-    #     self.update()
-
     def add(self, i, valid: bool):
         if valid:
             self.inputs[i] = True
