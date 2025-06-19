@@ -14,20 +14,7 @@ ROOT_DIR = str(SDK_ROOT)
 daemons = {}
 active_sys_ids = []
 
-class DaemonEvent:
-    _subscribers = []
-
-    @classmethod
-    def subscribe(cls, callback):
-        cls._subscribers.append(callback)
-
-    @classmethod
-    async def notify(cls):
-        for callback in cls._subscribers:
-            await callback()
-
 async def init_daemons():
-async def init_daemons() -> dict:
     global daemons
     print("Initializing Daemons...")
     for robot_name in os.listdir(DATA_DIR):
@@ -36,23 +23,11 @@ async def init_daemons() -> dict:
         dotenv.set_key(robot_env, "SIM_ADDRESS", SIM_ADDRESS)
         dotenv.set_key(robot_env, "GROUND_CONTROL_ADDRESS", GROUND_CONTROL_ADDRESS)
         
-
-        
-        if os.path.isdir(robot_path):
-            dind = DockerInDocker("docker:dind", robot_name)
-            daemons[robot_name] = dind
-
-            await run.io_bound(dind.ensure_started)
-            await DaemonEvent.notify()
-
-            robot_sys = str(robot_name).rsplit('_', 1)
-            active_sys_ids.append(int(robot_sys[1]))
-    
     for robot_name in list(daemons.keys()):
         await start_services(robot_name)
+        
 
 async def start_services(robot_name: str):
-    
     if robot_name not in daemons:
         return f"No daemon found for {robot_name}."
 
@@ -98,13 +73,11 @@ async def start_services(robot_name: str):
                 print(f"Error reading {compose_path}: {e}")
                 continue
 
-            
             # Step 4: Check x-spiri-sdk-autostart
             if compose_data.get("x-spiri-sdk-autostart", True):
                 print(f"Autostarting: {robot_name}/{service}")
                 # Step 5: Run `docker compose up -d` inside the DinD container
                 inside_path = f"/robots/{robot_type}/services/{service}"
-                
                 command = f"docker compose --env-file=/data/config.env -f {inside_path}/docker-compose.yaml up -d"
                 result = await run.io_bound(lambda robot_name=robot_name: daemons[robot_name].container.exec_run(command, workdir=inside_path))
                 if "no such file" in result.output.decode():
@@ -126,3 +99,4 @@ async def display_daemon_status(robot_name):
         return 'stopped'
     except Exception as e:
         return f'error: {str(e)}'
+    
