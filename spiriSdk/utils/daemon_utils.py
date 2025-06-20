@@ -16,12 +16,23 @@ active_sys_ids = []
 
 async def init_daemons():
     global daemons
+    from spiriSdk.utils.card_utils import displayCards
     print("Initializing Daemons...")
     for robot_name in os.listdir(DATA_DIR):
         robot_path = os.path.join(DATA_DIR, robot_name)
         robot_env = Path(robot_path) / "config.env"
         dotenv.set_key(robot_env, "SIM_ADDRESS", SIM_ADDRESS)
         dotenv.set_key(robot_env, "GROUND_CONTROL_ADDRESS", GROUND_CONTROL_ADDRESS)
+        if os.path.isdir(robot_path):
+            dind = DockerInDocker("docker:dind", robot_name)
+            daemons[robot_name] = dind
+
+            await run.io_bound(dind.ensure_started)
+            displayCards.refresh()
+
+            robot_sys = str(robot_name).rsplit('_', 1)
+            active_sys_ids.append(int(robot_sys[1]))
+            
         
     for robot_name in list(daemons.keys()):
         await start_services(robot_name)
