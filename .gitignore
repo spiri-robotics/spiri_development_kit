@@ -177,3 +177,5 @@ cython_debug/
 
 #Cache files
 cache/
+# Don't include user config in the git repo
+data/ 
