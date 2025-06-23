@@ -2,33 +2,30 @@ import os, docker, yaml
 from spiriSdk.docker.dindocker import DockerInDocker
 from nicegui import run, ui
 from docker.errors import NotFound, APIError
+from spiriSdk.settings import SIM_ADDRESS, SDK_ROOT, GROUND_CONTROL_ADDRESS
+from loguru import logger
+from pathlib import Path
+import dotenv
 
-ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
-DATA_DIR = os.path.join(ROOT_DIR, 'data')
-ROBOTS_DIR = os.path.join(ROOT_DIR, 'robots')
+DATA_DIR = str(SDK_ROOT/'data')
+ROBOTS_DIR = str(SDK_ROOT/'robots')
+ROOT_DIR = str(SDK_ROOT)
 
 daemons = {}
 active_sys_ids = []
 
-async def init_daemons() -> dict:
+async def init_daemons():
     global daemons
     print("Initializing Daemons...")
-    from spiriSdk.utils.card_utils import displayCards
-    
     for robot_name in os.listdir(DATA_DIR):
         robot_path = os.path.join(DATA_DIR, robot_name)
-        if os.path.isdir(robot_path):
-            dind = DockerInDocker("docker:dind", robot_name)
-            daemons[robot_name] = dind
-
-            await run.io_bound(dind.ensure_started)
-            displayCards.refresh()
-
-            robot_sys = str(robot_name).rsplit('_', 1)
-            active_sys_ids.append(int(robot_sys[1]))
-    
+        robot_env = Path(robot_path) / "config.env"
+        dotenv.set_key(robot_env, "SIM_ADDRESS", SIM_ADDRESS)
+        dotenv.set_key(robot_env, "GROUND_CONTROL_ADDRESS", GROUND_CONTROL_ADDRESS)
+        
     for robot_name in list(daemons.keys()):
         await start_services(robot_name)
+        
 
 async def start_services(robot_name: str):
     if robot_name not in daemons:
@@ -102,3 +99,4 @@ async def display_daemon_status(robot_name):
         return 'stopped'
     except Exception as e:
         return f'error: {str(e)}'
+    

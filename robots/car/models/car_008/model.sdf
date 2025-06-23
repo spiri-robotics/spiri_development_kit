@@ -27,7 +27,7 @@
         <cast_shadows>false</cast_shadows>
 	<geometry>
           <mesh>
-            <uri>model://robots/dummy_test/models/car_008/meshes/car_008.dae</uri>
+            <uri>model://robots/car/models/car_008/meshes/car_008.dae</uri>
             <scale>0.1 0.1 0.1</scale>
           </mesh>
         </geometry>

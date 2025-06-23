@@ -1,5 +1,6 @@
 from pathlib import Path
 from dataclasses import field
+from spiriSdk.utils.daemon_utils import ROBOTS_DIR, ROOT_DIR, DATA_DIR
 import subprocess
 import os
 import time
@@ -7,7 +8,7 @@ import time
 MODEL_PATHS = {
     'spiri_mu': 'robots/spiri_mu/models/spiri_mu',
     'spiri_mu_no_gimbal': 'robots/spiri_mu_no_gimbal/models/spiri_mu',
-    'dummy_test': 'robots/dummy_test/models/car_008',
+    'dummy_test': 'robots/car/models/car_008',
     'ARC': 'robots/ARC/models/ARC_simplified'
 }
 
@@ -45,9 +46,9 @@ async def get_running_worlds() -> list:
 
 class World:
     def __init__(self, name):
-        self.sdk_root: Path = Path(os.environ.get("SDK_ROOT", "."))
         self.name = name
         self.models: dict[str:Model]  = {}
+        self.run_value = ''
 
     def get_name(self) -> str:
         return self.name
@@ -60,8 +61,9 @@ class World:
     async def run_world(self, run_value) -> None:
         """Run world in Gazebo simulator."""
         print(f"Running world: {self.name}")
+        self.run_value = run_value
         try:
-            if run_value == 'Running':
+            if self.run_value == '-r ':
                 cmd = ['gz', 'sim', '-r', f'{WORLD_PATHS[self.name]}.world']
             else:
                 cmd = ['gz', 'sim', f'{WORLD_PATHS[self.name]}.world']
@@ -84,7 +86,8 @@ class World:
     
     def end_gz_proc(self) -> None:
         try:
-            KILL_GZ_CMD = f"pkill -f 'gz sim {WORLD_PATHS[self.name]}.world'"
+            KILL_GZ_CMD = f"pkill -f 'gz sim {self.run_value}{WORLD_PATHS[self.name]}.world'"
+            print(KILL_GZ_CMD)
             dead_world_models = {} 
             dead_world_models.update(self.models)
             for model in dead_world_models.values(): 
@@ -99,14 +102,14 @@ class World:
             print(f"Error running command: {e}")
 
 class Model:
-    def __init__(self, parent: World, name: str, type: str ='spiri-mu', ip: str = '127.0.0.1', position: list[int] = None):
+    def __init__(self, parent: World, name: str, type: str ='spiri_mu', ip: str = '127.0.0.1', position: list[int] = None):
         self.parent: World = parent
         self.name = name
+        self.type = type
         self.path = MODEL_PATHS.get(type)
         self.position = position
-        self.sitl_port = '5501'
+        self.sitl_port = '9002'
         self.ip = ip
-
         self.get_model_sitl_port()
 
         if self.position == None:
@@ -115,7 +118,7 @@ class Model:
             self.position[2] = self.position[2] + 0.195
 
     def get_model_sitl_port(self) -> None:
-        config_path = Path(f'data/{self.name}/config.env')
+        config_path = Path(f'/data/{self.name}/config.env')
         if config_path.exists():
             with open(config_path) as f:
                 for line in f:
@@ -124,23 +127,24 @@ class Model:
 
     async def launch_model(self) -> None:
         """Launch the model in the Gazebo simulator."""
-        XACRO_CMD = [
-            "xacro",
-            f"fdm_port_in:={self.sitl_port}",
-            f"drone_ip:={self.ip}",
-            "model.xacro.sdf",
-            "-o",
-            "model.sdf",
-        ]
-        ROS2_CMD = f"ros2 run ros_gz_sim create -world {self.parent.name} -file {self.path}/model.sdf -name {self.name} -x {self.position[0]} -y {self.position[1]} -z {self.position[2]}"
-
-        xacro_proc = subprocess.Popen(
-            XACRO_CMD,
-            cwd=f"{self.path}",
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-        )
-
+        print("adding model")
+        print(self.path)
+        if (self.type == 'spiri_mu'):
+            XACRO_CMD = [
+                "xacro",
+                f"fdm_port_in:={self.sitl_port}",
+                "model.xacro.sdf",
+                "-o",
+                "model.sdf",
+            ]
+            xacro_proc = subprocess.Popen(
+                XACRO_CMD,
+                cwd=f"{self.path}",
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+            )
+            
+        ROS2_CMD = f"ros2 run ros_gz_sim create -world {self.parent.name} -file {self.path}/model.sdf -name {self.name} -x {self.position[0]} -y {self.position[1]} -z {self.position[2]}"        
         ros2_gz_create_proc = subprocess.Popen(
             ROS2_CMD.split(),
             stdout=subprocess.PIPE,

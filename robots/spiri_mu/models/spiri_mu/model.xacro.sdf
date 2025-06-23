@@ -6,6 +6,7 @@
     <xacro:arg name="sim_drone_count" default="0"/>
     <xacro:arg name="drone_ip" default="0.0.0.0"/>
 
+
     <include>
       <uri>model://robots/spiri_mu/models/spiri_mu_base</uri>
     </include>
@@ -382,7 +383,7 @@
     <plugin name="ArduPilotPlugin"
       filename="ArduPilotPlugin">
       <!-- Port settings -->
-      <fdm_addr>0.0.0.0</fdm_addr>
+      <fdm_addr>$(arg drone_ip)</fdm_addr>
       <fdm_port_in>$(arg fdm_port_in)</fdm_port_in>
       <connectionTimeoutMaxCount>5</connectionTimeoutMaxCount>
       <lock_step>1</lock_step>

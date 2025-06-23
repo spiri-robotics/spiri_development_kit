@@ -33,9 +33,6 @@
         "XAUTHORITY": "/tmp/.docker.xauth"
     },
     "runArgs": [
-        "--net=host",
-        "--pid=host",
-        "--ipc=host",
         "--security-opt=seccomp=unconfined"
     ],
     "mounts": [

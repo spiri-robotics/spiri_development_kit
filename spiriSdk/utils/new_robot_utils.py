@@ -76,7 +76,6 @@ async def save_robot_config(robot_type, selected_options):
                     f.write(f'ALIAS={value}\n')
             else:
                 f.write(f"{key}={value}\n")
-        f.write('HOST_IP=172.17.0.1\n')
 
     new_daemon = DockerInDocker(image_name="docker:dind", container_name=folder_name)
     await run.io_bound(new_daemon.ensure_started)
