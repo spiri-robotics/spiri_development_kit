@@ -1,6 +1,6 @@
 import os, asyncio, httpx
 from nicegui import ui
-from spiriSdk.utils.daemon_utils import daemons, display_daemon_status
+from spiriSdk.utils.daemon_utils import daemons, display_daemon_status, start_container, stop_container, restart_container
 from spiriSdk.utils.new_robot_utils import delete_robot, save_robot_config
 from spiriSdk.pages.tools import gz_world
 from spiriSdk.utils.gazebo_utils import get_running_worlds, is_robot_alive
@@ -97,6 +97,33 @@ def displayCards():
 
                 ui.space()
                 with ui.card_actions():
+
+                    async def power_on(robot):
+                        await start_container(robot)
+                        ui.notify(message='Container started', type='positive')
+
+                    async def power_off(robot):
+                        message, type = stop_container(robot)
+                        ui.notify(message=message, type=type)
+
+                    async def reboot(robot, power):
+                        n = ui.notification(message='Rebooting...', spinner=True, timeout=None)
+                        power.disable()
+                        if not power.state:
+                            power.state = True
+                            power.update()
+
+                        await restart_container(robot)
+                        
+                        power.enable()
+                        n.message = 'Done'
+                        n.spinner = False
+                        n.type = 'positive'
+                        await asyncio.sleep(4)
+                        n.dismiss()
+
+                    power = ToggleButton(on_label='power off', off_label='power on', on_switch=lambda r=robotName: power_off(r), off_switch=lambda r=robotName: power_on(r)).classes('text-base')
+                    ui.button('Reboot', color='secondary', on_click=lambda r=robotName, t=power: reboot(r, t)).classes('text-base mr-10')
                     
                     async def add_to_world(robot):
                         # ip = daemons[robotName].get_ip()
@@ -107,7 +134,7 @@ def displayCards():
                     async def remove_from_world(robot):
                         robot = gz_world.models[robot].kill_model()
                         
-                    gz_toggle = ToggleButton(on_label="add to gz sim", off_label="remove from gz sim", on_switch=lambda r=robotName: add_to_world(r), off_switch=lambda r=robotName: remove_from_world(r)).classes('m-1 mr-10 text-base')
+                    gz_toggle = ToggleButton(state=False, on_label="remove from gz sim", off_label="add to gz sim", on_switch=lambda r=robotName: remove_from_world(r), off_switch=lambda r=robotName: add_to_world(r)).classes('m-1 mr-10 text-base')
 
                     start_polling(robotName, label_status, gz_toggle)
 
@@ -129,7 +156,7 @@ def displayCards():
                         await asyncio.sleep(4)
                         notif.dismiss()
 
-                    ui.button(icon='delete', on_click=lambda n=robotName: delete(n), color='secondary').classes('text-base')
+                    ui.button(icon='delete', on_click=lambda n=robotName: delete(n), color='warning').classes('text-base')
 
             # Display the robot's Docker services command            
             with ui.card_section():

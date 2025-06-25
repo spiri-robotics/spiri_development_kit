@@ -1,4 +1,4 @@
-import os, docker, yaml
+import os, docker, yaml, asyncio
 from spiriSdk.docker.dindocker import DockerInDocker
 from nicegui import run, ui
 from docker.errors import NotFound, APIError
@@ -111,3 +111,48 @@ async def display_daemon_status(robot_name):
     except Exception as e:
         return f'error: {str(e)}'
     
+async def check_stopped(robot_name):
+    status = await display_daemon_status(robot_name)
+    if status != 'stopped':
+        await check_stopped(robot_name)
+    
+async def start_container(robot_name):
+    print(f'Starting container for {robot_name}...')
+    await run.io_bound(daemons[robot_name].ensure_started)
+
+def stop_container(robot_name):
+    if robot_name not in daemons:
+        return f"No daemon found for {robot_name}.", 'warning'
+
+    container = daemons[robot_name].container
+    if container is None:
+        return f"No container found for {robot_name}. It may have already been removed.", 'warning'
+
+    try:
+        container.reload()
+    except NotFound:
+        daemons[robot_name].container = None
+        return f"Container {robot_name} is already removed.", 'info'
+
+    if container.status != "running":
+        return f"Container {robot_name} is not running or has already stopped.", 'info'
+
+    try:
+        container.stop()
+        return f"Container {robot_name} stopped.", 'positive'
+    except NotFound:
+        daemons[robot_name].container = None
+        return f"Container {robot_name} was already removed before stopping.", 'info'
+    except APIError as e:
+        if e.response is not None and e.response.status_code == 404:
+            daemons[robot_name].container = None
+            return f"Container {robot_name} was already removed before stopping.", 'warning'
+        else:
+            raise e
+
+async def restart_container(robot_name: str):
+    if await display_daemon_status(robot_name) == 'running':
+        message = await run.io_bound(lambda: stop_container(robot_name))
+        print(message)
+    await check_stopped(robot_name)
+    await start_container(robot_name)

@@ -2,13 +2,12 @@
 Container management classes including base Container and DockerInDocker implementations.
 """
 
-import docker, atexit, subprocess, time, os, uuid, asyncio, requests
+import docker.errors, docker.models.containers, atexit, subprocess, time, os, uuid, asyncio, requests
 from pathlib import Path
 from typing import Optional, Dict, Any
 from loguru import logger
 from dataclasses import dataclass, field
 from spiriSdk.settings import CURRENT_PRIMARY_GROUP, SDK_ROOT
-
 
 def cleanup_docker_resources():
     """Cleanup function to remove all stopped containers and unused images."""
@@ -77,8 +76,7 @@ class Container:
                         self.container.start()
                         return
                 else:
-                    logger.info(f"Starting container spirisdk_{self.container_name} using image {self.image_name}")
-                    print(f"Starting container spirisdk_{self.container_name} using ports {self.ports}")
+                    logger.info(f"Starting container spirisdk_{self.container_name} using image {self.image_name} and ports {self.ports}")
                     docker_args = {
                         "image": self.image_name,
                         "name": "spirisdk_"+self.container_name,
