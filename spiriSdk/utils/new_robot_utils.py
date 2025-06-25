@@ -4,6 +4,7 @@ from pathlib import Path
 from spiriSdk.docker.dindocker import DockerInDocker
 from spiriSdk.utils.daemon_utils import daemons, start_services, active_sys_ids
 from spiriSdk.utils.InputChecker import InputChecker
+import dotenv
 
 ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 ROBOTS_DIR = os.path.join(ROOT_DIR, 'robots')
@@ -67,17 +68,17 @@ async def save_robot_config(robot_type, selected_options):
 
     os.makedirs(folder_path, exist_ok=True)
 
-    config_path = os.path.join(folder_path, "config.env")
-    with open(config_path, "w") as f:
-        for key, value in selected_options.items():
-            if 'NAME' in key:
-                f.write(f'{key}={folder_name}\n')
-                if value:
-                    f.write(f'ALIAS={value}\n')
-            else:
-                f.write(f"{key}={value}\n")
-
     new_daemon = DockerInDocker(image_name="docker:dind", container_name=folder_name)
+
+    config_path = new_daemon.robot_env
+    for key, value in selected_options.items():
+        if 'NAME' in key:
+            dotenv.set_key(config_path, key, str(value))
+            if value:
+                dotenv.set_key(config_path, 'ALIAS', str(value))
+        else:
+            dotenv.set_key(config_path, key, str(value))
+    
     await run.io_bound(new_daemon.ensure_started)
     daemons[folder_name] = new_daemon
     active_sys_ids.append(robot_id)

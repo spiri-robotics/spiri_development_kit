@@ -7,7 +7,9 @@ from pathlib import Path
 from typing import Optional, Dict, Any
 from loguru import logger
 from dataclasses import dataclass, field
-from spiriSdk.settings import CURRENT_PRIMARY_GROUP, SDK_ROOT
+from spiriSdk.settings import CURRENT_PRIMARY_GROUP, SDK_ROOT, SIM_ADDRESS, GROUND_CONTROL_ADDRESS
+import dotenv
+
 
 def cleanup_docker_resources():
     """Cleanup function to remove all stopped containers and unused images."""
@@ -357,9 +359,17 @@ class DockerInDocker(Container):
         self.command = [
             f'--host=unix:///dind-sockets/spirisdk_{self.container_name}.socket'
         ]
+        
+        self.robot_env = Path(self.robot_data_root) / "config.env"
+
+        
 
     def ensure_started(self) -> None:
         """Start the Docker-in-Docker container with specialized configuration."""
+        
+        dotenv.set_key(self.robot_env, "SIM_ADDRESS", SIM_ADDRESS)
+        dotenv.set_key(self.robot_env, "GROUND_CONTROL_ADDRESS", GROUND_CONTROL_ADDRESS)
+        
         # Debug: Verify volumes before starting
         logger.debug(f"Volume mounts before start: {self.volumes}")
         if not self.socket_dir.exists():

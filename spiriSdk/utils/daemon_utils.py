@@ -20,9 +20,7 @@ async def init_daemons():
     print("Initializing Daemons...")
     for robot_name in os.listdir(DATA_DIR):
         robot_path = os.path.join(DATA_DIR, robot_name)
-        robot_env = Path(robot_path) / "config.env"
-        dotenv.set_key(robot_env, "SIM_ADDRESS", SIM_ADDRESS)
-        dotenv.set_key(robot_env, "GROUND_CONTROL_ADDRESS", GROUND_CONTROL_ADDRESS)
+
         if os.path.isdir(robot_path):
             dind = DockerInDocker("docker:dind", robot_name)
             daemons[robot_name] = dind
