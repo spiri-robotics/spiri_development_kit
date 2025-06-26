@@ -20,7 +20,7 @@ class ToggleButton(ui.button):
         self.update()
     
     def update(self) -> None:
-        self.color = "warning" if self.state else "positive"
+        self.color = "negative" if self.state else "positive"
         label = self.on_label if self.state else self.off_label
         self.props(f'color={self.color}')
         self.set_text(label)
