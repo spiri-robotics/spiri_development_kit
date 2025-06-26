@@ -4,7 +4,7 @@ async def styles():
 
     ui.colors(primary='#9EDFEC', 
           secondary='#274c77',
-          accent='#2c0e37',
+          accent="#c52e6d",
           dark='#292e32', #dark='#171614',
           dark_page='#212428',  #dark_page='#191e21',
           positive='#6bad62',    #'#255238',
