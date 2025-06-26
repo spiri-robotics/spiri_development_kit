@@ -99,22 +99,38 @@ def displayCards():
                 with ui.card_actions():
 
                     async def power_on(robot):
+                        n = ui.notification(timeout=None)
+                        for i in range(1):
+                            n.message = 'Powering on...'
+                            n.spinner = True
+                            await asyncio.sleep(1)
                         await start_container(robot)
-                        ui.notify(message='Container started', type='positive')
+                        n.message = 'Container started'
+                        n.type = 'positive'
+                        n.spinner = False
+                        n.timeout = 4
 
                     async def power_off(robot):
+                        n = ui.notification(timeout=None)
+                        for i in range(1):
+                            n.message = 'Powering off...'
+                            n.spinner = True
+                            await asyncio.sleep(1)
                         message, type = stop_container(robot)
-                        ui.notify(message=message, type=type)
+                        n.message = message
+                        n.type = type
+                        n.spinner = False
+                        n.timeout = 4
 
                     async def reboot(robot, power):
                         n = ui.notification(message='Rebooting...', spinner=True, timeout=None)
                         power.disable()
-                        if not power.state:
-                            power.state = True
-                            power.update()
 
                         await restart_container(robot)
                         
+                        if not power.state:
+                            power.state = True
+                            power.update()
                         power.enable()
                         n.message = 'Done'
                         n.spinner = False
