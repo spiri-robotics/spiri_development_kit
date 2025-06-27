@@ -120,11 +120,11 @@ async def start_container(robot_name):
 
 def stop_container(robot_name):
     if robot_name not in daemons:
-        return f"No daemon found for {robot_name}.", 'warning'
+        return f"No daemon found for {robot_name}.", 'negative'
 
     container = daemons[robot_name].container
     if container is None:
-        return f"No container found for {robot_name}. It may have already been removed.", 'warning'
+        return f"No container found for {robot_name}. It may have already been removed.", 'negative'
 
     try:
         container.reload()
@@ -144,7 +144,7 @@ def stop_container(robot_name):
     except APIError as e:
         if e.response is not None and e.response.status_code == 404:
             daemons[robot_name].container = None
-            return f"Container {robot_name} was already removed before stopping.", 'warning'
+            return f"Container {robot_name} was already removed before stopping.", 'negative'
         else:
             raise e
 
