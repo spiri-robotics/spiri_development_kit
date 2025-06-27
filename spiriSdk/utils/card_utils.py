@@ -73,7 +73,7 @@ def displayCards():
                     if alias == robotName or alias == robotName:
                         ui.label(f'{robotName}').classes('mb-5 text-lg font-semibold text-gray-900 dark:text-gray-100')
                     else:
-                        ui.label(f'{alias}').classes('text-lg font-semibold text-gray-900 dark:text-gray-100')
+                        ui.label(f'{alias[1:-1]}').classes('text-lg font-semibold text-gray-900 dark:text-gray-100')
                         ui.label(f'{robotName}').classes('mb-5 text-base font-normal text-gray-900 dark:text-gray-100')
                     label_status = ui.label('Status: Loading...').classes('text-sm text-gray-600 dark:text-gray-300')
 
