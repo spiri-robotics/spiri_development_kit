@@ -98,48 +98,61 @@ def displayCards():
                 ui.space()
                 with ui.card_actions():
 
-                    async def power_on(robot):
+                    async def power_on(robot, buttons: list):
+                        for button in buttons:
+                            button.disable()
                         n = ui.notification(timeout=None)
                         for i in range(1):
                             n.message = 'Powering on...'
                             n.spinner = True
                             await asyncio.sleep(1)
+                            
                         await start_container(robot)
+                        
+                        for button in buttons:
+                            button.enable()
                         n.message = 'Container started'
                         n.type = 'positive'
                         n.spinner = False
                         n.timeout = 4
 
-                    async def power_off(robot):
+                    async def power_off(robot, buttons: list):
+                        for button in buttons:
+                            button.disable()
                         n = ui.notification(timeout=None)
                         for i in range(1):
                             n.message = 'Powering off...'
                             n.spinner = True
                             await asyncio.sleep(1)
+                            
                         message, type = stop_container(robot)
+                        
+                        for button in buttons:
+                            button.enable()
                         n.message = message
                         n.type = type
                         n.spinner = False
                         n.timeout = 4
 
-                    async def reboot(robot, power):
+                    async def reboot(robot, buttons: list):
+                        for button in buttons:
+                            button.disable()
                         n = ui.notification(message='Rebooting...', spinner=True, timeout=None)
-                        power.disable()
 
                         await restart_container(robot)
                         
-                        if not power.state:
-                            power.state = True
-                            power.update()
-                        power.enable()
+                        for button in buttons:
+                            button.enable()
+                        if not buttons[0].state:
+                            buttons[0].state = True
+                            buttons[0].update()
                         n.message = 'Done'
                         n.spinner = False
                         n.type = 'positive'
-                        await asyncio.sleep(4)
-                        n.dismiss()
+                        n.timeout = 4
 
-                    power = ToggleButton(on_label='power off', off_label='power on', on_switch=lambda r=robotName: power_off(r), off_switch=lambda r=robotName: power_on(r)).classes('text-base')
-                    ui.button('Reboot', color='secondary', on_click=lambda r=robotName, t=power: reboot(r, t)).classes('text-base mr-10')
+                    power = ToggleButton(on_label='power off', off_label='power on').classes('text-base')
+                    reboot_btn = ui.button('Reboot', color='secondary').classes('text-base mr-10')
                     
                     async def add_to_world(robot):
                         # ip = daemons[robotName].get_ip()
@@ -172,7 +185,7 @@ def displayCards():
                         await asyncio.sleep(4)
                         notif.dismiss()
 
-                    ui.button(icon='delete', on_click=lambda n=robotName: delete(n), color='warning').classes('text-base')
+                    trash = ui.button(icon='delete', on_click=lambda n=robotName: delete(n), color='warning').classes('text-base')
 
             # Display the robot's Docker services command            
             with ui.card_section():
@@ -189,3 +202,9 @@ def displayCards():
                     if 'ARC' in robotName:
                         url = f'http://{daemons[robotName].get_ip()}:{80}'
                         ui.link(f'Access the Web Interface at: {url}', url, new_tab=True).classes('text-sm dark:text-gray-200 py-3')
+                        
+            buttons = [power, reboot_btn, gz_toggle, trash]
+                        
+            power.on_switch = lambda r=robotName, b=buttons: power_off(r, b)
+            power.off_switch = lambda r=robotName, b=buttons: power_on(r, b)
+            reboot_btn.on_click(lambda r=robotName, b=buttons: reboot(r, b))
