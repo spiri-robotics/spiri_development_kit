@@ -159,7 +159,7 @@ def display_robot_options(robot_name, selected_options, options_container, check
                     ui.label(formatted_key)
                     ui.switch(value=bool_value, on_change=lambda e, k=key: on_toggle(e.sender, k))
 
-            elif option_type == 'int' or option_type == 'float':
+            elif option_type == 'int':
                 min_val = option.get('min', None)
                 max_val = option.get('max', None)
                 step = option.get('step', 1)
@@ -168,35 +168,21 @@ def display_robot_options(robot_name, selected_options, options_container, check
                 def handleNum(e, k):
                     checker.checkNumber(e)
 
-                    if e.value is not None:
-                        if e.value == int(e.value):
-                            selected_options[k] = int(e.value)
-                        else:
-                            selected_options[k] = e.value
+                    if str(e.value).isdigit():
+                        selected_options[k] = int(e.value)
 
-                if 'SYS_ID' in key:
-                    numVal = None
-                else:
-                    numVal = current_value
-
-                numInput = ui.number(
+                numInput = ui.input(
                     label=f'{formatted_key}*',
-                    value=numVal,
-                    min=min_val,
-                    max=max_val,
-                    step=step,
+                    value=None,
                     on_change=lambda e, k=key: handleNum(e.sender, k),
                     validation={
-                        'Field cannot be empty or contain letters': lambda value: value,
-                        'Value must be four or more digits': lambda value, label=formatted_key: value >= 1000 if 'Port' in label else True,
-                        'System ID already in use': lambda value, label=formatted_key: value not in active_sys_ids if 'System ID' in label else True
+                        'Field cannot be empty': lambda value: value,
+                        'Value must be a positive integer': lambda value: str(value).isdigit() and float(value) != 0,
+                        'System ID already in use': lambda value: int(value) not in active_sys_ids
                     }
                 ).classes('w-full pb-1')
                 
-                if 'SYS_ID' in key:
-                    checker.add(numInput, False)
-                else:
-                    checker.add(numInput, True)
+                checker.add(numInput, False)
             
             elif option_type == 'dropdown':
                 def handleDropdown(e, k):
