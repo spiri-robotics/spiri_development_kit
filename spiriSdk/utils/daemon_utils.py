@@ -97,7 +97,7 @@ async def start_services(robot_name: str):
     except Exception as e:
         return f"Error starting services for {robot_name}: {str(e)}"
 
-async def display_daemon_status(robot_name):
+def display_daemon_status(robot_name):
     try:
         container = daemons[robot_name].container
         if container is None:
@@ -109,10 +109,10 @@ async def display_daemon_status(robot_name):
     except Exception as e:
         return f'error: {str(e)}'
     
-async def check_stopped(robot_name):
-    status = await display_daemon_status(robot_name)
+def check_stopped(robot_name):
+    status = display_daemon_status(robot_name)
     if status != 'stopped':
-        await check_stopped(robot_name)
+        check_stopped(robot_name)
     
 async def start_container(robot_name):
     print(f'Starting container for {robot_name}...')
@@ -149,8 +149,8 @@ def stop_container(robot_name):
             raise e
 
 async def restart_container(robot_name: str):
-    if await display_daemon_status(robot_name) == 'running':
+    if display_daemon_status(robot_name) == 'running':
         message = await run.io_bound(lambda: stop_container(robot_name))
         print(message)
-    await check_stopped(robot_name)
+    check_stopped(robot_name)
     await start_container(robot_name)
