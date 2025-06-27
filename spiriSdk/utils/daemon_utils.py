@@ -31,7 +31,6 @@ async def init_daemons():
             robot_sys = str(robot_name).rsplit('_', 1)
             active_sys_ids.append(int(robot_sys[1]))
             
-        
     for robot_name in list(daemons.keys()):
         await start_services(robot_name)
         
@@ -119,6 +118,7 @@ async def start_container(robot_name):
     await run.io_bound(daemons[robot_name].ensure_started)
 
 def stop_container(robot_name):
+    from spiriSdk.utils.card_utils import displayCards
     if robot_name not in daemons:
         return f"No daemon found for {robot_name}.", 'negative'
 
@@ -130,6 +130,7 @@ def stop_container(robot_name):
         container.reload()
     except NotFound:
         daemons[robot_name].container = None
+        displayCards.refresh()
         return f"Container {robot_name} is already removed.", 'info'
 
     if container.status != "running":
@@ -137,6 +138,7 @@ def stop_container(robot_name):
 
     try:
         container.stop()
+        displayCards.refresh()
         return f"Container {robot_name} stopped.", 'positive'
     except NotFound:
         daemons[robot_name].container = None

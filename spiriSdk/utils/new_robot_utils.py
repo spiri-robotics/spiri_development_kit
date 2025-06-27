@@ -56,7 +56,7 @@ def ensure_options_yaml():
 
     return robots
 
-async def save_robot_config(robot_type, selected_options):
+async def save_robot_config(robot_type, selected_options, dialog):
     if robot_type == "ARC":
         robot_id = selected_options.get('ARC_SYS_ID', uuid.uuid4().hex[:6])
     elif robot_type == "car":
@@ -82,6 +82,8 @@ async def save_robot_config(robot_type, selected_options):
     await run.io_bound(new_daemon.ensure_started)
     daemons[folder_name] = new_daemon
     active_sys_ids.append(robot_id)
+    
+    dialog.close()  # Close the dialog after saving
 
     from spiriSdk.utils.card_utils import displayCards
     displayCards.refresh()
