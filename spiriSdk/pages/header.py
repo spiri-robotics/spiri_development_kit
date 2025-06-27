@@ -48,7 +48,6 @@ def battery_icon(percent, charging):
     if charging:
         return "battery_charging_full"
     else:
-        print('not charging')
         if percent > 95:
             return "battery_full"
         elif percent >= 85:
