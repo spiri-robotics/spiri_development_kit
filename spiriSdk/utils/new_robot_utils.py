@@ -67,15 +67,15 @@ async def save_robot_config(robot_type, selected_options):
     folder_path = os.path.join(ROOT_DIR, "data", folder_name)
 
     os.makedirs(folder_path, exist_ok=True)
-
+    
     new_daemon = DockerInDocker(image_name="docker:dind", container_name=folder_name)
 
     config_path = new_daemon.robot_env
     for key, value in selected_options.items():
         if 'NAME' in key:
-            dotenv.set_key(config_path, key, str(value))
+            dotenv.set_key(config_path, key, folder_name)
             if value:
-                dotenv.set_key(config_path, 'ALIAS', str(value))
+                dotenv.set_key(config_path, 'ALIAS', value)
         else:
             dotenv.set_key(config_path, key, str(value))
     
