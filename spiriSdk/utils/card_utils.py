@@ -185,7 +185,7 @@ def displayCards():
                         await asyncio.sleep(4)
                         notif.dismiss()
 
-                    trash = ui.button(icon='delete', on_click=lambda n=robotName: delete(n), color='warning').classes('text-base')
+                    trash = ui.button(icon='delete', on_click=lambda n=robotName: delete(n), color='negative').classes('text-base')
 
             # Display the robot's Docker services command            
             with ui.card_section():
