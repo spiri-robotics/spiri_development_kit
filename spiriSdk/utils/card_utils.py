@@ -164,8 +164,7 @@ def displayCards():
                     async def remove_from_world(robot):
                         robot = gz_world.models[robot].kill_model()
                             
-                    if on:    
-                        gz_toggle = ToggleButton(state=False, on_label="remove from gz sim", off_label="add to gz sim", on_switch=lambda r=robotName: remove_from_world(r), off_switch=lambda r=robotName: add_to_world(r)).classes('m-1 mr-10 text-base')
+                    gz_toggle = ToggleButton(state=False, on_label="remove from gz sim", off_label="add to gz sim", on_switch=lambda r=robotName: remove_from_world(r), off_switch=lambda r=robotName: add_to_world(r)).classes('m-1 mr-10 text-base')
 
                     start_polling(robotName, label_status, gz_toggle)
 
