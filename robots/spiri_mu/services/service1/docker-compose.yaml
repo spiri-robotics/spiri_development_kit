@@ -17,6 +17,7 @@ services:
     ports:
       - 5760:5760/tcp
       - 5501:5501/udp
+    restart: always
     expose:
       - '5760'
     networks:
