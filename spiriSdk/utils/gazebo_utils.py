@@ -91,7 +91,7 @@ class World:
             dead_world_models.update(self.models)
             for model in dead_world_models.values(): 
                 model.kill_model()
-            models = {}
+            self.models = {}
             remove_gazebo_proc = subprocess.Popen(
                 KILL_GZ_CMD, 
                 shell=True, 

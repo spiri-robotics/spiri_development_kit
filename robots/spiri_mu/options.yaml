@@ -7,7 +7,7 @@ x-spiri-options:
     help-text: The robot's system ID - each robot must have a unique ID!
     type: int
     max: 255
-    min: 0
+    min: 1
     precision: 0
     step: 1
     value: 1
