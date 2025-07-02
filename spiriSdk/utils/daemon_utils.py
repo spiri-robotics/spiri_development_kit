@@ -31,7 +31,6 @@ async def init_daemons():
             robot_sys = str(robot_name).rsplit('_', 1)
             active_sys_ids.append(int(robot_sys[1]))
             
-        
     for robot_name in list(daemons.keys()):
         await start_services(robot_name)
         

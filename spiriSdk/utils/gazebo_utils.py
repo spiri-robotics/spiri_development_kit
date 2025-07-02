@@ -8,7 +8,7 @@ import time
 MODEL_PATHS = {
     'spiri_mu': 'robots/spiri_mu/models/spiri_mu',
     'spiri_mu_no_gimbal': 'robots/spiri_mu_no_gimbal/models/spiri_mu',
-    'dummy_test': 'robots/car/models/car_008',
+    'car': 'robots/car/models/car_008',
     'ARC': 'robots/ARC/models/ARC_simplified'
 }
 
@@ -57,6 +57,7 @@ class World:
         model = Model(self, model_name, model_type, ip)
         await model.launch_model()
         self.models.update({model_name:model})
+        return
 
     async def run_world(self, run_value) -> None:
         """Run world in Gazebo simulator."""
@@ -68,10 +69,8 @@ class World:
             else:
                 cmd = ['gz', 'sim', f'{WORLD_PATHS[self.name]}.world']
             subprocess.Popen(cmd)
-            print(cmd)
             running_world = await get_running_worlds()
-            if (running_world) != []:
-                print('world started')
+            print('world started')
         except FileNotFoundError:
             print(f"File not found: {self.name}. Make sure it is installed and available in the PATH.")
 
@@ -92,7 +91,7 @@ class World:
             dead_world_models.update(self.models)
             for model in dead_world_models.values(): 
                 model.kill_model()
-            models = {}
+            self.models = {}
             remove_gazebo_proc = subprocess.Popen(
                 KILL_GZ_CMD, 
                 shell=True, 
@@ -125,7 +124,7 @@ class Model:
                     if line.startswith('SITL_PORT='):
                         self.sitl_port =line.strip().split('=', 1)[1]
 
-    async def launch_model(self) -> None:
+    async def launch_model(self) -> bool:
         """Launch the model in the Gazebo simulator."""
         print("adding model")
         print(self.path)
@@ -153,7 +152,8 @@ class Model:
         
         out, err = ros2_gz_create_proc.communicate(timeout=3)
         ros2_gz_create_proc.kill()
-        return
+        return True
+
     
     def kill_model(self):
         

@@ -32,7 +32,7 @@ async def addRobot():
 
             # Import here instead of at the top to get the updated selected_robot
             from spiriSdk.pages.new_robots import selected_robot, selected_options
-            await save_robot_config(selected_robot, selected_options)
+            await save_robot_config(selected_robot, selected_options, d)
 
             d.close()
 
@@ -76,18 +76,25 @@ def displayCards():
                     label.classes('text-[#609926]')
                 elif status == 'stopped':
                     label.classes('text-[#d43131]')
+                return status
 
             def start_polling(name, label, gz_toggle: ToggleButton):
                 async def polling_loop():
                     while True:
-                        update_status(name, label)
-                        if not is_robot_alive(name):
-                            if gz_toggle:
-                                gz_toggle._state = True
+                        status = update_status(name, label)
+                        world_running = await get_running_worlds()
+                        if gz_toggle:
+                            if status == 'running' and len(world_running) > 0:
+                                gz_toggle.visible = True
+                            elif gz_toggle.visible == True:
+                                gz_toggle.visible = False
+                                await remove_from_world(name)
+                            if not is_robot_alive(name):
+                                gz_toggle.state = False
                                 gz_toggle.update()
-                        if await get_running_worlds() == []:
+                        if len(world_running) == 0:
                             gz_world.models = {}
-                        await asyncio.sleep(5)
+                        await asyncio.sleep(3)
                 asyncio.create_task(polling_loop())
                 
             async def power_on(robot, buttons: list):
@@ -139,15 +146,30 @@ def displayCards():
                 n.timeout = 4
                 
                 displayCards.refresh()
-
+                
             async def add_to_world(robot):
-                robotType = str(robot).rsplit('_', 1)[0]
-                await gz_world.prep_bot(robot, robotType)
-                ui.notify(f'Added {robot} to world')
+                try:
+                    robotType = "_".join(str(robot).split('_')[0:-1])
+                    print(robotType)
+                    await gz_world.prep_bot(robot, robotType)
+                    running_worlds = await get_running_worlds()
+                    if len(running_worlds) > 0:
+                        ui.notify(f'Added {robot} to world')
+                        return True
+                    else:
+                        raise Exception('No world running')
+                except Exception as e:
+                    print(e)
+                    return False
 
             async def remove_from_world(robot):
-                robot = gz_world.models[robot].kill_model()
-
+                try:
+                    robot = gz_world.models[robot].kill_model()
+                    return True
+                except Exception as e:
+                    print(e)
+                    return False
+                
             async def delete(n):
                 notif = ui.notification(timeout=False)
                 for i in range(1):
@@ -184,41 +206,43 @@ def displayCards():
                         
                     update_status(robotName, label_status)
 
-                # Docker host
-                with ui.card_section().classes('w-full p-0 mb-2'):
-                    with ui.row():
-                        command = f"DOCKER_HOST=unix:///tmp/dind-sockets/spirisdk_{robotName}.socket"
-                        ui.code(command, language='bash').classes('text-sm text-gray-600 dark:text-gray-200')
+                # Stats/info
+                if daemons[robotName].container is not None and daemons[robotName].container.status == 'running': 
+                    # Docker host
+                    with ui.card_section().classes('w-full p-0 mb-2'):
+                        with ui.row():
+                            command = f"DOCKER_HOST=unix:///tmp/dind-sockets/spirisdk_{robotName}.socket"
+                            ui.code(command, language='bash').classes('text-sm text-gray-600 dark:text-gray-200')
 
-                # IP and web interface link
-                with ui.card_section().classes('w-full p-0 mb-2'):
-                    if 'Running' in label_status.text:
-                        ui.markdown(f'**Robot IP:** {daemons[robotName].get_ip()}')
+                    # IP and web interface link
+                    with ui.card_section().classes('w-full p-0 mb-2'):
+                        if 'Running' in label_status.text:
+                            ui.markdown(f'**Robot IP:** {daemons[robotName].get_ip()}')
                         
-                        # Link to the robot's web interface if applicable
-                        if "spiri_mu" in robotName:
-                            url = f'http://{daemons[robotName].get_ip()}:{80}'
-                            ui.link(f'Access the Web Interface at: {url}', url, new_tab=True).classes('text-sm dark:text-gray-200 py-3')
-                                    
-                        if 'ARC' in robotName:
-                            url = f'http://{daemons[robotName].get_ip()}:{80}'
-                            ui.link(f'Access the Web Interface at: {url}', url, new_tab=True).classes('text-sm dark:text-gray-200 py-3')
-                    else:
-                        ui.label('Robot IP not available')
+                            # Link to the robot's web interface if applicable
+                            if "spiri_mu" in robotName:
+                                url = f'http://{daemons[robotName].get_ip()}:{80}'
+                                ui.link(f'Access the Web Interface at: {url}', url, new_tab=True).classes('text-sm dark:text-gray-200 py-3')
+                                        
+                            if 'ARC' in robotName:
+                                url = f'http://{daemons[robotName].get_ip()}:{80}'
+                                ui.link(f'Access the Web Interface at: {url}', url, new_tab=True).classes('text-sm dark:text-gray-200 py-3')
+                else:
+                    with ui.card_section().classes('w-full p-0 mb-2'):
+                        ui.label('Robot stats not available')
 
                 # Actions
                 with ui.card_section().classes('w-full p-0 mt-auto'):
                     with ui.row(align_items='end'):
-                        with ui.row():
-                            power = ToggleButton(on_label='power off', off_label='power on')
-                            if 'Running' in label_status.text:
-                                power.state = True
-                            else:
-                                power.state = False
-                            power.update()
-                            
-                            reboot_btn = ui.button('Reboot', color='secondary')
+                        on = False
+                        if daemons[robotName].container is not None and daemons[robotName].container.status == 'running':
+                            on = True
+                        power = ToggleButton(on_label='power off', off_label='power on', state=on)
+                        
+                        reboot_btn = ui.button('Reboot', color='secondary')
+                        
                         gz_toggle = ToggleButton(state=False, on_label="remove from gz sim", off_label="add to gz sim", on_switch=lambda r=robotName: remove_from_world(r), off_switch=lambda r=robotName: add_to_world(r))
+                        gz_toggle.visible = False
                         
                         ui.space()
                         
