@@ -13,6 +13,7 @@ services:
         ./Tools/autotest/sim_vehicle.py ArduCopter --no-rebuild \
         --no-mavproxy --enable-dds --sysid $MAVLINK_SYS_ID      
     stdin_open: true
+    restart: always
     tty: true
     ports:
       - 5760:5760/tcp
