@@ -1,6 +1,7 @@
 from nicegui import ui
 from datetime import datetime
 import subprocess
+from spiriSdk.ui.ToggleButton import ToggleButton
 
 def get_battery_status():
     """Fetch battery percentage and charging status."""
@@ -81,51 +82,23 @@ def wifi_icon(signal):
 on = True  # Default dark mode state
 
 async def header():
-    with ui.header().classes('items-center'):
-        with ui.row():
-            ui.button('', icon='home', on_click=lambda: ui.navigate.to('/'), color='secondary').classes('text-base')
-            ui.button('', icon='settings', on_click=lambda: ui.navigate.to('/settings'), color='secondary').classes('text-base')
+    ui.dark_mode(None)
 
-        ui.space()
+    @ui.refreshable
+    def clock():
+        dateTime = datetime.astimezone(datetime.now())
+        ui.label(dateTime.strftime('%A %B %d %Y')).classes('text-xl font-light absolute top-10 right-60 z-50')
+        ui.label(dateTime.strftime('%X %Z')).classes('text-xl font-light absolute top-10 right-24 z-50')
 
-        dark = ui.dark_mode()
-        dark.value = on
+    ui.timer(1.0, clock.refresh)
+    
+    percent, charging = get_battery_status()
+    wifi_signal = get_wifi_signal()
 
-        def toggle_dark():
-            global on
-            dark.value = not dark.value
-            on = dark.value
-            dark_btn.props('icon="dark_mode"' if dark.value else 'icon="light_mode"')
+    clock()
 
-        # Button with dynamic icon
-        dark_btn = ui.button(
-            '', 
-            icon='dark_mode' if dark.value else 'light_mode', 
-            on_click=toggle_dark, 
-            color='secondary'
-        ).classes('text-base')
+    # Battery icon
+    ui.icon(battery_icon(percent, charging)).classes("text-2xl absolute top-10 right-12 z-50")
 
-        # Update icon when dark mode changes
-        def update_icon():
-            dark_btn.props('icon="dark_mode"' if dark.value else 'icon="light_mode"')
-        dark.bind_value(update_icon)
-
-        @ui.refreshable
-        def clock():
-            dateTime = datetime.astimezone(datetime.now())
-            ui.label(dateTime.strftime('%A %B %d %Y')).classes('text-xl text-secondary')
-            ui.label(dateTime.strftime('%X %Z')).classes('text-xl text-secondary')
-
-        ui.timer(1.0, clock.refresh)
-        
-        with ui.row():
-            percent, charging = get_battery_status()
-            wifi_signal = get_wifi_signal()
-
-            clock()
-
-            # Battery icon
-            ui.icon(battery_icon(percent, charging), color='secondary').classes("text-2xl")
-
-            # Wi-Fi icon
-            ui.icon(wifi_icon(wifi_signal), color='secondary').classes("text-2xl")
+    # Wi-Fi icon
+    ui.icon(wifi_icon(wifi_signal)).classes("text-2xl absolute top-10 right-4 z-50")

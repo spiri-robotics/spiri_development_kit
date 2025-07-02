@@ -19,10 +19,10 @@ app.on_startup(on_startup)
 os.environ['WATCHFILES_IGNORE_PERMISSION_DENIED'] = 'True'
 
 ui.run(title='Spiri SDK',
-        favicon=favicon,
-        port=8197,
-        show=True,
-        #If 1833 gets resolves this will be a cleaner solution
-        uvicorn_reload_dirs=str(Path(__file__).parent.resolve()),
-        reload=True
-       )
+    favicon=favicon,
+    port=8197,
+    show=True,
+    #If 1833 gets resolves this will be a cleaner solution
+    uvicorn_reload_dirs=str(Path(__file__).parent.resolve()),
+    reload=True
+    )
