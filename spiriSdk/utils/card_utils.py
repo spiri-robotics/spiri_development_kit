@@ -221,11 +221,11 @@ def displayCards():
                             # Link to the robot's web interface if applicable
                             if "spiri_mu" in robotName:
                                 url = f'http://{daemons[robotName].get_ip()}:{80}'
-                                ui.link(f'Access the Web Interface at: {url}', url, new_tab=True).classes('dark:text-gray-200 py-3')
+                                ui.link(f'Access the Web Interface at: {url}', url, new_tab=True).classes('py-3')
                                         
                             if 'ARC' in robotName:
                                 url = f'http://{daemons[robotName].get_ip()}:{80}'
-                                ui.link(f'Access the Web Interface at: {url}', url, new_tab=True).classes('dark:text-gray-200 py-3')
+                                ui.link(f'Access the Web Interface at: {url}', url, new_tab=True).classes('py-3')
                 else:
                     with ui.card_section().classes('w-full p-0 mb-2'):
                         ui.label('Robot stats not available')
