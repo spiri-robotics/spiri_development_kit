@@ -15,7 +15,6 @@ services:
     stdin_open: true
     tty: true
     ports:
-      - 5760:5760/tcp
       - 5501:5501/udp
     restart: always
     expose:
@@ -32,10 +31,12 @@ services:
       --out udpout:mavros2:14552
       --out udpout:0.0.0.0:18761
       --sitl ardupilot:5510
-      --out tcpin:0.0.0.0:14550     
+      --out tcpin:0.0.0.0:14550
+      --out tcpin:0.0.0.0:5760
       --out udpout:$HOST_IP:14550 
     ports:
-      - 14550:14550/tcp
+      - 14550:14550
+      - 5760:5760/tcp
     expose:
       - '5760'
     restart: always
