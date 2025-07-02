@@ -1,13 +1,15 @@
 from nicegui import ui
 
 class ToggleButton(ui.button):
-    def __init__(self, *args, state=True, on_label="on", off_label="off", on_switch=None, off_switch=None, **kwargs):
+    def __init__(self, *args, state=True, on_label="on", off_label="off", on_switch=None, off_switch=None, on_icon=None, off_icon=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.state = state
         self.on_label = on_label
         self.off_label = off_label
         self.on_switch = on_switch
         self.off_switch = off_switch
+        self.on_icon = on_icon
+        self.off_icon = off_icon
         self.on('click', self.toggle)
         self.update()
 
@@ -22,6 +24,8 @@ class ToggleButton(ui.button):
     def update(self) -> None:
         self.color = "negative" if self.state else "positive"
         label = self.on_label if self.state else self.off_label
+        icon = self.on_icon if self.state else self.off_icon
         self.props(f'color={self.color}')
         self.set_text(label)
+        self.set_icon(icon)
         super().update()

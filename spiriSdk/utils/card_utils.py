@@ -151,8 +151,8 @@ def displayCards():
                         n.type = 'positive'
                         n.timeout = 4
 
-                    power = ToggleButton(on_label='power off', off_label='power on').classes('text-base')
-                    reboot_btn = ui.button('Reboot', color='secondary').classes('text-base mr-10')
+                    power = ToggleButton(on_label='power off', off_label='power on')
+                    reboot_btn = ui.button('Reboot', color='secondary').classes('mr-10')
                     
                     async def add_to_world(robot):
                         # ip = daemons[robotName].get_ip()
@@ -163,7 +163,7 @@ def displayCards():
                     async def remove_from_world(robot):
                         robot = gz_world.models[robot].kill_model()
                         
-                    gz_toggle = ToggleButton(state=False, on_label="remove from gz sim", off_label="add to gz sim", on_switch=lambda r=robotName: remove_from_world(r), off_switch=lambda r=robotName: add_to_world(r)).classes('m-1 mr-10 text-base')
+                    gz_toggle = ToggleButton(state=False, on_label="remove from gz sim", off_label="add to gz sim", on_switch=lambda r=robotName: remove_from_world(r), off_switch=lambda r=robotName: add_to_world(r)).classes('m-1 mr-10')
 
                     start_polling(robotName, label_status, gz_toggle)
 
@@ -182,10 +182,9 @@ def displayCards():
                             notif.type = 'negative'
                         
                         notif.spinner = False
-                        await asyncio.sleep(4)
-                        notif.dismiss()
+                        notif.timeout = 4
 
-                    trash = ui.button(icon='delete', on_click=lambda n=robotName: delete(n), color='negative').classes('text-base')
+                    trash = ui.button(icon='delete', on_click=lambda n=robotName: delete(n), color='negative')
 
             # Display the robot's Docker services command            
             with ui.card_section():
