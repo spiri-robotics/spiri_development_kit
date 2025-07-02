@@ -32,7 +32,7 @@ async def addRobot():
 
             # Import here instead of at the top to get the updated selected_robot
             from spiriSdk.pages.new_robots import selected_robot, selected_options
-            await save_robot_config(selected_robot, selected_options)
+            await save_robot_config(selected_robot, selected_options, d)
 
             d.close()
 
@@ -55,7 +55,6 @@ def displayCards():
     names = daemons.keys()
 
     for robotName in names:
-
         ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
         DATA_DIR = os.path.join(ROOT_DIR, 'data')
         config_file = os.path.join(DATA_DIR, robotName, 'config.env')
@@ -150,25 +149,20 @@ def displayCards():
                         
                         displayCards.refresh()
 
-                    power = ToggleButton(on_label='power off', off_label='power on').classes('text-base')
+                    on = False
+                    if daemons[robotName].container is not None and daemons[robotName].container.status == 'running':
+                        on = True
+                    power = ToggleButton(on_label='power off', off_label='power on', state=on).classes('text-base')
                     reboot_btn = ui.button('Reboot', color='secondary').classes('text-base mr-10')
                     
-                    if 'running' in label_status.text:
-                        power.state = True
-                    else:
-                        power.state = False
-                        
-                    power.update()
-                    
                     async def add_to_world(robot):
-                        # ip = daemons[robotName].get_ip()
                         robotType = "_".join(str(robot).split('_')[0:2])
                         await gz_world.prep_bot(robot, robotType)
                         ui.notify(f'Added {robot} to world')
 
                     async def remove_from_world(robot):
                         robot = gz_world.models[robot].kill_model()
-                        
+                            
                     gz_toggle = ToggleButton(state=False, on_label="remove from gz sim", off_label="add to gz sim", on_switch=lambda r=robotName: remove_from_world(r), off_switch=lambda r=robotName: add_to_world(r)).classes('m-1 mr-10 text-base')
 
                     start_polling(robotName, label_status, gz_toggle)
@@ -199,12 +193,12 @@ def displayCards():
                     power.off_switch = lambda r=robotName, b=buttons: power_on(r, b)
                     reboot_btn.on_click(lambda r=robotName, b=buttons: reboot(r, b))
 
-            # Display the robot's Docker services command            
-            with ui.card_section():
-                with ui.column():
-                    command = f"DOCKER_HOST=unix:///tmp/dind-sockets/spirisdk_{robotName}.socket"
-                    ui.code(command, language='bash').classes('text-sm text-gray-600 dark:text-gray-200 mb-4')
-                    if 'running' in label_status.text:
+            # Display the robot's Docker services command     
+            if daemons[robotName].container is not None and daemons[robotName].container.status == 'running':       
+                with ui.card_section():
+                    with ui.column():
+                        command = f"DOCKER_HOST=unix:///tmp/dind-sockets/spirisdk_{robotName}.socket"
+                        ui.code(command, language='bash').classes('text-sm text-gray-600 dark:text-gray-200 mb-4')
                         ui.label(f'Robot IP: {daemons[robotName].get_ip()}')
                         
                         # Link to the robot's web interface if applicable
@@ -215,5 +209,9 @@ def displayCards():
                         if 'ARC' in robotName:
                             url = f'http://{daemons[robotName].get_ip()}:{80}'
                             ui.link(f'Access the Web Interface at: {url}', url, new_tab=True).classes('text-sm dark:text-gray-200 py-3')
-                    else:
-                        ui.label('Robot IP not available')
+                        
+            buttons = [power, reboot_btn, gz_toggle, trash]
+                        
+            power.on_switch = lambda r=robotName, b=buttons: power_off(r, b)
+            power.off_switch = lambda r=robotName, b=buttons: power_on(r, b)
+            reboot_btn.on_click(lambda r=robotName, b=buttons: reboot(r, b))

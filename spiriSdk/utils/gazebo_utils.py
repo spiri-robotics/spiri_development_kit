@@ -68,10 +68,9 @@ class World:
             else:
                 cmd = ['gz', 'sim', f'{WORLD_PATHS[self.name]}.world']
             subprocess.Popen(cmd)
-            print(cmd)
             running_world = await get_running_worlds()
             if (running_world) != []:
-                print('world started')
+                print('World started')
         except FileNotFoundError:
             print(f"File not found: {self.name}. Make sure it is installed and available in the PATH.")
 
@@ -92,7 +91,7 @@ class World:
             dead_world_models.update(self.models)
             for model in dead_world_models.values(): 
                 model.kill_model()
-            models = {}
+            self.models = {}
             remove_gazebo_proc = subprocess.Popen(
                 KILL_GZ_CMD, 
                 shell=True, 
