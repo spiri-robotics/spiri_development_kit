@@ -55,7 +55,6 @@ def displayCards():
     names = daemons.keys()
 
     for robotName in names:
-
         ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
         DATA_DIR = os.path.join(ROOT_DIR, 'data')
         config_file = os.path.join(DATA_DIR, robotName, 'config.env')
@@ -80,17 +79,23 @@ def displayCards():
                     async def update_status(name, label):
                         status = await display_daemon_status(name)
                         label.text = f'Status: {status}'
+                        return status
 
                     # Periodic update
                     def start_polling(name, label, gz_toggle):
                         async def polling_loop():
                             while True:
-                                await update_status(name, label)
-                                if not is_robot_alive(name):
-                                    if gz_toggle:
-                                        gz_toggle._state = True
-                                        gz_toggle.update()
-                                if await get_running_worlds() == []:
+                                status = await update_status(name, label)
+                                world_running = await get_running_worlds()
+                                if status == "running" and len(world_running) > 0:
+                                    gz_toggle.visible = True
+                                elif gz_toggle.visible == True:
+                                    gz_toggle.visible = False
+                                    await remove_from_world(robotName)
+                                if not is_robot_alive(name) or len(world_running) == 0:
+                                    gz_toggle.state = False
+                                    gz_toggle.update()
+                                if len(world_running) == 0:
                                     gz_world.models = {}
                                 await asyncio.sleep(5)
                         asyncio.create_task(polling_loop())
@@ -101,10 +106,12 @@ def displayCards():
                     async def power_on(robot):
                         await start_container(robot)
                         ui.notify(message='Container started', type='positive')
+                        return True
 
                     async def power_off(robot):
                         message, type = stop_container(robot)
                         ui.notify(message=message, type=type)
+                        return True
 
                     async def reboot(robot, power):
                         n = ui.notification(message='Rebooting...', spinner=True, timeout=None)
@@ -121,21 +128,42 @@ def displayCards():
                         n.type = 'positive'
                         await asyncio.sleep(4)
                         n.dismiss()
-
+                    
                     power = ToggleButton(on_label='power off', off_label='power on', on_switch=lambda r=robotName: power_off(r), off_switch=lambda r=robotName: power_on(r)).classes('text-base')
                     ui.button('Reboot', color='secondary', on_click=lambda r=robotName, t=power: reboot(r, t)).classes('text-base mr-10')
                     
                     async def add_to_world(robot):
-                        # ip = daemons[robotName].get_ip()
-                        robotType = "_".join(str(robot).split('_')[0:2])
-                        await gz_world.prep_bot(robot, robotType)
-                        ui.notify(f'Added {robot} to world')
+                        try:
+                            # ip = daemons[robotName].get_ip()
+                            robotType = "_".join(str(robot).split('_')[0:-1])
+                            print(robotType)
+                            await gz_world.prep_bot(robot, robotType)
+                            running_worlds = await get_running_worlds()
+                            if (len(running_worlds) > 0):
+                                ui.notify(f'Added {robot} to world')
+                                return True
+                            else:
+                                raise Exception("No world running")
+                        except Exception as e:
+                            print(e)
+                            return False
 
                     async def remove_from_world(robot):
-                        robot = gz_world.models[robot].kill_model()
-                        
-                    gz_toggle = ToggleButton(state=False, on_label="remove from gz sim", off_label="add to gz sim", on_switch=lambda r=robotName: remove_from_world(r), off_switch=lambda r=robotName: add_to_world(r)).classes('m-1 mr-10 text-base')
-
+                        try:
+                            robot = gz_world.models[robot].kill_model()
+                            return True
+                        except Exception as e:
+                            print(e)
+                            return False
+                    
+                    gz_toggle = ToggleButton(
+                        state=False, 
+                        on_label="remove from gz sim", 
+                        off_label="add to gz sim", 
+                        on_switch=lambda r=robotName: remove_from_world(r), 
+                        off_switch=lambda r=robotName: add_to_world(r)
+                        ).classes('m-1 mr-10 text-base')
+                    
                     start_polling(robotName, label_status, gz_toggle)
 
                     async def delete(n):

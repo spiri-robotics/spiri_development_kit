@@ -12,12 +12,14 @@ class ToggleButton(ui.button):
         self.update()
 
     async def toggle(self) -> None:
+        result = False
         if self.state:
-            await self.on_switch()
+            result = await self.on_switch()
         elif not self.state:
-            await self.off_switch()
-        self.state = not self.state
-        self.update()
+            result = await self.off_switch()
+        if(result):
+            self.state = not self.state
+            self.update()
     
     def update(self) -> None:
         self.color = "negative" if self.state else "positive"
