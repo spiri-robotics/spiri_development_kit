@@ -155,13 +155,6 @@ def displayCards():
                     power = ToggleButton(on_label='power off', off_label='power on', state=on).classes('text-base')
                     reboot_btn = ui.button('Reboot', color='secondary').classes('text-base mr-10')
                     
-                    if 'running' in label_status.text:
-                        power.state = True
-                    else:
-                        power.state = False
-                        
-                    power.update()
-                    
                     async def add_to_world(robot):
                         robotType = "_".join(str(robot).split('_')[0:2])
                         await gz_world.prep_bot(robot, robotType)
