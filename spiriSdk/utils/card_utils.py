@@ -79,6 +79,7 @@ def displayCards():
                     def update_status(name, label):
                         status = display_daemon_status(name)
                         label.text = f'Status: {status}'
+                        return status
                         
                     update_status(robotName, label_status)
                         
@@ -86,16 +87,17 @@ def displayCards():
                     def start_polling(name, label, gz_toggle):
                         async def polling_loop():
                             while True:
-                                status = await update_status(name, label)
+                                status = update_status(name, label)
                                 world_running = await get_running_worlds()
-                                if status == "running" and len(world_running) > 0:
-                                    gz_toggle.visible = True
-                                elif gz_toggle.visible == True:
-                                    gz_toggle.visible = False
-                                    await remove_from_world(robotName)
-                                if not is_robot_alive(name) or len(world_running) == 0:
-                                    gz_toggle.state = False
-                                    gz_toggle.update()
+                                if(gz_toggle):
+                                    if status == "running" and len(world_running) > 0:
+                                        gz_toggle.visible = True
+                                    elif gz_toggle.visible == True:
+                                        gz_toggle.visible = False
+                                        await remove_from_world(robotName)
+                                    if not is_robot_alive(name):
+                                        gz_toggle.state = False
+                                        gz_toggle.update()
                                 if len(world_running) == 0:
                                     gz_world.models = {}
                                 await asyncio.sleep(5)
@@ -191,6 +193,7 @@ def displayCards():
                         on_switch=lambda r=robotName: remove_from_world(r), 
                         off_switch=lambda r=robotName: add_to_world(r)
                         ).classes('m-1 mr-10 text-base')
+                    gz_toggle.visible = False
                     
                     start_polling(robotName, label_status, gz_toggle)
 
