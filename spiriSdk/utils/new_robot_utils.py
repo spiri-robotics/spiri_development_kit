@@ -4,6 +4,7 @@ from pathlib import Path
 from spiriSdk.docker.dindocker import DockerInDocker
 from spiriSdk.utils.daemon_utils import daemons, start_services, active_sys_ids
 from spiriSdk.utils.InputChecker import InputChecker
+from loguru import logger
 import dotenv
 
 ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
@@ -59,8 +60,6 @@ def ensure_options_yaml():
 async def save_robot_config(robot_type, selected_options, dialog):
     if robot_type == "ARC":
         robot_id = selected_options.get('ARC_SYS_ID', uuid.uuid4().hex[:6])
-    elif robot_type == "car":
-        robot_id = selected_options.get('CAR_SYS_ID', uuid.uuid4().hex[:6])
     else:   
         robot_id = selected_options.get('MAVLINK_SYS_ID', uuid.uuid4().hex[:6])
     folder_name = f"{robot_type}_{robot_id}"
@@ -93,6 +92,7 @@ async def save_robot_config(robot_type, selected_options, dialog):
     ui.notify(f"Robot {folder_name} added successfully!", type='positive')
 
 async def delete_robot(robot_name) -> bool:
+    logger.info(f"Deleting robot {robot_name}")
     robot_path = os.path.join(ROOT_DIR, "data", robot_name)
     daemon = daemons.pop(robot_name)
     from spiriSdk.utils.card_utils import displayCards
@@ -102,6 +102,7 @@ async def delete_robot(robot_name) -> bool:
     active_sys_ids.remove(int(robot_sys[1]))
     if os.path.exists(robot_path):
         shutil.rmtree(robot_path)
+    logger.info(f"Robot {robot_name} deleted successfully")
     return True
 
 def display_robot_options(robot_name, selected_options, options_container, checker: InputChecker):
