@@ -16,8 +16,7 @@ async def init_daemons():
     global daemons
     from spiriSdk.utils.card_utils import displayCards
     print("Initializing Daemons...")
-    if not DATA_DIR.exists():
-        DATA_DIR.mkdir()
+
     for robot_dir in DATA_DIR.iterdir():
         robot_name = robot_dir.name
 
