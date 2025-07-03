@@ -65,13 +65,16 @@ def start_polling(name, label, gz_toggle: ToggleButton):
             status = update_status(name, label)
             world_running = await get_running_worlds()
             if gz_toggle:
-                if status == 'running' and len(world_running) > 0:
+                if len(world_running) > 0:
                     gz_toggle.visible = True
-                elif gz_toggle.visible == True:
+                else:
                     gz_toggle.visible = False
                     await remove_from_world(name)
                 if not is_robot_alive(name):
                     gz_toggle.state = False
+                    gz_toggle.update()
+                else:
+                    gz_toggle.state = True
                     gz_toggle.update()
             if len(world_running) == 0:
                 gz_world.models = {}

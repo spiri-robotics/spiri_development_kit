@@ -48,7 +48,6 @@ class World:
     def __init__(self, name):
         self.name = name
         self.models: dict[str:Model]  = {}
-        self.run_value = ''
 
     def get_name(self) -> str:
         return self.name
@@ -59,33 +58,29 @@ class World:
         self.models.update({model_name:model})
         return
 
-    async def run_world(self, run_value) -> None:
+    async def run_world(self) -> None:
         """Run world in Gazebo simulator."""
         print(f"Running world: {self.name}")
-        self.run_value = run_value
         try:
-            if self.run_value == '-r ':
-                cmd = ['gz', 'sim', '-r', f'{WORLD_PATHS[self.name]}.world']
-            else:
-                cmd = ['gz', 'sim', f'{WORLD_PATHS[self.name]}.world']
+            cmd = ['gz', 'sim', '-r', f'{WORLD_PATHS[self.name]}.world']
             subprocess.Popen(cmd)
             running_world = await get_running_worlds()
             print('world started')
         except FileNotFoundError:
             print(f"File not found: {self.name}. Make sure it is installed and available in the PATH.")
 
-    async def reset(self, name, run_value):
+    async def reset(self, name):
         self.end_gz_proc()
         self.name = name
         self.models = {
         
         }
         time.sleep(1)
-        await self.run_world(run_value)
+        await self.run_world()
     
     def end_gz_proc(self) -> None:
         try:
-            KILL_GZ_CMD = f"pkill -f 'gz sim {self.run_value}{WORLD_PATHS[self.name]}.world'"
+            KILL_GZ_CMD = f"pkill -f 'gz sim -r {WORLD_PATHS[self.name]}.world'"
             print(KILL_GZ_CMD)
             dead_world_models = {} 
             dead_world_models.update(self.models)
