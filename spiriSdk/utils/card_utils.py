@@ -1,5 +1,6 @@
 import os, asyncio, httpx
 from nicegui import ui
+from loguru import logger
 from spiriSdk.utils.daemon_utils import daemons, display_daemon_status, start_container, stop_container, restart_container
 from spiriSdk.utils.new_robot_utils import delete_robot, save_robot_config
 from spiriSdk.pages.tools import gz_world
@@ -108,6 +109,7 @@ async def power_on(robot, buttons: list):
     displayCards.refresh()
 
 async def power_off(robot, buttons: list):
+    logger.info(f'Powering off {robot}')
     for button in buttons:
         button.disable()
     n = ui.notification(timeout=None)
@@ -117,6 +119,7 @@ async def power_off(robot, buttons: list):
         await asyncio.sleep(1)
         
     message, type = stop_container(robot)
+    logger.info(message)
     
     n.message = message
     n.type = type
@@ -126,6 +129,7 @@ async def power_off(robot, buttons: list):
     displayCards.refresh()
 
 async def reboot(robot, buttons: list):
+    logger.info(f'Rebooting {robot}')
     for button in buttons:
         button.disable()
     n = ui.notification(message='Rebooting...', spinner=True, timeout=None)
@@ -229,13 +233,13 @@ def displayCards():
                         if 'Running' in label_status.text:
                             ui.markdown(f'**Robot IP:** {daemons[robotName].get_ip()}')
                         
-                            # Link to the robot's web interface if applicable
-                            if "spiri_mu" in robotName:
-                                url = f'http://{daemons[robotName].get_ip()}:{80}'
-                                ui.link(f'Access the Web Interface at: {url}', url, new_tab=True).classes('py-3')
+                            # Link to the robot's web interface if applicable 
+                            # if "spiri_mu" in robotName:
+                            #     url = f'http://{daemons[robotName].get_ip()}:{80}'
+                            #     ui.link(f'Access the Web Interface at: {url}', url, new_tab=True).classes('py-3')
                                         
                             if 'ARC' in robotName:
-                                url = f'http://{daemons[robotName].get_ip()}:{80}'
+                                url = f'http://{daemons[robotName].get_ip()}:{8080}'
                                 ui.link(f'Access the Web Interface at: {url}', url, new_tab=True).classes('py-3')
                 else:
                     with ui.card_section().classes('w-full p-0 mb-2'):
