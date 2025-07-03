@@ -12,7 +12,9 @@ RUN apt-get update && apt-get -y install qterminal mesa-utils \
     gstreamer1.0-plugins-bad \
     gstreamer1.0-plugins-ugly \
     ros-${ROS_DISTRO}-rmw-cyclonedds-cpp \
-    ros-${ROS_DISTRO}-ros-gz
+    ros-${ROS_DISTRO}-ros-gz \
+    ros-${ROS_DISTRO}-rqt \
+    ros-${ROS_DISTRO}-rqt-common-plugins
 
 ENV RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
 
