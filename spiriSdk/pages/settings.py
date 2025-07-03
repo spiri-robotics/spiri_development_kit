@@ -52,7 +52,7 @@ async def settings():
             ":".join(entry) for entry in auth_registries
         ])
         write_env(env_data)
-        ui.notify("✅ Environment file updated")
+        ui.notify("Environment file updated", type='positive')
         
     def add_auth():
         host = host_input.value.strip()
@@ -62,7 +62,7 @@ async def settings():
             auth_registries.append([host, user, token])
             registries.append(host)
             update_env()
-            refresh_auth_ui()
+            display_registries.refresh()
             host_input.value = ""
             user_input.value = ""
             token_input.value = ""
@@ -70,7 +70,7 @@ async def settings():
     ### --- AUTH_REGISTRIES SECTION ---
     with ui.row(align_items='stretch').classes('w-full pb-4'):
         with ui.card(align_items='stretch').classes("p-4 w-[30%]"):
-            host_input = ui.input(label="Host")
+            host_input = ui.input(label="Host", value='git.spirirobotics.com')
             user_input = ui.input(label="Username")
             token_input = ui.input(label="Token", password=True, password_toggle_button=True)
             ui.button("Add Registry", on_click=add_auth, color='secondary')
@@ -84,7 +84,7 @@ async def settings():
         - **hostname:** `git.spirirobotics.com`
         - **username:** *Your Gitea username*
         - **token:**  
-            1. Go to your Gitea profile picture → **Settings** → **Applications**
+            1. In Gitea, go to [**Settings** → **Applications**](https://git.spirirobotics.com/user/settings/applications)
             2. Name a token and give it **read** permissions for both packages and repos
             3. Click **Generate Token** and copy the resulting token printed at the top of the page
             4. You have acquired your Gitea access token!
@@ -98,14 +98,16 @@ async def settings():
             auth_registries.append(parts)
 
     @ui.refreshable
-    def refresh_auth_ui():
+    def display_registries():
         with ui.column().classes('w-full'):
+            if len(auth_registries) == 0:
+                ui.label('No registries authenticated.').classes('text-base font-light')
             for host, user, token in auth_registries:
                 with ui.row().classes('w-full'):
                     ui.label(f'{host}').classes("w-[200px] text-base font-light")
                     ui.label(f'{user}').classes("w-[150px] text-base font-light")
                     ui.label(f'{token[:6]}*******************').classes("w-[250px] text-base font-light")  # Mask token
-                    ui.button("", icon='delete', on_click=lambda h=host, u=user: delete_auth(h, u), color='secondary')
+                    ui.button("", icon='delete', on_click=lambda h=host, u=user: delete_auth(h, u), color='negative')
 
     def delete_auth(host, user):
         global auth_registries
@@ -113,7 +115,7 @@ async def settings():
         auth_registries = [entry for entry in auth_registries if not (entry[0] == host and entry[1] == user)]
         registries = [r for r in registries if r != host]
         update_env()
-        refresh_auth_ui.refresh()
+        display_registries.refresh()
         
     ui.label('Authenticated Registries:').classes('text-xl font-normal')
-    refresh_auth_ui()
+    display_registries()
