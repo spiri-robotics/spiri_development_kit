@@ -14,6 +14,8 @@ RUN apt-get update && apt-get -y install qterminal mesa-utils \
     ros-${ROS_DISTRO}-rmw-cyclonedds-cpp \
     ros-${ROS_DISTRO}-ros-gz
 
+ENV RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+
 COPY --from=git.spirirobotics.com/spiri/gazebo-resources:main /plugins /plugins
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 

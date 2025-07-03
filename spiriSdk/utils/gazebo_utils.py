@@ -4,6 +4,9 @@ from spiriSdk.utils.daemon_utils import ROBOTS_DIR, ROOT_DIR, DATA_DIR
 import subprocess
 import os
 import time
+from typing import Optional
+from spiriSdk.utils.daemon_utils import daemons
+from loguru import logger
 
 MODEL_PATHS = {
     'spiri_mu': 'robots/spiri_mu/models/spiri_mu',
@@ -54,7 +57,8 @@ class World:
         return self.name
     
     async def prep_bot(self, model_name: str ='bot', model_type: str='spiri_mu_no_gimbal', ip: str='127.0.0.1'):
-        model = Model(self, model_name, model_type, ip)
+        
+        model = Model(self, model_name, model_type, ip, daemon=daemons[model_name])
         await model.launch_model()
         self.models.update({model_name:model})
         return
@@ -101,28 +105,21 @@ class World:
             print(f"Error running command: {e}")
 
 class Model:
-    def __init__(self, parent: World, name: str, type: str ='spiri_mu', ip: str = '127.0.0.1', position: list[int] = None):
+    def __init__(self, parent: World, name: str, type: str ='spiri_mu', ip: str = '127.0.0.1', position: Optional[list[int]] = None, daemon=None ):
         self.parent: World = parent
         self.name = name
         self.type = type
         self.path = MODEL_PATHS.get(type)
         self.position = position
-        self.sitl_port = '9002'
-        self.ip = ip
-        self.get_model_sitl_port()
+        self.daemon = daemon
+        self.sitl_port = 9002 + 10 * int(self.daemon.env_get('MAVLINK_SYS_ID', 0))
+        logger.debug(f"Model {self.name} of type {self.type} will use SITL port {self.sitl_port}")
 
         if self.position == None:
             self.position = [len(self.parent.models.keys()) + 1, 0, 0, 0, 0, 0]
         if type == 'spiri_mu' or type == 'spiri_mu_no_gimbal':
             self.position[2] = self.position[2] + 0.195
 
-    def get_model_sitl_port(self) -> None:
-        config_path = Path(f'/data/{self.name}/config.env')
-        if config_path.exists():
-            with open(config_path) as f:
-                for line in f:
-                    if line.startswith('SITL_PORT='):
-                        self.sitl_port =line.strip().split('=', 1)[1]
 
     async def launch_model(self) -> bool:
         """Launch the model in the Gazebo simulator."""
