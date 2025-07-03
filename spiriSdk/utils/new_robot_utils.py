@@ -4,6 +4,7 @@ from pathlib import Path
 from spiriSdk.docker.dindocker import DockerInDocker
 from spiriSdk.utils.daemon_utils import daemons, start_services, active_sys_ids
 from spiriSdk.utils.InputChecker import InputChecker
+from loguru import logger
 import dotenv
 
 ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
@@ -59,8 +60,6 @@ def ensure_options_yaml():
 async def save_robot_config(robot_type, selected_options, dialog):
     if robot_type == "ARC":
         robot_id = selected_options.get('ARC_SYS_ID', uuid.uuid4().hex[:6])
-    elif robot_type == "car":
-        robot_id = selected_options.get('CAR_SYS_ID', uuid.uuid4().hex[:6])
     else:   
         robot_id = selected_options.get('MAVLINK_SYS_ID', uuid.uuid4().hex[:6])
     folder_name = f"{robot_type}_{robot_id}"
@@ -90,9 +89,10 @@ async def save_robot_config(robot_type, selected_options, dialog):
     await start_services(folder_name)
 
     # ui.notify(f"Saved config.env and started daemon for {folder_name}")
-    ui.notify(f"Robot {folder_name} added successfully!")
+    ui.notify(f"Robot {folder_name} added successfully!", type='positive')
 
 async def delete_robot(robot_name) -> bool:
+    logger.info(f"Deleting robot {robot_name}")
     robot_path = os.path.join(ROOT_DIR, "data", robot_name)
     daemon = daemons.pop(robot_name)
     from spiriSdk.utils.card_utils import displayCards
@@ -102,6 +102,7 @@ async def delete_robot(robot_name) -> bool:
     active_sys_ids.remove(int(robot_sys[1]))
     if os.path.exists(robot_path):
         shutil.rmtree(robot_path)
+    logger.info(f"Robot {robot_name} deleted successfully")
     return True
 
 def display_robot_options(robot_name, selected_options, options_container, checker: InputChecker):
@@ -180,7 +181,7 @@ def display_robot_options(robot_name, selected_options, options_container, check
                     validation={
                         'Field cannot be empty': lambda value: value,
                         'Value must be an integer': lambda value: str(value).isdigit(),
-                        'Value must be between 1 and 255': lambda value, minVal=min_val, maxVal = max_val: float(value) >= minVal and float(value) <= maxVal,
+                        'Value must be between 1 and 254': lambda value, minVal=min_val, maxVal = max_val: float(value) >= minVal and float(value) <= maxVal,
                         'System ID already in use': lambda value: int(value) not in active_sys_ids
                     }
                 ).classes('w-full pb-1')

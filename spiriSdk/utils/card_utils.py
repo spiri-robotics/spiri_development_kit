@@ -1,5 +1,6 @@
 import os, asyncio, httpx
 from nicegui import ui
+from loguru import logger
 from spiriSdk.utils.daemon_utils import daemons, display_daemon_status, start_container, stop_container, restart_container
 from spiriSdk.utils.new_robot_utils import delete_robot, save_robot_config
 from spiriSdk.pages.tools import gz_world
@@ -7,6 +8,7 @@ from spiriSdk.utils.gazebo_utils import get_running_worlds, is_robot_alive
 from spiriSdk.pages.new_robots import new_robots
 from spiriSdk.ui.ToggleButton import ToggleButton
 from spiriSdk.utils.InputChecker import InputChecker
+from datetime import datetime
 
 async def is_service_ready(url: str, timeout: float = 0.5) -> bool:
     try:
@@ -59,24 +61,34 @@ def update_status(name, label: ui.label):
         label.classes('text-[#d43131]')
     return status
 
+polling_tasks = {}
+
 def start_polling(name, label, gz_toggle: ToggleButton):
+    if name in polling_tasks and not polling_tasks[name].done():
+        old = polling_tasks.get(name)
+        old.cancel()
+
     async def polling_loop():
         while True:
             status = update_status(name, label)
             world_running = await get_running_worlds()
             if gz_toggle:
-                if status == 'running' and len(world_running) > 0:
+                if len(world_running) > 0:
                     gz_toggle.visible = True
-                elif gz_toggle.visible == True:
+                else:
+                    if is_robot_alive(name):
+                        await remove_from_world(name)
                     gz_toggle.visible = False
-                    await remove_from_world(name)
                 if not is_robot_alive(name):
                     gz_toggle.state = False
+                    gz_toggle.update()
+                else:
+                    gz_toggle.state = True
                     gz_toggle.update()
             if len(world_running) == 0:
                 gz_world.models = {}
             await asyncio.sleep(3)
-    asyncio.create_task(polling_loop())
+    polling_tasks[name] = asyncio.create_task(polling_loop())
     
 async def power_on(robot, buttons: list):
     for button in buttons:
@@ -97,6 +109,7 @@ async def power_on(robot, buttons: list):
     displayCards.refresh()
 
 async def power_off(robot, buttons: list):
+    logger.info(f'Powering off {robot}')
     for button in buttons:
         button.disable()
     n = ui.notification(timeout=None)
@@ -106,6 +119,7 @@ async def power_off(robot, buttons: list):
         await asyncio.sleep(1)
         
     message, type = stop_container(robot)
+    logger.info(message)
     
     n.message = message
     n.type = type
@@ -115,6 +129,7 @@ async def power_off(robot, buttons: list):
     displayCards.refresh()
 
 async def reboot(robot, buttons: list):
+    logger.info(f'Rebooting {robot}')
     for button in buttons:
         button.disable()
     n = ui.notification(message='Rebooting...', spinner=True, timeout=None)
@@ -218,13 +233,13 @@ def displayCards():
                         if 'Running' in label_status.text:
                             ui.markdown(f'**Robot IP:** {daemons[robotName].get_ip()}')
                         
-                            # Link to the robot's web interface if applicable
-                            if "spiri_mu" in robotName:
-                                url = f'http://{daemons[robotName].get_ip()}:{80}'
-                                ui.link(f'Access the Web Interface at: {url}', url, new_tab=True).classes('py-3')
+                            # Link to the robot's web interface if applicable 
+                            # if "spiri_mu" in robotName:
+                            #     url = f'http://{daemons[robotName].get_ip()}:{80}'
+                            #     ui.link(f'Access the Web Interface at: {url}', url, new_tab=True).classes('py-3')
                                         
                             if 'ARC' in robotName:
-                                url = f'http://{daemons[robotName].get_ip()}:{80}'
+                                url = f'http://{daemons[robotName].get_ip()}:{8080}'
                                 ui.link(f'Access the Web Interface at: {url}', url, new_tab=True).classes('py-3')
                 else:
                     with ui.card_section().classes('w-full p-0 mb-2'):

@@ -1,6 +1,3 @@
-[submodule "robots/spiri_mu/services/SpirirobotUI"]
-	path = robots/spiri_mu/services/SpirirobotUI
-	url = https://git.spirirobotics.com/aurora/SpirirobotUI.git
 [submodule "robots/ARC/services/spiri-arc-gui"]
 	path = robots/ARC/services/spiri-arc-gui
 	url = https://git.spirirobotics.com/Spiri/spiri-arc-gui.git

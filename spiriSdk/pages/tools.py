@@ -25,24 +25,16 @@ async def tools():
     global gz_world
     with ui.dialog() as gz_dialog, ui.card().classes('items-center'):
     
-        ui.label('World Start Time State').classes('text-h5')
-        ui.space()
-
-        #variable to tell the world time whether to initially run or not
-        world_auto_run = ui.toggle(['Running', 'Paused'], value='Paused').classes('text-base justify-center').props('size=md toggle-color="[#274c77]"')
-
-        w = ui.select(WORLD_NAMES, value='empty_world').classes('text-base w-full')
+        ui.label('Gazebo Launch Settings').classes('text-h5')
+        w = ui.select(WORLD_NAMES, label='Select World*').classes('text-base w-full')
         ui.space()
         
         async def start_and_close(): 
-            """function to combine starting the world and closing the dialog"""
-            if (world_auto_run.value == 'Running'):
-                world_run_value = '-r '
+            if(w.value != None):
+                await gz_world.reset(w.value)
+                gz_dialog.close()
             else:
-                world_run_value = ''
-            await gz_world.reset(w.value, world_run_value)
-            
-            gz_dialog.close()
+                ui.notify("Please Select a World")
         
         ui.button('Start World', 
                     on_click=start_and_close,
@@ -52,7 +44,7 @@ async def tools():
     await styles()
 
     with ui.row():
+        ui.button('Launch Gazebo', on_click=gz_dialog.open, color='secondary')
         for app_name, command in applications.items():
             ui.button(f'{app_name}', on_click=lambda cmd=command: launch_app(cmd), color='secondary')  # old color for all 3: color='#20788a'
-        ui.button('Launch Gazebo', on_click=gz_dialog.open, color='secondary')
         

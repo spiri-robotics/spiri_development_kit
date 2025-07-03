@@ -11,7 +11,6 @@ from loguru import logger
 MODEL_PATHS = {
     'spiri_mu': 'robots/spiri_mu/models/spiri_mu',
     'spiri_mu_no_gimbal': 'robots/spiri_mu_no_gimbal/models/spiri_mu',
-    'car': 'robots/car/models/car_008',
     'ARC': 'robots/ARC/models/ARC_simplified'
 }
 
@@ -51,7 +50,6 @@ class World:
     def __init__(self, name):
         self.name = name
         self.models: dict[str:Model]  = {}
-        self.run_value = ''
 
     def get_name(self) -> str:
         return self.name
@@ -63,34 +61,29 @@ class World:
         self.models.update({model_name:model})
         return
 
-    async def run_world(self, run_value) -> None:
+    async def run_world(self) -> None:
         """Run world in Gazebo simulator."""
-        print(f"Running world: {self.name}")
-        self.run_value = run_value
         try:
-            if self.run_value == '-r ':
-                cmd = ['gz', 'sim', '-r', f'{WORLD_PATHS[self.name]}.world']
-            else:
-                cmd = ['gz', 'sim', f'{WORLD_PATHS[self.name]}.world']
+            cmd = ['gz', 'sim', '-r', f'{WORLD_PATHS[self.name]}.world']
             subprocess.Popen(cmd)
-            running_world = await get_running_worlds()
             print('world started')
         except FileNotFoundError:
             print(f"File not found: {self.name}. Make sure it is installed and available in the PATH.")
 
-    async def reset(self, name, run_value):
-        self.end_gz_proc()
+    async def reset(self, name):
+        running_world = await get_running_worlds()
+        if len(running_world) > 0:
+            self.end_gz_proc()
         self.name = name
         self.models = {
         
         }
         time.sleep(1)
-        await self.run_world(run_value)
+        await self.run_world()
     
     def end_gz_proc(self) -> None:
         try:
-            KILL_GZ_CMD = f"pkill -f 'gz sim {self.run_value}{WORLD_PATHS[self.name]}.world'"
-            print(KILL_GZ_CMD)
+            KILL_GZ_CMD = f"pkill -f 'gz sim -r {WORLD_PATHS[self.name]}.world'"
             dead_world_models = {} 
             dead_world_models.update(self.models)
             for model in dead_world_models.values(): 
@@ -124,8 +117,7 @@ class Model:
     async def launch_model(self) -> bool:
         """Launch the model in the Gazebo simulator."""
         print("adding model")
-        print(self.path)
-        if (self.type == 'spiri_mu'):
+        if (self.type == 'spiri_mu' or self.type == 'spiri_mu_no_gimbal'):
             XACRO_CMD = [
                 "xacro",
                 f"fdm_port_in:={self.sitl_port}",

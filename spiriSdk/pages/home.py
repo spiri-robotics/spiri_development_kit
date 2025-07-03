@@ -1,6 +1,5 @@
 from nicegui import ui
 from spiriSdk.ui.styles import styles
-from spiriSdk.pages.header import header
 from spiriSdk.pages.sidebar import sidebar
 from spiriSdk.utils.card_utils import addRobot, displayCards
 from spiriSdk.pages.tools import tools
@@ -21,10 +20,7 @@ def read_env():
 @ui.page('/')
 async def home():
     await styles()
-    await header()
     sidebar()
-    
-    ui.markdown('## Dashboard')
 
     env_data = read_env()
     registries = env_data.get("REGISTRIES", "").split(",") if env_data.get("REGISTRIES") else []
@@ -38,9 +34,10 @@ async def home():
         with ui.card().classes('w-full p-4 bg-red-100 dark:bg-red-800 text-red-900 dark:text-red-100'):
             ui.label("Warning: Required Spiri authentication entry is missing, please check the settings page.").classes('text-lg')
         
-    with ui.row().classes('justify-items-stretch w-full'):
-        ui.button('Add Robot', on_click=addRobot, color='secondary')
+    with ui.row(align_items='center').classes('w-full'):
+        ui.markdown('## Dashboard').classes('pb-2')
         ui.space()
+        ui.button('Add Robot', on_click=addRobot, color='secondary')
         await tools()
     
     ui.separator()
