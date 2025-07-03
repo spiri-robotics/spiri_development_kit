@@ -6,7 +6,7 @@ x-spiri-options:
   MAVLINK_SYS_ID:
     help-text: The robot's system ID - each robot must have a unique ID!
     type: int
-    max: 255
+    max: 254
     min: 0
     precision: 0
     step: 1

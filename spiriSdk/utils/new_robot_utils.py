@@ -180,7 +180,7 @@ def display_robot_options(robot_name, selected_options, options_container, check
                     validation={
                         'Field cannot be empty': lambda value: value,
                         'Value must be an integer': lambda value: str(value).isdigit(),
-                        'Value must be between 1 and 255': lambda value, minVal=min_val, maxVal = max_val: float(value) >= minVal and float(value) <= maxVal,
+                        'Value must be between 1 and 254': lambda value, minVal=min_val, maxVal = max_val: float(value) >= minVal and float(value) <= maxVal,
                         'System ID already in use': lambda value: int(value) not in active_sys_ids
                     }
                 ).classes('w-full pb-1')
