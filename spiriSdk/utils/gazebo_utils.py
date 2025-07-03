@@ -11,7 +11,6 @@ from loguru import logger
 MODEL_PATHS = {
     'spiri_mu': 'robots/spiri_mu/models/spiri_mu',
     'spiri_mu_no_gimbal': 'robots/spiri_mu_no_gimbal/models/spiri_mu',
-    'car': 'robots/car/models/car_008',
     'ARC': 'robots/ARC/models/ARC_simplified'
 }
 
@@ -118,7 +117,7 @@ class Model:
     async def launch_model(self) -> bool:
         """Launch the model in the Gazebo simulator."""
         print("adding model")
-        if (self.type == 'spiri_mu'):
+        if (self.type == 'spiri_mu' or self.type == 'spiri_mu_no_gimbal'):
             XACRO_CMD = [
                 "xacro",
                 f"fdm_port_in:={self.sitl_port}",
