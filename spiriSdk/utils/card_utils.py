@@ -7,7 +7,6 @@ from spiriSdk.utils.gazebo_utils import get_running_worlds, is_robot_alive
 from spiriSdk.pages.new_robots import new_robots
 from spiriSdk.ui.ToggleButton import ToggleButton
 from spiriSdk.utils.InputChecker import InputChecker
-from datetime import datetime
 
 async def is_service_ready(url: str, timeout: float = 0.5) -> bool:
     try:
@@ -68,7 +67,6 @@ def start_polling(name, label, gz_toggle: ToggleButton):
 
     async def polling_loop():
         while True:
-            print(f"Polling {datetime.now()} for {name}")
             status = update_status(name, label)
             world_running = await get_running_worlds()
             if gz_toggle:
