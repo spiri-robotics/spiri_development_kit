@@ -369,6 +369,9 @@ class DockerInDocker(Container):
         
         dotenv.set_key(self.robot_env, "SIM_ADDRESS", SIM_ADDRESS)
         dotenv.set_key(self.robot_env, "GROUND_CONTROL_ADDRESS", GROUND_CONTROL_ADDRESS)
+        sysid = int(self.env_get('MAVLINK_SYS_ID', '0'))
+        
+        self.env_set('ARDUPILOT_PORT', str(5760 + 10 * sysid))
         
         # Debug: Verify volumes before starting
         logger.debug(f"Volume mounts before start: {self.volumes}")
@@ -423,6 +426,41 @@ class DockerInDocker(Container):
                         f"Docker daemon not ready after {self.ready_timeout} attempts: {str(e)}"
                     )
                 time.sleep(1)
+                
+    def env_get(self, key: str, default: Optional[str] = None) -> str:
+        """Get an environment variable from the robot's config.env file.
+        Args:
+            key: Environment variable name
+            default: Default value if variable is not set (default: None)
+        Returns:
+            str: Environment variable value or default
+        """
+        if not self.robot_env.exists():
+            raise RuntimeError(f"Config file {self.robot_env} does not exist")
+        
+        # Load environment variables from the config file
+        env_vars = dotenv.dotenv_values(self.robot_env)
+        return env_vars.get(key, default)
+    
+    def env_set(self, key: str, value: str) -> None:
+        """Set an environment variable in the robot's config.env file.
+        
+        Args:
+            key: Environment variable name
+            value: Value to set for the variable
+        """
+        if not self.robot_env.exists():
+            raise RuntimeError(f"Config file {self.robot_env} does not exist")
+        
+        # Load existing variables
+        env_vars = dotenv.dotenv_values(self.robot_env)
+        
+        # Update or add the variable
+        env_vars[key] = value
+        
+        # Write back to the config file
+        dotenv.set_key(self.robot_env, key, value)
+        
 
     def get_client(self) -> docker.DockerClient:
         """Get a Docker client connected to this DinD container."""
