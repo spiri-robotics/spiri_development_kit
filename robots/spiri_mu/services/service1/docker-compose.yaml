@@ -11,7 +11,7 @@ services:
       - -c
       - |
         ./Tools/autotest/sim_vehicle.py -v copter -f gazebo-mu --model=JSON --no-rebuild \
-        -I0 --no-mavproxy --enable-dds --sysid $MAVLINK_SYS_ID --sim-address=$SIM_ADDRESS
+        -I$MAVLINK_SYS_ID --no-mavproxy --enable-dds --sysid $MAVLINK_SYS_ID --sim-address=$SIM_ADDRESS
     stdin_open: true
     tty: true
     ports:
@@ -27,7 +27,7 @@ services:
     image: git.spirirobotics.com/spiri/services-mavproxy:main
     command: >
       mavproxy.py --non-interactive
-      --master tcp:ardupilot:5760
+      --master tcp:ardupilot:$ARDUPILOT_PORT
       --out udpout:mavros2:14552
       --out udpout:0.0.0.0:18761
       --sitl ardupilot:5510
@@ -48,6 +48,7 @@ services:
     environment:
       - RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
     command: ros2 launch mavros apm.launch fcu_url:="udp://0.0.0.0:14552@:14555" namespace:="$ROBOT_NAME" tgt_system:="$MAVLINK_SYS_ID"
+    network_mode: host
     expose:
       - '14552'
     restart: always
@@ -65,8 +66,6 @@ services:
       nofile:
         soft: 1024
         hard: 524288
-    networks:
-      - spiri-mu-net
 
 networks:
   spiri-mu-net:
