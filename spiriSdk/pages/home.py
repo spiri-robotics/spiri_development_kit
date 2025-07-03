@@ -1,6 +1,5 @@
 from nicegui import ui
 from spiriSdk.ui.styles import styles
-from spiriSdk.pages.header import header
 from spiriSdk.pages.sidebar import sidebar
 from spiriSdk.utils.card_utils import addRobot, displayCards
 from spiriSdk.pages.tools import tools
