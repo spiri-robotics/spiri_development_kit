@@ -90,7 +90,7 @@ async def save_robot_config(robot_type, selected_options, dialog):
     await start_services(folder_name)
 
     # ui.notify(f"Saved config.env and started daemon for {folder_name}")
-    ui.notify(f"Robot {folder_name} added successfully!")
+    ui.notify(f"Robot {folder_name} added successfully!", type='positive')
 
 async def delete_robot(robot_name) -> bool:
     robot_path = os.path.join(ROOT_DIR, "data", robot_name)
