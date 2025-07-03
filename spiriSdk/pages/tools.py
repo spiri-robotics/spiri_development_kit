@@ -25,15 +25,16 @@ async def tools():
     global gz_world
     with ui.dialog() as gz_dialog, ui.card().classes('items-center'):
     
-        ui.label('World Start Time State').classes('text-h5')
-        ui.space()
-        
-        w = ui.select(WORLD_NAMES, value='empty_world').classes('text-base w-full')
+        ui.label('Gazebo Launch Settings').classes('text-h5')
+        w = ui.select(WORLD_NAMES, label='Select World*').classes('text-base w-full')
         ui.space()
         
         async def start_and_close(): 
-            await gz_world.reset(w.value)
-            gz_dialog.close()
+            if(w.value != None):
+                await gz_world.reset(w.value)
+                gz_dialog.close()
+            else:
+                ui.notify("Please Select a World")
         
         ui.button('Start World', 
                     on_click=start_and_close,
