@@ -1,5 +1,4 @@
 from nicegui import ui
-from spiriSdk.pages.header import header
 from spiriSdk.pages.sidebar import sidebar
 from pathlib import Path
 from spiriSdk.ui.styles import styles
@@ -29,7 +28,6 @@ def write_env(env_dict):
 @ui.page('/settings')
 async def settings():
     await styles()
-    await header()
     sidebar()
     
     ui.markdown("## Settings")
