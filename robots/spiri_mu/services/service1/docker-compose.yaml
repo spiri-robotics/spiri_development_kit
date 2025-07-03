@@ -5,43 +5,33 @@ x-spiri-sdk-autostart: True
 
 services:
   ardupilot:
+    network_mode: host
     image: git.spirirobotics.com/spiri/ardupilot:spiri-master
     command:
       - /bin/bash
       - -c
       - |
         ./Tools/autotest/sim_vehicle.py -v copter -f gazebo-mu --model=JSON --no-rebuild \
-        -I$MAVLINK_SYS_ID --no-mavproxy --enable-dds --sysid $MAVLINK_SYS_ID --sim-address=$SIM_ADDRESS
+        -I$MAVLINK_SYS_ID --no-mavproxy --sim-address=$SIM_ADDRESS
     stdin_open: true
     tty: true
-    ports:
-      - 5501:5501/udp
     restart: always
-    expose:
-      - '5760'
-    networks:
-      - spiri-mu-net
-      - default
 
   mavproxy:
     image: git.spirirobotics.com/spiri/services-mavproxy:main
+    network_mode: host
     command: >
       mavproxy.py --non-interactive
-      --master tcp:ardupilot:$ARDUPILOT_PORT
-      --out udpout:mavros2:14552
-      --out udpout:0.0.0.0:18761
-      --sitl ardupilot:5510
-      --out tcpin:0.0.0.0:14550
+      --master tcp:localhost:$ARDUPILOT_PORT
+      --out udpout:localhost:14552
       --out tcpin:0.0.0.0:5760
-      --out udpout:$HOST_IP:14550 
+    stdin_open: true
+    tty: true      
     ports:
-      - 14550:14550
       - 5760:5760/tcp
     expose:
       - '5760'
     restart: always
-    networks:
-      - spiri-mu-net
 
   mavros2:
     image: git.spirirobotics.com/spiri/services-ros2-mavros:main
@@ -66,7 +56,3 @@ services:
       nofile:
         soft: 1024
         hard: 524288
-
-networks:
-  spiri-mu-net:
-    driver: bridge
