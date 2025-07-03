@@ -2,7 +2,7 @@ from nicegui import ui
 
 def sidebar() -> None:
     """Render the sidebar."""
-    with ui.left_drawer(value=True, top_corner=True, bottom_corner=True):
+    with ui.left_drawer(value=True, top_corner=True, bottom_corner=True).props('width=247 breakpoint=200 bordered'):
         with ui.column().classes('w-full p-4'):
             with ui.row().classes('items-center justify-between pb-[--nicegui-default-padding]'):
                 ui.image("spiriSdk/ui/100_Spiri_logo_mini_dual-background.png").classes('h-16 w-16')
