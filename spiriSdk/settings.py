@@ -9,6 +9,9 @@ load_dotenv(Path(os.environ.get("SDK_ROOT", ".")) / '.env')
 CURRENT_PRIMARY_GROUP = os.getgid()
 SDK_ROOT = Path(os.environ.get("SDK_ROOT", ".")).absolute()
 
+ROBOT_DATA_ROOT = SDK_ROOT / "data"
+ROBOT_DATA_ROOT.mkdir(parents=True, exist_ok=True)
+
 GROUND_CONTROL_ADDRESS = os.environ.get("GROUND_CONTROL_ADDRESS")
 if not os.environ.get("GROUND_CONTROL_ADDRESS"):
     GROUND_CONTROL_ADDRESS = str(socket.gethostbyname(socket.gethostname()))
