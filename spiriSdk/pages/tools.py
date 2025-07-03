@@ -41,8 +41,6 @@ async def tools():
                     color='secondary'
                     ).classes('text-base')
 
-    await styles()
-
     with ui.row():
         for app_name, command in applications.items():
             ui.button(f'{app_name}', on_click=lambda cmd=command: launch_app(cmd), color='secondary')  # old color for all 3: color='#20788a'
