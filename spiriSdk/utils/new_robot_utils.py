@@ -188,27 +188,6 @@ def display_robot_options(robot_name, selected_options, options_container, check
                 
                 checker.add(numInput, False)
             
-            elif option_type == 'dropdown':
-                def handleDropdown(e, k):
-                    selected_options[k] = e.value
-                    checker.checkSelect(e)
-
-                # Ensure the dropdown options are a list
-                dropdown_options = option.get('options', [])
-                if isinstance(dropdown_options, list):
-                    drop = ui.select(
-                        options=dropdown_options, 
-                        label=formatted_key,
-                        value=current_value,
-                        on_change=lambda e, k=key: handleDropdown(e.sender, k),
-                    ).classes('w-full')
-                    if drop.value is not None:
-                        checker.add(drop, True)
-                    else:
-                        checker.add(drop, False)
-                else:
-                    ui.label(f"Invalid dropdown options for {key}").classes('text-body2')
-            
             else:
                 def handleText(e: ui.input, k):
                     selected_options.update({k: e.value})
