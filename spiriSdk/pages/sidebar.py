@@ -7,5 +7,5 @@ def sidebar() -> None:
             with ui.row(align_items='center').classes('w-full justify-between pb-2'):
                 ui.image("spiriSdk/ui/Spiri_logo_Mixed_dual_background.svg").classes('h-16 w-16')
                 ui.label('Spiri SDK').classes('text-2xl font-semibold')
-            ui.button('Dashboard', color='secondary', on_click=lambda: ui.navigate.to("/")).classes('w-full text-left justify-start rounded-none')
-            ui.button('Settings', color='secondary', on_click=lambda: ui.navigate.to("/settings")).classes('w-full text-left justify-start rounded-none')
+            ui.button('Dashboard', color='secondary', on_click=lambda: ui.navigate.to("/")).classes('w-full')
+            ui.button('Settings', color='secondary', on_click=lambda: ui.navigate.to("/settings")).classes('w-full')
