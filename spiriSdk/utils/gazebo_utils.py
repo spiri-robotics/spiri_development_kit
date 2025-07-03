@@ -60,17 +60,17 @@ class World:
 
     async def run_world(self) -> None:
         """Run world in Gazebo simulator."""
-        print(f"Running world: {self.name}")
         try:
             cmd = ['gz', 'sim', '-r', f'{WORLD_PATHS[self.name]}.world']
             subprocess.Popen(cmd)
-            running_world = await get_running_worlds()
             print('world started')
         except FileNotFoundError:
             print(f"File not found: {self.name}. Make sure it is installed and available in the PATH.")
 
     async def reset(self, name):
-        self.end_gz_proc()
+        running_world = await get_running_worlds()
+        if len(running_world) > 0:
+            self.end_gz_proc()
         self.name = name
         self.models = {
         
@@ -81,7 +81,6 @@ class World:
     def end_gz_proc(self) -> None:
         try:
             KILL_GZ_CMD = f"pkill -f 'gz sim -r {WORLD_PATHS[self.name]}.world'"
-            print(KILL_GZ_CMD)
             dead_world_models = {} 
             dead_world_models.update(self.models)
             for model in dead_world_models.values(): 
@@ -122,7 +121,6 @@ class Model:
     async def launch_model(self) -> bool:
         """Launch the model in the Gazebo simulator."""
         print("adding model")
-        print(self.path)
         if (self.type == 'spiri_mu'):
             XACRO_CMD = [
                 "xacro",

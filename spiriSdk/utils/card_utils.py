@@ -68,14 +68,16 @@ def start_polling(name, label, gz_toggle: ToggleButton):
                 if len(world_running) > 0:
                     gz_toggle.visible = True
                 else:
+                    if is_robot_alive(name):
+                        await remove_from_world(name)
                     gz_toggle.visible = False
-                    await remove_from_world(name)
                 if not is_robot_alive(name):
                     gz_toggle.state = False
                     gz_toggle.update()
                 else:
                     gz_toggle.state = True
                     gz_toggle.update()
+                    
             if len(world_running) == 0:
                 gz_world.models = {}
             await asyncio.sleep(3)
