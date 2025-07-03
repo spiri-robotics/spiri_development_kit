@@ -59,24 +59,33 @@ def update_status(name, label: ui.label):
         label.classes('text-[#d43131]')
     return status
 
+polling_tasks = {}
+
 def start_polling(name, label, gz_toggle: ToggleButton):
+    if name in polling_tasks and not polling_tasks[name].done():
+        return  # Already polling for this robot
+
     async def polling_loop():
         while True:
             status = update_status(name, label)
             world_running = await get_running_worlds()
             if gz_toggle:
-                if status == 'running' and len(world_running) > 0:
+                if len(world_running) > 0:
                     gz_toggle.visible = True
-                elif gz_toggle.visible == True:
+                else:
+                    if is_robot_alive(name):
+                        await remove_from_world(name)
                     gz_toggle.visible = False
-                    await remove_from_world(name)
                 if not is_robot_alive(name):
                     gz_toggle.state = False
+                    gz_toggle.update()
+                else:
+                    gz_toggle.state = True
                     gz_toggle.update()
             if len(world_running) == 0:
                 gz_world.models = {}
             await asyncio.sleep(3)
-    asyncio.create_task(polling_loop())
+    polling_tasks[name] = asyncio.create_task(polling_loop())
     
 async def power_on(robot, buttons: list):
     for button in buttons:
