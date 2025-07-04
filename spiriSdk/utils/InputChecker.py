@@ -43,6 +43,6 @@ class InputChecker:
     def checkNumber(self, i: ui.input|None):
         self.inputs[i] = False
         if i.value:
-            if int(i.value) not in active_sys_ids and str(i.value).isdigit() and float(i.value) > 0 and float(i.value) < 256:
+            if int(i.value) not in active_sys_ids and str(i.value).isdigit() and float(i.value) > 0 and float(i.value) < 255:
                 self.inputs[i] = True
         self.update()
