@@ -115,7 +115,8 @@ def display_daemon_status(robot_name):
     
 async def check_stopped(robot_name):
     status = display_daemon_status(robot_name)
-    while status != 'stopped':
+    while status not in  ('stopped', 'removing'):
+        logger.debug(f"Waiting for {robot_name} to stop... Current status: {status}")
         await asyncio.sleep(1)
 
 async def start_container(robot_name):
