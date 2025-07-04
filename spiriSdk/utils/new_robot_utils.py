@@ -3,7 +3,7 @@ from nicegui import ui, run
 from pathlib import Path
 from spiriSdk.docker.dindocker import DockerInDocker
 from spiriSdk.utils.daemon_utils import daemons, start_services, active_sys_ids
-from spiriSdk.utils.InputChecker import InputChecker, desc
+from spiriSdk.utils.InputChecker import InputChecker
 from loguru import logger
 import dotenv
 
@@ -79,10 +79,7 @@ async def save_robot_config(robot_type, selected_options, dialog):
     for key, value in selected_options.items():
         if 'DESC' in key:
             if value:
-                if 'youssof is overlord' in str(value).casefold():
-                    dotenv.set_key(config_path, key, desc)
-                else:
-                    dotenv.set_key(config_path, key, value)
+                dotenv.set_key(config_path, key, value)
         else:
             dotenv.set_key(config_path, key, str(value))
     

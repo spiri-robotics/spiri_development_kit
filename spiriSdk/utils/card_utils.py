@@ -1,5 +1,5 @@
 import os, asyncio, httpx
-from nicegui import ui
+from nicegui import ui, run
 from loguru import logger
 from spiriSdk.utils.daemon_utils import daemons, display_daemon_status, start_container, stop_container, restart_container
 from spiriSdk.utils.new_robot_utils import delete_robot, save_robot_config
@@ -52,25 +52,36 @@ async def addRobot():
     
     d.open()
     
-def update_status(name, label: ui.label):
+def update_status(name, label: ui.label, chips):
     status = display_daemon_status(name)
-    label.text = f'{status.capitalize()}'
+    if isinstance(status, dict):
+        for state in status.keys():
+            if status[state] > 0:
+                chips[state].visible = True
+                chips[state].text = f'{state}: {status.get(state, 0)}'
+            else:
+                chips[state].visible = False
+        label.visible = False
+    else:
+        for state in chips.keys():
+            chips[state].visible = False
+        label.visible = True
+        label.text = f'{status.capitalize()}'
     if status == 'running':
         label.classes('text-[#609926]')
     elif status == 'stopped':
         label.classes('text-[#BF5234]')
-    return status
 
 polling_tasks = {}
 
-def start_polling(name, label, gz_toggle: ToggleButton):
+def start_polling(name, label, gz_toggle: ToggleButton, chips):
     if name in polling_tasks and not polling_tasks[name].done():
         old = polling_tasks.get(name)
         old.cancel()
 
     async def polling_loop():
         while True:
-            status = update_status(name, label)
+            update_status(name, label, chips)
             world_running = get_running_worlds()
             if gz_toggle:
                 if len(world_running) > 0:
@@ -118,8 +129,7 @@ async def power_off(robot, buttons: list):
         n.message = f'Powering off {robot}...'
         n.spinner = True
         await asyncio.sleep(1)
-        
-    message = stop_container(robot)
+    message = await run.io_bound(lambda: stop_container(robot))
     logger.info(message)
     
     n.message = message
@@ -219,8 +229,15 @@ def displayCards():
 
                     with ui.card_section().classes('p-0'):
                         label_status = ui.label('Status Loading...').classes('text-lg font-semibold')
+                        chips = {}
+                        chips["Running"] = ui.chip("", color='running')
+                        chips["Restarting"] = ui.chip("", color='restarting')
+                        chips["Exited"] = ui.chip("", color='exited')
+                        chips["Created"] = ui.chip("", color='created')
+                        chips["Paused"] = ui.chip("", color='paused')
+                        chips["Dead"] = ui.chip("", color='dead')
                         
-                    update_status(robotName, label_status)
+                    update_status(robotName, label_status, chips)
 
                 # Stats/info
                 if daemons[robotName].container is not None and daemons[robotName].container.status == 'running': 
@@ -267,4 +284,4 @@ def displayCards():
                         power.off_switch = lambda r=robotName, b=buttons: power_on(r, b)
                         reboot_btn.on_click(lambda r=robotName, b=buttons: reboot(r, b))
 
-                start_polling(robotName, label_status, gz_toggle)
+                start_polling(robotName, label_status, gz_toggle, chips)
