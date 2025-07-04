@@ -1,7 +1,6 @@
 from nicegui import ui
 
 def sidebar() -> None:
-    ui.dark_mode(None)
     """Render the sidebar."""
     with ui.left_drawer(value=True, top_corner=True, bottom_corner=True).props('width=250 breakpoint=200 bordered'):
         with ui.column().classes('w-full p-2'):
