@@ -176,8 +176,7 @@ def stop_container(robot_name):
             raise e
 
 async def restart_container(robot_name: str):
-    status = display_daemon_status(robot_name)
-    if status == 'running' or isinstance(status, dict):
+    if display_daemon_status(robot_name) == 'running':
         message = await run.io_bound(lambda: stop_container(robot_name))
         logger.info(message)
     await check_stopped(robot_name)
