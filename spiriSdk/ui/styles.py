@@ -13,10 +13,10 @@ async def styles():
         negative='#BF5234',
         info='#586469',
         warning='#fac529',
-        exited="#811D1D",
-        restarting="#96491D",
+        exited="#750909",
+        restarting="#83370B",
         running='#609926',  #"#1f800b", 
-        created="#818307", 
+        created="#666800", 
         paused='#274c77',  #"#0e1977", 
         dead="#000000")
     
