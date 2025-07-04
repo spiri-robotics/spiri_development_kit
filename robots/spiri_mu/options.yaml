@@ -1,8 +1,8 @@
 x-spiri-options:
-  ROBOT_NAME:
-    help-text: The robot's custom name
+  ROBOT_DESC:
+    help-text: The robot's custom description 
     type: text
-    value: Enby
+    value: Northwest drone
   MAVLINK_SYS_ID:
     help-text: The robot's system ID - each robot must have a unique ID!
     type: int

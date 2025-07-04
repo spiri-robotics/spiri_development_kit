@@ -46,3 +46,5 @@ class InputChecker:
             if int(i.value) not in active_sys_ids and str(i.value).isdigit() and float(i.value) > 0 and float(i.value) < 256:
                 self.inputs[i] = True
         self.update()
+        
+desc = 'this is a super long description bc i wanna see how long i can type before it looks bad. idk how much i need to write. my tummy hurts. ben is wearing a very festive july 4th shirt today except it was an accident which i think makes it funnier. youssof is overlord and will soon publish his bible called the book of youssof. trains go choo choo. wooooooooooooo'

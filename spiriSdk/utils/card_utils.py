@@ -194,14 +194,13 @@ def displayCards():
             ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
             DATA_DIR = os.path.join(ROOT_DIR, 'data')
             config_file = os.path.join(DATA_DIR, robotName, 'config.env')
-            alias = robotName
+            desc = None
             with open(config_file) as f:
                 for line in f:
-                    if 'ALIAS' in line:
-                        alias = line.split('=', 1)
-                        alias = alias[1].strip()
+                    if 'DESC' in line:
+                        desc = line.split('=', 1)
+                        desc = desc[1].strip()
                         break
-
             # Card and details
             half = 'calc(50%-(var(--nicegui-default-gap)/2))'
             third = 'calc((100%/3)-(var(--nicegui-default-gap)/1.5))' # formula: (100% / {# of cards}) - ({default gap} / ({# of cards} / {# of gaps}))
@@ -211,11 +210,11 @@ def displayCards():
                 # Name(s) and status
                 with ui.row(align_items='start').classes('w-full mb-2'):
                     with ui.card_section().classes('p-0'):
-                        if alias == robotName:
+                        if desc == None:
                             ui.label(f'{robotName}').classes('text-xl font-semibold pb-6')
                         else:
                             ui.label(f'{robotName}').classes('text-xl font-semibold')
-                            ui.label(f'{alias[1:-1]}').classes('text-base font-normal italic text-gray-700 dark:text-gray-300')
+                            ui.label(f'{desc[1:-1]}').classes('text-base font-normal italic text-gray-700 dark:text-gray-300')
 
                     ui.space()
 
