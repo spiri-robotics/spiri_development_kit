@@ -2,7 +2,7 @@ x-spiri-options:
   ROBOT_DESC:
     help-text: The robot's custom description 
     type: text
-    value: Northwest drone
+    value: 
   MAVLINK_SYS_ID:
     help-text: The robot's system ID - each robot must have a unique ID!
     type: int
