@@ -67,13 +67,13 @@ async def settings():
 
     ### --- AUTH_REGISTRIES SECTION ---
     with ui.row(align_items='stretch').classes('w-full pb-4'):
-        with ui.card(align_items='stretch').classes("p-4 w-[30%]"):
+        with ui.card(align_items='stretch').classes("p-4 w-[30%] max-w-[600px]"):
             host_input = ui.input(label="Host", value='git.spirirobotics.com')
             user_input = ui.input(label="Username")
             token_input = ui.input(label="Token", password=True, password_toggle_button=True)
             ui.button("Add Registry", on_click=add_auth, color='secondary')
         
-        with ui.card().classes('p-4 bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 w-[50%]'):
+        with ui.card().classes('p-4 bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 w-[50%] max-w-[700px]'):
             with ui.row().classes('items-center mb-2'):
                 ui.icon('info', size='24px').classes('text-blue-500')
                 ui.label("How to authenticate with the Spiri Gitea repository:").classes('font-bold text-lg')

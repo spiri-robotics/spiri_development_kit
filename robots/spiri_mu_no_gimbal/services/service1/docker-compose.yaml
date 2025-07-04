@@ -5,48 +5,40 @@ x-spiri-sdk-autostart: True
 
 services:
   ardupilot:
+    network_mode: host
     image: git.spirirobotics.com/spiri/ardupilot:spiri-master
     command:
       - /bin/bash
       - -c
       - |
-        ./Tools/autotest/sim_vehicle.py ArduCopter --no-rebuild \
-        --no-mavproxy --enable-dds --sysid $MAVLINK_SYS_ID      
+        ./Tools/autotest/sim_vehicle.py -v copter -f gazebo-mu --model=JSON --no-rebuild \
+        -I$MAVLINK_SYS_ID --no-mavproxy --sim-address=$SIM_ADDRESS --sysid $MAVLINK_SYS_ID
     stdin_open: true
-    restart: always
     tty: true
+    restart: always
+
+  mavproxy:
+    image: git.spirirobotics.com/spiri/services-mavproxy:main
+    network_mode: host
+    command: >
+      mavproxy.py --non-interactive
+      --master tcp:localhost:$ARDUPILOT_PORT
+      --out udpout:localhost:14552
+      --out tcpin:0.0.0.0:5760
+    stdin_open: true
+    tty: true      
     ports:
       - 5760:5760/tcp
     expose:
       - '5760'
-      - '5510'
-    networks:
-      - spiri-mu-net
-
-  mavproxy:
-    image: git.spirirobotics.com/spiri/services-mavproxy:main
-    command: >
-      mavproxy.py --non-interactive
-      --master tcp:ardupilot:5760
-      --out udpout:192.168.1.213:14550
-      --out udpout:mavros2:14552
-      --out udpout:0.0.0.0:18761
-      --sitl ardupilot:5510
-      --out tcpin:0.0.0.0:14550     
-      --out udpout:$HOST_IP:14550 
-    ports:
-      - 14550:14550/tcp
-    expose:
-      - '5760'
     restart: always
-    networks:
-      - spiri-mu-net
 
   mavros2:
     image: git.spirirobotics.com/spiri/services-ros2-mavros:main
     environment:
       - RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
     command: ros2 launch mavros apm.launch fcu_url:="udp://0.0.0.0:14552@:14555" namespace:="$ROBOT_NAME" tgt_system:="$MAVLINK_SYS_ID"
+    network_mode: host
     expose:
       - '14552'
     restart: always
@@ -64,9 +56,3 @@ services:
       nofile:
         soft: 1024
         hard: 524288
-    networks:
-      - spiri-mu-net
-
-networks:
-  spiri-mu-net:
-    driver: bridge
