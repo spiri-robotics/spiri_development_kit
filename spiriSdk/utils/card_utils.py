@@ -58,7 +58,7 @@ def update_status(name, label: ui.label):
     if status == 'running':
         label.classes('text-[#609926]')
     elif status == 'stopped':
-        label.classes('text-[#d43131]')
+        label.classes('text-[#BF5234]')
     return status
 
 polling_tasks = {}
@@ -119,11 +119,10 @@ async def power_off(robot, buttons: list):
         n.spinner = True
         await asyncio.sleep(1)
         
-    message, type = stop_container(robot)
+    message = stop_container(robot)
     logger.info(message)
     
     n.message = message
-    n.type = type
     n.spinner = False
     n.timeout = 4
     
@@ -194,14 +193,13 @@ def displayCards():
             ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
             DATA_DIR = os.path.join(ROOT_DIR, 'data')
             config_file = os.path.join(DATA_DIR, robotName, 'config.env')
-            alias = robotName
+            desc = None
             with open(config_file) as f:
                 for line in f:
-                    if 'ALIAS' in line:
-                        alias = line.split('=', 1)
-                        alias = alias[1].strip()
+                    if 'DESC' in line:
+                        desc = line.split('=', 1)
+                        desc = desc[1].strip()
                         break
-
             # Card and details
             half = 'calc(50%-(var(--nicegui-default-gap)/2))'
             third = 'calc((100%/3)-(var(--nicegui-default-gap)/1.5))' # formula: (100% / {# of cards}) - ({default gap} / ({# of cards} / {# of gaps}))
@@ -211,16 +209,16 @@ def displayCards():
                 # Name(s) and status
                 with ui.row(align_items='start').classes('w-full mb-2'):
                     with ui.card_section().classes('p-0'):
-                        if alias == robotName or alias == robotName:
-                            ui.label(f'{robotName}').classes('text-xl font-semibold text-gray-900 dark:text-gray-100 pb-6')
+                        if desc == None:
+                            ui.label(f'{robotName}').classes('text-xl font-semibold pb-6')
                         else:
-                            ui.label(f'{alias[1:-1]}').classes('text-xl font-semibold text-gray-900 dark:text-gray-100')
-                            ui.label(f'{robotName}').classes('text-base font-normal text-gray-900 dark:text-gray-100')
+                            ui.label(f'{robotName}').classes('text-xl font-semibold')
+                            ui.label(f'{desc[1:-1]}').classes('text-base font-normal italic text-gray-700 dark:text-gray-300')
 
                     ui.space()
 
                     with ui.card_section().classes('p-0'):
-                        label_status = ui.label('Status Loading...').classes('text-base font-semibold')
+                        label_status = ui.label('Status Loading...').classes('text-lg font-semibold')
                         
                     update_status(robotName, label_status)
 
@@ -235,7 +233,7 @@ def displayCards():
                     # IP and web interface link
                     with ui.card_section().classes('w-full p-0 mb-2'):
                         if 'Running' in label_status.text:
-                            ui.markdown(f'**Robot IP:** {daemons[robotName].get_ip()}')
+                            ui.markdown(f'**Robot IP:** {daemons[robotName].get_ip()}').classes('text-base')
                         
                             # Link to the robot's web interface if applicable 
                             # if "spiri_mu" in robotName:
@@ -245,9 +243,6 @@ def displayCards():
                             if 'ARC' in robotName:
                                 url = f'http://{daemons[robotName].get_ip()}:{8080}'
                                 ui.link(f'Access the Web Interface at: {url}', url, new_tab=True).classes('py-3')
-                # else:
-                #     with ui.card_section().classes('w-full p-0 mb-2'):
-                #         ui.label('Robot stats not available')
 
                 # Actions
                 with ui.card_section().classes('w-full p-0 mt-auto'):
