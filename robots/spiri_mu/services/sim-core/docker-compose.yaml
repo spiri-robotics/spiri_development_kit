@@ -12,7 +12,7 @@ services:
       - -c
       - |
         ./Tools/autotest/sim_vehicle.py -v copter -f gazebo-mu --model=JSON --no-rebuild \
-        -I$MAVLINK_SYS_ID --no-mavproxy --sim-address=$SIM_ADDRESS
+        -I$MAVLINK_SYS_ID --no-mavproxy --sim-address=$SIM_ADDRESS --sysid $MAVLINK_SYS_ID
     stdin_open: true
     tty: true
     restart: always
