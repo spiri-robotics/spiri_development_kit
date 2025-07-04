@@ -109,18 +109,22 @@ def display_daemon_status(robot_name):
         status = container.status
         if status == 'running':
             socket_path = f'unix:///tmp/dind-sockets/spirisdk_{robot_name}.socket'
-            client = docker.DockerClient(base_url=socket_path)
-            states = {}
-            states["Running"] = len(client.containers.list(filters={'status': 'running'}))
-            states["Restarting"] = len(client.containers.list(filters={'status': 'restarting'}))
-            states["Exited"] = len(client.containers.list(filters={'status': 'exited'}))
-            states["Created"] = len(client.containers.list(filters={'status': 'created'}))
-            states["Paused"] = len(client.containers.list(filters={'status': 'paused'}))
-            states["Dead"] = len(client.containers.list(filters={'status': 'dead'}))
-            if all(count == 0 for count in states.values()):
+            try:
+                client = docker.DockerClient(base_url=socket_path)
+                states = {
+                    "Running": len(client.containers.list(filters={'status': 'running'})),
+                    "Restarting": len(client.containers.list(filters={'status': 'restarting'})),
+                    "Exited": len(client.containers.list(filters={'status': 'exited'})),
+                    "Created": len(client.containers.list(filters={'status': 'created'})),
+                    "Paused": len(client.containers.list(filters={'status': 'paused'})),
+                    "Dead": len(client.containers.list(filters={'status': 'dead'})),
+                }
+                if all(count == 0 for count in states.values()):
+                    return 'Starting up'
+                else:
+                    return states
+            except Exception as e:
                 return 'Starting up'
-            else:
-                return states
         else:
             return status
     except docker.errors.NotFound:
