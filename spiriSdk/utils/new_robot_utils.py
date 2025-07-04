@@ -108,7 +108,6 @@ async def delete_robot(robot_name) -> bool:
 def display_robot_options(robot_name, selected_options, options_container, checker: InputChecker):
     options_path = os.path.join(ROBOTS_DIR, robot_name, 'options.yaml')
     if not os.path.exists(options_path):
-        ui.notify(f"No options.yaml found for {robot_name}")
         options_container.clear()
         with options_container:
             ui.label(f'No options.yaml found for {robot_name}')
@@ -136,7 +135,6 @@ def display_robot_options(robot_name, selected_options, options_container, check
     with options_container:
         for key, option in options.get('x-spiri-options', {}).items():
             selected_options[key] = None
-            help_text = option.get('help-text', False)
             option_type = option.get('type', 'text')
             current_value = option.get('value', '')
             if current_value == 'None':

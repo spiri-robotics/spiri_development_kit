@@ -211,16 +211,16 @@ def displayCards():
                 # Name(s) and status
                 with ui.row(align_items='start').classes('w-full mb-2'):
                     with ui.card_section().classes('p-0'):
-                        if alias == robotName or alias == robotName:
-                            ui.label(f'{robotName}').classes('text-xl font-semibold text-gray-900 dark:text-gray-100 pb-6')
+                        if alias == robotName:
+                            ui.label(f'{robotName}').classes('text-xl font-semibold pb-6')
                         else:
-                            ui.label(f'{alias[1:-1]}').classes('text-xl font-semibold text-gray-900 dark:text-gray-100')
-                            ui.label(f'{robotName}').classes('text-base font-normal text-gray-900 dark:text-gray-100')
+                            ui.label(f'{robotName}').classes('text-xl font-semibold')
+                            ui.label(f'{alias[1:-1]}').classes('text-base font-normal italic text-gray-700 dark:text-gray-300')
 
                     ui.space()
 
                     with ui.card_section().classes('p-0'):
-                        label_status = ui.label('Status Loading...').classes('text-base font-semibold')
+                        label_status = ui.label('Status Loading...').classes('text-lg font-semibold')
                         
                     update_status(robotName, label_status)
 
@@ -235,7 +235,7 @@ def displayCards():
                     # IP and web interface link
                     with ui.card_section().classes('w-full p-0 mb-2'):
                         if 'Running' in label_status.text:
-                            ui.markdown(f'**Robot IP:** {daemons[robotName].get_ip()}')
+                            ui.markdown(f'**Robot IP:** {daemons[robotName].get_ip()}').classes('text-base')
                         
                             # Link to the robot's web interface if applicable 
                             # if "spiri_mu" in robotName:
