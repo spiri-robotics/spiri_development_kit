@@ -204,7 +204,7 @@ def displayCards():
             half = 'calc(50%-(var(--nicegui-default-gap)/2))'
             third = 'calc((100%/3)-(var(--nicegui-default-gap)/1.5))' # formula: (100% / {# of cards}) - ({default gap} / ({# of cards} / {# of gaps}))
             card_padding = 'calc(var(--nicegui-default-padding)*1.2)'
-            with ui.card().classes(f'p-[{card_padding}] w-full min-[1466px]:w-[{half}] min-[2040px]:w-[{third}] h-auto'):
+            with ui.card().classes(f'p-[{card_padding}] w-full min-[1670px]:w-[{half}] min-[2372px]:w-[{third}] h-auto'):
 
                 # Name(s) and status
                 with ui.row(align_items='start').classes('w-full mb-2'):
