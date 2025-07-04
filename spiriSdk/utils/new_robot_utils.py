@@ -62,7 +62,11 @@ async def save_robot_config(robot_type, selected_options, dialog):
         robot_id = selected_options.get('ARC_SYS_ID', uuid.uuid4().hex[:6])
     else:   
         robot_id = selected_options.get('MAVLINK_SYS_ID', uuid.uuid4().hex[:6])
+        
+    if robot_type == 'spiri_mu' and selected_options.get('GIMBAL') == False:
+        robot_type = 'spiri_mu_no_gimbal'
     folder_name = f"{robot_type}_{robot_id}"
+    print(folder_name)
     folder_path = os.path.join(ROOT_DIR, "data", folder_name)
 
     os.makedirs(folder_path, exist_ok=True)
@@ -109,17 +113,17 @@ async def delete_robot(robot_name) -> bool:
     logger.success(f"Robot {robot_name} deleted successfully")
     return True
 
-def display_robot_options(robot_name, selected_options, options_container, checker: InputChecker):
-    options_path = os.path.join(ROBOTS_DIR, robot_name, 'options.yaml')
+def display_robot_options(robot_type, selected_options, options_container, checker: InputChecker):
+    options_path = os.path.join(ROBOTS_DIR, robot_type, 'options.yaml')
     if not os.path.exists(options_path):
         options_container.clear()
         with options_container:
-            ui.label(f'No options.yaml found for {robot_name}')
+            ui.label(f'No options.yaml found for {robot_type}')
         return
 
     with open(options_path, 'r') as yaml_file:
         options = yaml.safe_load(yaml_file)
-
+    
     format_rules = {
         'Arc': 'ARC',
         'Mavlink': 'MAVLink',
@@ -146,20 +150,14 @@ def display_robot_options(robot_name, selected_options, options_container, check
                 formatted_key = formatted_key.replace(og, new)
 
             if option_type == 'bool':
-                if current_value == 1:
-                    bool_value = True
-                else:
-                    bool_value = False
 
                 def on_toggle(e, k):
-                    if e.value == True:
-                        selected_options[k] = 1
-                    else:
-                        selected_options[k] = 0
+                    selected_options[k] = e.value
                 
                 with ui.row().classes('items-center justify-between w-[35%]'):
                     ui.label(formatted_key)
-                    ui.switch(value=bool_value, on_change=lambda e, k=key: on_toggle(e.sender, k))
+                    ui.switch(value=current_value, on_change=lambda e, k=key: on_toggle(e.sender, k))
+                    selected_options[key] = current_value
 
             elif option_type == 'int':
                 min_val = option.get('min', None)
