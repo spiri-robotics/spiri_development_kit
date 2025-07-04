@@ -3,7 +3,7 @@ from nicegui import ui, run
 from pathlib import Path
 from spiriSdk.docker.dindocker import DockerInDocker
 from spiriSdk.utils.daemon_utils import daemons, start_services, active_sys_ids
-from spiriSdk.utils.InputChecker import InputChecker
+from spiriSdk.utils.InputChecker import InputChecker, desc
 from loguru import logger
 import dotenv
 
@@ -70,11 +70,12 @@ async def save_robot_config(robot_type, selected_options, dialog):
     new_daemon = DockerInDocker(image_name="docker:dind", container_name=folder_name)
 
     config_path = new_daemon.robot_env
+    name_key = 'ARC_NAME' if robot_type == 'ARC' else 'ROBOT_NAME'
+    dotenv.set_key(config_path, name_key, folder_name)
     for key, value in selected_options.items():
-        if 'NAME' in key:
-            dotenv.set_key(config_path, key, folder_name)
+        if 'DESC' in key:
             if value:
-                dotenv.set_key(config_path, 'ALIAS', value)
+                dotenv.set_key(config_path, key, value)
         else:
             dotenv.set_key(config_path, key, str(value))
     
@@ -108,7 +109,6 @@ async def delete_robot(robot_name) -> bool:
 def display_robot_options(robot_name, selected_options, options_container, checker: InputChecker):
     options_path = os.path.join(ROBOTS_DIR, robot_name, 'options.yaml')
     if not os.path.exists(options_path):
-        ui.notify(f"No options.yaml found for {robot_name}")
         options_container.clear()
         with options_container:
             ui.label(f'No options.yaml found for {robot_name}')
@@ -122,10 +122,7 @@ def display_robot_options(robot_name, selected_options, options_container, check
         'Mavlink': 'MAVLink',
         'Sys': 'System',
         'Id': 'ID',
-        'Mavros': 'MAVROS',
-        'Gcs': 'GCS',
-        'Serial0': 'Serial',
-        'Sitl': 'SITL'
+        'Desc': 'Description'
     }
 
     # Clear previous options and UI
@@ -136,7 +133,6 @@ def display_robot_options(robot_name, selected_options, options_container, check
     with options_container:
         for key, option in options.get('x-spiri-options', {}).items():
             selected_options[key] = None
-            help_text = option.get('help-text', False)
             option_type = option.get('type', 'text')
             current_value = option.get('value', '')
             if current_value == 'None':
@@ -191,15 +187,12 @@ def display_robot_options(robot_name, selected_options, options_container, check
             else:
                 def handleText(e: ui.input, k):
                     selected_options.update({k: e.value})
-
-                if 'NAME' in key:
-                    textVal = ''
-                else:
-                    textVal = current_value
                     
-                ui.input(
+                textInput = ui.input(
                     label=f'{formatted_key}', 
-                    value=textVal, 
                     placeholder=current_value, 
                     on_change=lambda e, k=key: handleText(e.sender, k)
                 ).classes('w-full pb-1')
+                
+                if 'DESC' in key:
+                    textInput.label = f'{formatted_key} (optional)'
