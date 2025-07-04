@@ -58,7 +58,7 @@ services:
             try:
                 client = dind.get_client()
                 client.images.pull("traefik/whoami:v1.10.1")
-                logger.info("Successfully pre-pulled test image")
+                logger.success("Successfully pre-pulled test image")
             except Exception as e:
                 logger.warning(f"Could not pre-pull test image: {e}")
             
@@ -205,7 +205,7 @@ def test_registry_proxy_certificate():
     with DockerRegistryProxy() as registry_proxy:
         # Get the certificate from fullchain.pem
         cert = registry_proxy.get_cacert()
-        print(f"Got certificate: {cert[:100]}...")  # Print first 100 chars
+        logger.info(f"Got certificate: {cert[:100]}...")  # Print first 100 chars
         
         # Basic validation of the certificate
         assert cert.startswith("-----BEGIN CERTIFICATE-----"), "Certificate should start with PEM header"

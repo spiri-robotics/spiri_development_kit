@@ -44,7 +44,7 @@ def ensure_options_yaml():
                 default_options = {
                     'x-spiri-options': {}}
                 for var in variables:
-                    print(f"Detected variable: {var}")
+                    logger.debug(f"Detected variable: {var}")
                     if var not in default_options["x-spiri-options"]:
                         default_options["x-spiri-options"][var] = {
                             "type": "text",  # Default type (can be adjusted if needed)
@@ -102,7 +102,7 @@ async def delete_robot(robot_name) -> bool:
     active_sys_ids.remove(int(robot_sys[1]))
     if os.path.exists(robot_path):
         shutil.rmtree(robot_path)
-    logger.info(f"Robot {robot_name} deleted successfully")
+    logger.success(f"Robot {robot_name} deleted successfully")
     return True
 
 def display_robot_options(robot_name, selected_options, options_container, checker: InputChecker):
