@@ -93,9 +93,10 @@ def start_polling(name, label, gz_toggle: ToggleButton):
 async def power_on(robot, buttons: list):
     for button in buttons:
         button.disable()
+    logger.info(f'Powering on {robot}...')
     n = ui.notification(timeout=None)
     for i in range(1):
-        n.message = 'Powering on...'
+        n.message = f'Powering on {robot}...'
         n.spinner = True
         await asyncio.sleep(1)
         
@@ -109,12 +110,12 @@ async def power_on(robot, buttons: list):
     displayCards.refresh()
 
 async def power_off(robot, buttons: list):
-    logger.info(f'Powering off {robot}')
+    logger.info(f'Powering off {robot}...')
     for button in buttons:
         button.disable()
     n = ui.notification(timeout=None)
     for i in range(1):
-        n.message = 'Powering off...'
+        n.message = f'Powering off {robot}...'
         n.spinner = True
         await asyncio.sleep(1)
         
@@ -129,14 +130,14 @@ async def power_off(robot, buttons: list):
     displayCards.refresh()
 
 async def reboot(robot, buttons: list):
-    logger.info(f'Rebooting {robot}')
+    logger.info(f'Rebooting {robot}...')
     for button in buttons:
         button.disable()
-    n = ui.notification(message='Rebooting...', spinner=True, timeout=None)
+    n = ui.notification(message=f'Rebooting {robot}...', spinner=True, timeout=None)
 
     await restart_container(robot)
     
-    n.message = 'Done'
+    n.message = f'{robot} rebooted'
     n.spinner = False
     n.type = 'positive'
     n.timeout = 4
@@ -169,7 +170,7 @@ async def remove_from_world(robot):
 async def delete(robot):
     n = ui.notification(timeout=False)
     for i in range(1):
-        n.message = 'Deleting...'
+        n.message = f'Deleting {robot}...'
         n.spinner=True
         await asyncio.sleep(0.1)
 
@@ -177,7 +178,7 @@ async def delete(robot):
         n.message = f'{robot} deleted'
         n.type = 'positive'
     else:
-        n.message = 'error deleting robot'
+        n.message = f'error deleting {robot}'
         n.type = 'negative'
     
     n.spinner = False
@@ -244,9 +245,9 @@ def displayCards():
                             if 'ARC' in robotName:
                                 url = f'http://{daemons[robotName].get_ip()}:{8080}'
                                 ui.link(f'Access the Web Interface at: {url}', url, new_tab=True).classes('py-3')
-                else:
-                    with ui.card_section().classes('w-full p-0 mb-2'):
-                        ui.label('Robot stats not available')
+                # else:
+                #     with ui.card_section().classes('w-full p-0 mb-2'):
+                #         ui.label('Robot stats not available')
 
                 # Actions
                 with ui.card_section().classes('w-full p-0 mt-auto'):
