@@ -71,7 +71,7 @@ def start_polling(name, label, gz_toggle: ToggleButton):
     async def polling_loop():
         while True:
             status = update_status(name, label)
-            world_running = await get_running_worlds()
+            world_running = get_running_worlds()
             if gz_toggle:
                 if len(world_running) > 0:
                     gz_toggle.visible = True
@@ -149,7 +149,7 @@ async def add_to_world(robot):
         robotType = "_".join(str(robot).split('_')[0:-1])
         # print(robotType)
         await gz_world.prep_bot(robot, robotType)
-        running_worlds = await get_running_worlds()
+        running_worlds = get_running_worlds()
         if len(running_worlds) > 0:
             ui.notify(f'Added {robot} to world')
             return True
