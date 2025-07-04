@@ -1,5 +1,5 @@
 import os, asyncio, httpx
-from nicegui import ui
+from nicegui import ui, run
 from loguru import logger
 from spiriSdk.utils.daemon_utils import daemons, display_daemon_status, start_container, stop_container, restart_container
 from spiriSdk.utils.new_robot_utils import delete_robot, save_robot_config
@@ -129,8 +129,7 @@ async def power_off(robot, buttons: list):
         n.message = f'Powering off {robot}...'
         n.spinner = True
         await asyncio.sleep(1)
-        
-    message = stop_container(robot)
+    message = await run.io_bound(lambda: stop_container(robot))
     logger.info(message)
     
     n.message = message

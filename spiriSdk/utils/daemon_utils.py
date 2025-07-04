@@ -5,6 +5,7 @@ from docker.errors import NotFound, APIError
 from spiriSdk.settings import SIM_ADDRESS, SDK_ROOT, GROUND_CONTROL_ADDRESS
 from loguru import logger
 import asyncio
+import time
 
 DATA_DIR = SDK_ROOT / 'data'
 ROBOTS_DIR = SDK_ROOT / 'robots'
@@ -131,53 +132,42 @@ def display_daemon_status(robot_name):
         return 'stopped'
     except Exception as e:
         return f'error: {str(e)}'
-    
-async def check_stopped(robot_name):
-    status = display_daemon_status(robot_name)
-    if isinstance(status, dict):
-        return
-    while status not in  ('stopped', 'removing'):
-        logger.debug(f"Waiting for {robot_name} to stop... Current status: {status}")
-        await asyncio.sleep(1)
 
 async def start_container(robot_name):
     logger.info(f'Starting container for {robot_name}...')
     await run.io_bound(daemons[robot_name].ensure_started)
+
 
 def stop_container(robot_name):
     if robot_name not in daemons:
         return f"No daemon found for {robot_name}."
 
     container = daemons[robot_name].container
-    if container is None:
-        return f"No container found for {robot_name}. It may have already been removed."
-
-    try:
-        container.reload()
-    except NotFound:
-        daemons[robot_name].container = None
-        return f"Container {robot_name} is already removed."
-
-    if container.status != "running":
-        return f"Container {robot_name} is not running or has already stopped."
-
     try:
         container.stop()
-        return f"Container {robot_name} stopped."
-    except NotFound:
-        daemons[robot_name].container = None
-        return f"Container {robot_name} was already removed before stopping."
-    except APIError as e:
-        if e.response is not None and e.response.status_code == 404:
-            daemons[robot_name].container = None
-            return f"Container {robot_name} was already removed before stopping."
-        else:
-            raise e
+    except Exception as e:
+        logger.error(f"Error stopping container {robot_name}: {e}")
+        return f"Error stopping container {robot_name}: {str(e)}"
+
+    while True:
+        try:
+            container.reload()  # Refresh container status
+            status = container.status
+            if status == "exited" or status == "stopped":
+                break
+        except docker.errors.NotFound:
+            # Container has been removed, consider it stopped
+            break
+        except Exception as e:
+            logger.error(f"Error checking container status {robot_name}: {e}")
+            break
+
+        time.sleep(1)
+        logger.debug(f"Waiting for container {robot_name} to stop... {status}")
+    return f"Container {robot_name} stopped"
+
 
 async def restart_container(robot_name: str):
-    if display_daemon_status(robot_name) == 'running':
-        message = await run.io_bound(lambda: stop_container(robot_name))
-        logger.info(message)
-    await check_stopped(robot_name)
+    await run.io_bound(lambda: stop_container(robot_name))
     await start_container(robot_name)
     logger.success(f"Container {robot_name} restarted successfully.")
