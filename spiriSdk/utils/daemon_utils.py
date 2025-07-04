@@ -5,6 +5,7 @@ from docker.errors import NotFound, APIError
 from spiriSdk.settings import SIM_ADDRESS, SDK_ROOT, GROUND_CONTROL_ADDRESS
 from pathlib import Path
 from loguru import logger
+import asyncio
 
 DATA_DIR = SDK_ROOT / 'data'
 ROBOTS_DIR = SDK_ROOT / 'robots'
@@ -112,11 +113,11 @@ def display_daemon_status(robot_name):
     except Exception as e:
         return f'error: {str(e)}'
     
-def check_stopped(robot_name):
+async def check_stopped(robot_name):
     status = display_daemon_status(robot_name)
-    if status != 'stopped':
-        check_stopped(robot_name)
-    
+    while status != 'stopped':
+        await asyncio.sleep(1)
+
 async def start_container(robot_name):
     logger.info(f'Starting container for {robot_name}...')
     await run.io_bound(daemons[robot_name].ensure_started)
@@ -155,6 +156,6 @@ async def restart_container(robot_name: str):
     if display_daemon_status(robot_name) == 'running':
         message = await run.io_bound(lambda: stop_container(robot_name))
         logger.info(message)
-    check_stopped(robot_name)
+    await check_stopped(robot_name)
     await start_container(robot_name)
     logger.success(f"Container {robot_name} restarted successfully.")
