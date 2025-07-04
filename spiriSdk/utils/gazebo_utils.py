@@ -25,7 +25,7 @@ def is_robot_alive(name):
     else:
         return False
 
-async def get_running_worlds() -> list:
+def get_running_worlds() -> list:
         """Get a list of running Gazebo world names."""
         try:
             running_worlds = []
@@ -71,7 +71,7 @@ class World:
             logger.error(f"File not found: {self.name}. Make sure it is installed and available in the PATH.")
 
     async def reset(self, name):
-        running_world = await get_running_worlds()
+        running_world = get_running_worlds()
         if len(running_world) > 0:
             self.end_gz_proc()
         self.name = name
@@ -105,13 +105,14 @@ class Model:
         self.path = MODEL_PATHS.get(type)
         self.position = position
         self.daemon = daemon
-        self.sitl_port = 9002 + 10 * int(self.daemon.env_get('MAVLINK_SYS_ID', 0))
+        self.sys_id = int(self.daemon.env_get('MAVLINK_SYS_ID', 0))
+        self.sitl_port = 9002 + 10 * self.sys_id
         logger.debug(f"Model {self.name} of type {self.type} will use SITL port {self.sitl_port}")
 
         if self.position == None:
-            self.position = [len(self.parent.models.keys()) + 1, 0, 0, 0, 0, 0]
+            self.position = [self.sys_id, 0, 0, 0, 0, 0]
         if type == 'spiri_mu' or type == 'spiri_mu_no_gimbal':
-            self.position[2] = self.position[2] + 0.195
+            self.position[2] = self.position[2] + 0.3
 
 
     async def launch_model(self) -> bool:
@@ -174,4 +175,8 @@ class Model:
         remove_entity_proc.kill()
         del self.parent.models[self.name]
 
-gz_world = World('empty_world')
+running_world = get_running_worlds()
+if len(running_world) > 0:
+    gz_world = World(running_world[0])
+else:
+    gz_world = World('empty_world')

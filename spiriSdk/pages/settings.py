@@ -61,7 +61,6 @@ async def settings():
             registries.append(host)
             update_env()
             display_registries.refresh()
-            host_input.value = ""
             user_input.value = ""
             token_input.value = ""
 
@@ -100,18 +99,16 @@ async def settings():
         with ui.column().classes('w-full'):
             if len(auth_registries) == 0:
                 ui.label('No registries authenticated.').classes('text-base font-light')
-            for host, user, token in auth_registries:
+            for index, (host, user, token) in enumerate(auth_registries):
                 with ui.row().classes('w-full'):
                     ui.label(f'{host}').classes("w-[200px] text-base font-light")
                     ui.label(f'{user}').classes("w-[150px] text-base font-light")
                     ui.label(f'{token[:6]}*******************').classes("w-[250px] text-base font-light")  # Mask token
-                    ui.button("", icon='delete', on_click=lambda h=host, u=user: delete_auth(h, u), color='negative')
+                    ui.button("", icon='delete', on_click=lambda i=index: delete_auth(i), color='negative')
 
-    def delete_auth(host, user):
-        global auth_registries
-        global registries
-        auth_registries = [entry for entry in auth_registries if not (entry[0] == host and entry[1] == user)]
-        registries = [r for r in registries if r != host]
+    def delete_auth(index):
+        auth_registries.pop(index)
+        registries.pop(index)
         update_env()
         display_registries.refresh()
         

@@ -1,5 +1,5 @@
 import os, asyncio, httpx
-from nicegui import ui
+from nicegui import ui, run
 from loguru import logger
 from spiriSdk.utils.daemon_utils import daemons, display_daemon_status, start_container, stop_container, restart_container
 from spiriSdk.utils.new_robot_utils import delete_robot, save_robot_config
@@ -52,26 +52,37 @@ async def addRobot():
     
     d.open()
     
-def update_status(name, label: ui.label):
+def update_status(name, label: ui.label, chips):
     status = display_daemon_status(name)
-    label.text = f'{status.capitalize()}'
+    if isinstance(status, dict):
+        for state in status.keys():
+            if status[state] > 0:
+                chips[state].visible = True
+                chips[state].text = f'{state}: {status.get(state, 0)}'
+            else:
+                chips[state].visible = False
+        label.visible = False
+    else:
+        for state in chips.keys():
+            chips[state].visible = False
+        label.visible = True
+        label.text = f'{status.capitalize()}'
     if status == 'running':
         label.classes('text-[#609926]')
     elif status == 'stopped':
-        label.classes('text-[#d43131]')
-    return status
+        label.classes('text-[#BF5234]')
 
 polling_tasks = {}
 
-def start_polling(name, label, gz_toggle: ToggleButton):
+def start_polling(name, label, gz_toggle: ToggleButton, chips):
     if name in polling_tasks and not polling_tasks[name].done():
         old = polling_tasks.get(name)
         old.cancel()
 
     async def polling_loop():
         while True:
-            status = update_status(name, label)
-            world_running = await get_running_worlds()
+            update_status(name, label, chips)
+            world_running = get_running_worlds()
             if gz_toggle:
                 if len(world_running) > 0:
                     gz_toggle.visible = True
@@ -118,12 +129,10 @@ async def power_off(robot, buttons: list):
         n.message = f'Powering off {robot}...'
         n.spinner = True
         await asyncio.sleep(1)
-        
-    message, type = stop_container(robot)
+    message = await run.io_bound(lambda: stop_container(robot))
     logger.info(message)
     
     n.message = message
-    n.type = type
     n.spinner = False
     n.timeout = 4
     
@@ -149,7 +158,7 @@ async def add_to_world(robot):
         robotType = "_".join(str(robot).split('_')[0:-1])
         # print(robotType)
         await gz_world.prep_bot(robot, robotType)
-        running_worlds = await get_running_worlds()
+        running_worlds = get_running_worlds()
         if len(running_worlds) > 0:
             ui.notify(f'Added {robot} to world')
             return True
@@ -194,14 +203,13 @@ def displayCards():
             ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
             DATA_DIR = os.path.join(ROOT_DIR, 'data')
             config_file = os.path.join(DATA_DIR, robotName, 'config.env')
-            alias = robotName
+            desc = None
             with open(config_file) as f:
                 for line in f:
-                    if 'ALIAS' in line:
-                        alias = line.split('=', 1)
-                        alias = alias[1].strip()
+                    if 'DESC' in line:
+                        desc = line.split('=', 1)
+                        desc = desc[1].strip()
                         break
-
             # Card and details
             half = 'calc(50%-(var(--nicegui-default-gap)/2))'
             third = 'calc((100%/3)-(var(--nicegui-default-gap)/1.5))' # formula: (100% / {# of cards}) - ({default gap} / ({# of cards} / {# of gaps}))
@@ -211,18 +219,25 @@ def displayCards():
                 # Name(s) and status
                 with ui.row(align_items='start').classes('w-full mb-2'):
                     with ui.card_section().classes('p-0'):
-                        if alias == robotName or alias == robotName:
-                            ui.label(f'{robotName}').classes('text-xl font-semibold text-gray-900 dark:text-gray-100 pb-6')
+                        if desc == None:
+                            ui.label(f'{robotName}').classes('text-xl font-semibold pb-6')
                         else:
-                            ui.label(f'{alias[1:-1]}').classes('text-xl font-semibold text-gray-900 dark:text-gray-100')
-                            ui.label(f'{robotName}').classes('text-base font-normal text-gray-900 dark:text-gray-100')
+                            ui.label(f'{robotName}').classes('text-xl font-semibold')
+                            ui.label(f'{desc[1:-1]}').classes('text-base font-normal italic text-gray-700 dark:text-gray-300')
 
                     ui.space()
 
                     with ui.card_section().classes('p-0'):
-                        label_status = ui.label('Status Loading...').classes('text-base font-semibold')
+                        label_status = ui.label('Status Loading...').classes('text-lg font-semibold')
+                        chips = {}
+                        chips["Running"] = ui.chip("", color='running')
+                        chips["Restarting"] = ui.chip("", color='restarting')
+                        chips["Exited"] = ui.chip("", color='exited')
+                        chips["Created"] = ui.chip("", color='created')
+                        chips["Paused"] = ui.chip("", color='paused')
+                        chips["Dead"] = ui.chip("", color='dead')
                         
-                    update_status(robotName, label_status)
+                    update_status(robotName, label_status, chips)
 
                 # Stats/info
                 if daemons[robotName].container is not None and daemons[robotName].container.status == 'running': 
@@ -235,7 +250,7 @@ def displayCards():
                     # IP and web interface link
                     with ui.card_section().classes('w-full p-0 mb-2'):
                         if 'Running' in label_status.text:
-                            ui.markdown(f'**Robot IP:** {daemons[robotName].get_ip()}')
+                            ui.markdown(f'**Robot IP:** {daemons[robotName].get_ip()}').classes('text-base')
                         
                             # Link to the robot's web interface if applicable 
                             # if "spiri_mu" in robotName:
@@ -245,9 +260,6 @@ def displayCards():
                             if 'ARC' in robotName:
                                 url = f'http://{daemons[robotName].get_ip()}:{8080}'
                                 ui.link(f'Access the Web Interface at: {url}', url, new_tab=True).classes('py-3')
-                # else:
-                #     with ui.card_section().classes('w-full p-0 mb-2'):
-                #         ui.label('Robot stats not available')
 
                 # Actions
                 with ui.card_section().classes('w-full p-0 mt-auto'):
@@ -272,4 +284,4 @@ def displayCards():
                         power.off_switch = lambda r=robotName, b=buttons: power_on(r, b)
                         reboot_btn.on_click(lambda r=robotName, b=buttons: reboot(r, b))
 
-                start_polling(robotName, label_status, gz_toggle)
+                start_polling(robotName, label_status, gz_toggle, chips)
