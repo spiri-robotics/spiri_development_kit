@@ -25,7 +25,7 @@ def is_robot_alive(name):
     else:
         return False
 
-async def get_running_worlds() -> list:
+def get_running_worlds() -> list:
         """Get a list of running Gazebo world names."""
         try:
             running_worlds = []
@@ -44,7 +44,7 @@ async def get_running_worlds() -> list:
                             running_worlds.append(world_name)
             return running_worlds
         except subprocess.CalledProcessError as e:
-            print(f"Error running command: {e}")
+            logger.error(f"Error running command: {e}")
 
 class World:
     def __init__(self, name):
@@ -66,12 +66,12 @@ class World:
         try:
             cmd = ['gz', 'sim', '-r', f'{WORLD_PATHS[self.name]}.world']
             subprocess.Popen(cmd)
-            print('world started')
+            logger.success('world started')
         except FileNotFoundError:
-            print(f"File not found: {self.name}. Make sure it is installed and available in the PATH.")
+            logger.error(f"File not found: {self.name}. Make sure it is installed and available in the PATH.")
 
     async def reset(self, name):
-        running_world = await get_running_worlds()
+        running_world = get_running_worlds()
         if len(running_world) > 0:
             self.end_gz_proc()
         self.name = name
@@ -95,7 +95,7 @@ class World:
                 stdout=subprocess.PIPE
             )
         except subprocess.CalledProcessError as e:
-            print(f"Error running command: {e}")
+            logger.error(f"Error running command: {e}")
 
 class Model:
     def __init__(self, parent: World, name: str, type: str ='spiri_mu', ip: str = '127.0.0.1', position: Optional[list[int]] = None, daemon=None ):
@@ -105,18 +105,19 @@ class Model:
         self.path = MODEL_PATHS.get(type)
         self.position = position
         self.daemon = daemon
-        self.sitl_port = 9002 + 10 * int(self.daemon.env_get('MAVLINK_SYS_ID', 0))
+        self.sys_id = int(self.daemon.env_get('MAVLINK_SYS_ID', 0))
+        self.sitl_port = 9002 + 10 * self.sys_id
         logger.debug(f"Model {self.name} of type {self.type} will use SITL port {self.sitl_port}")
 
         if self.position == None:
-            self.position = [len(self.parent.models.keys()) + 1, 0, 0, 0, 0, 0]
+            self.position = [self.sys_id, 0, 0, 0, 0, 0]
         if type == 'spiri_mu' or type == 'spiri_mu_no_gimbal':
-            self.position[2] = self.position[2] + 0.195
+            self.position[2] = self.position[2] + 0.3
 
 
     async def launch_model(self) -> bool:
         """Launch the model in the Gazebo simulator."""
-        print("adding model")
+        logger.debug("adding model")
         if (self.type == 'spiri_mu' or self.type == 'spiri_mu_no_gimbal'):
             XACRO_CMD = [
                 "xacro",
@@ -174,4 +175,8 @@ class Model:
         remove_entity_proc.kill()
         del self.parent.models[self.name]
 
-gz_world = World('empty_world')
+running_world = get_running_worlds()
+if len(running_world) > 0:
+    gz_world = World(running_world[0])
+else:
+    gz_world = World('empty_world')
