@@ -24,5 +24,6 @@ ui.run(title='Spiri SDK',
     show=True,
     #If 1833 gets resolves this will be a cleaner solution
     uvicorn_reload_dirs=str(Path(__file__).parent.resolve()),
-    reload=True
+    reload=True,
+    dark=None
     )

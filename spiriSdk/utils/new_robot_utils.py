@@ -44,7 +44,7 @@ def ensure_options_yaml():
                 default_options = {
                     'x-spiri-options': {}}
                 for var in variables:
-                    print(f"Detected variable: {var}")
+                    logger.debug(f"Detected variable: {var}")
                     if var not in default_options["x-spiri-options"]:
                         default_options["x-spiri-options"][var] = {
                             "type": "text",  # Default type (can be adjusted if needed)
@@ -102,7 +102,7 @@ async def delete_robot(robot_name) -> bool:
     active_sys_ids.remove(int(robot_sys[1]))
     if os.path.exists(robot_path):
         shutil.rmtree(robot_path)
-    logger.info(f"Robot {robot_name} deleted successfully")
+    logger.success(f"Robot {robot_name} deleted successfully")
     return True
 
 def display_robot_options(robot_name, selected_options, options_container, checker: InputChecker):
@@ -187,27 +187,6 @@ def display_robot_options(robot_name, selected_options, options_container, check
                 ).classes('w-full pb-1')
                 
                 checker.add(numInput, False)
-            
-            elif option_type == 'dropdown':
-                def handleDropdown(e, k):
-                    selected_options[k] = e.value
-                    checker.checkSelect(e)
-
-                # Ensure the dropdown options are a list
-                dropdown_options = option.get('options', [])
-                if isinstance(dropdown_options, list):
-                    drop = ui.select(
-                        options=dropdown_options, 
-                        label=formatted_key,
-                        value=current_value,
-                        on_change=lambda e, k=key: handleDropdown(e.sender, k),
-                    ).classes('w-full')
-                    if drop.value is not None:
-                        checker.add(drop, True)
-                    else:
-                        checker.add(drop, False)
-                else:
-                    ui.label(f"Invalid dropdown options for {key}").classes('text-body2')
             
             else:
                 def handleText(e: ui.input, k):

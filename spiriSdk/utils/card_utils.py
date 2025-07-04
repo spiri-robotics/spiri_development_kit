@@ -93,9 +93,10 @@ def start_polling(name, label, gz_toggle: ToggleButton):
 async def power_on(robot, buttons: list):
     for button in buttons:
         button.disable()
+    logger.info(f'Powering on {robot}...')
     n = ui.notification(timeout=None)
     for i in range(1):
-        n.message = 'Powering on...'
+        n.message = f'Powering on {robot}...'
         n.spinner = True
         await asyncio.sleep(1)
         
@@ -109,12 +110,12 @@ async def power_on(robot, buttons: list):
     displayCards.refresh()
 
 async def power_off(robot, buttons: list):
-    logger.info(f'Powering off {robot}')
+    logger.info(f'Powering off {robot}...')
     for button in buttons:
         button.disable()
     n = ui.notification(timeout=None)
     for i in range(1):
-        n.message = 'Powering off...'
+        n.message = f'Powering off {robot}...'
         n.spinner = True
         await asyncio.sleep(1)
         
@@ -129,14 +130,14 @@ async def power_off(robot, buttons: list):
     displayCards.refresh()
 
 async def reboot(robot, buttons: list):
-    logger.info(f'Rebooting {robot}')
+    logger.info(f'Rebooting {robot}...')
     for button in buttons:
         button.disable()
-    n = ui.notification(message='Rebooting...', spinner=True, timeout=None)
+    n = ui.notification(message=f'Rebooting {robot}...', spinner=True, timeout=None)
 
     await restart_container(robot)
     
-    n.message = 'Done'
+    n.message = f'{robot} rebooted'
     n.spinner = False
     n.type = 'positive'
     n.timeout = 4
@@ -146,7 +147,7 @@ async def reboot(robot, buttons: list):
 async def add_to_world(robot):
     try:
         robotType = "_".join(str(robot).split('_')[0:-1])
-        print(robotType)
+        # print(robotType)
         await gz_world.prep_bot(robot, robotType)
         running_worlds = await get_running_worlds()
         if len(running_worlds) > 0:
@@ -155,7 +156,7 @@ async def add_to_world(robot):
         else:
             raise Exception('No world running')
     except Exception as e:
-        print(e)
+        logger.warning(e)
         return False
 
 async def remove_from_world(robot):
@@ -163,13 +164,13 @@ async def remove_from_world(robot):
         robot = gz_world.models[robot].kill_model()
         return True
     except Exception as e:
-        print(e)
+        logger.warning(e)
         return False
     
 async def delete(robot):
     n = ui.notification(timeout=False)
     for i in range(1):
-        n.message = 'Deleting...'
+        n.message = f'Deleting {robot}...'
         n.spinner=True
         await asyncio.sleep(0.1)
 
@@ -177,7 +178,7 @@ async def delete(robot):
         n.message = f'{robot} deleted'
         n.type = 'positive'
     else:
-        n.message = 'error deleting robot'
+        n.message = f'error deleting {robot}'
         n.type = 'negative'
     
     n.spinner = False
@@ -202,7 +203,10 @@ def displayCards():
                         break
 
             # Card and details
-            with ui.card().classes('p-[calc(var(--nicegui-default-padding)*1.2)] w-[calc(50%-(var(--nicegui-default-gap)/2))] h-auto'):
+            half = 'calc(50%-(var(--nicegui-default-gap)/2))'
+            third = 'calc((100%/3)-(var(--nicegui-default-gap)/1.5))' # formula: (100% / {# of cards}) - ({default gap} / ({# of cards} / {# of gaps}))
+            card_padding = 'calc(var(--nicegui-default-padding)*1.2)'
+            with ui.card().classes(f'p-[{card_padding}] w-full min-[1466px]:w-[{half}] min-[2040px]:w-[{third}] h-auto'):
 
                 # Name(s) and status
                 with ui.row(align_items='start').classes('w-full mb-2'):
@@ -241,9 +245,9 @@ def displayCards():
                             if 'ARC' in robotName:
                                 url = f'http://{daemons[robotName].get_ip()}:{8080}'
                                 ui.link(f'Access the Web Interface at: {url}', url, new_tab=True).classes('py-3')
-                else:
-                    with ui.card_section().classes('w-full p-0 mb-2'):
-                        ui.label('Robot stats not available')
+                # else:
+                #     with ui.card_section().classes('w-full p-0 mb-2'):
+                #         ui.label('Robot stats not available')
 
                 # Actions
                 with ui.card_section().classes('w-full p-0 mt-auto'):

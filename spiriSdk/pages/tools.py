@@ -3,7 +3,7 @@ from pathlib import Path
 from spiriSdk.ui.styles import styles
 from spiriSdk.utils.gazebo_utils import World, WORLD_PATHS, gz_world
 import subprocess
-import os
+from loguru import logger
 
 #Commands to run applications
 applications = {
@@ -16,7 +16,7 @@ def launch_app(command):
     try:
         subprocess.Popen(command)
     except FileNotFoundError:
-        print(f"Command not found: {command}. Make sure it is installed and available in the PATH.")
+        logger.warning(f"Command not found: {command}. Make sure it is installed and available in the PATH.")
 
 
 @ui.page('/tools')
@@ -40,8 +40,6 @@ async def tools():
                     on_click=start_and_close,
                     color='secondary'
                     ).classes('text-base')
-
-    await styles()
 
     with ui.row():
         ui.button('Launch Gazebo', on_click=gz_dialog.open, color='secondary')

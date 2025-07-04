@@ -272,8 +272,8 @@ class DockerRegistryProxy(Container):
             
             # Additional debug info
             if attempt % 5 == 0:  # Every 5 seconds
-                print(f"Attempt {attempt}, waiting for certificate...")
-                print(f"Cert dir contents:\n{self.container.exec_run('ls -la /certs').output.decode()}")
+                logger.info(f"Attempt {attempt}, waiting for certificate...")
+                logger.debug(f"Cert dir contents:\n{self.container.exec_run('ls -la /certs').output.decode()}")
             
             time.sleep(1)
         
