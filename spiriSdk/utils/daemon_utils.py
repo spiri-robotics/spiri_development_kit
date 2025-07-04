@@ -163,7 +163,7 @@ def stop_container(robot_name):
 
     try:
         container.stop()
-        return f"Container {robot_name} stopped.", 'positive'
+        return f"Container {robot_name} stopped."
     except NotFound:
         daemons[robot_name].container = None
         return f"Container {robot_name} was already removed before stopping."
