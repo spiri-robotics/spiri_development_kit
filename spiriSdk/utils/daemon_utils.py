@@ -106,7 +106,23 @@ def display_daemon_status(robot_name):
         if container is None:
             return 'not created or removed'
         container.reload()
-        return container.status
+        status = container.status
+        if status == 'running':
+            socket_path = f'unix:///tmp/dind-sockets/spirisdk_{robot_name}.socket'
+            client = docker.DockerClient(base_url=socket_path)
+            states = {}
+            states["Running"] = len(client.containers.list(filters={'status': 'running'}))
+            states["Restarting"] = len(client.containers.list(filters={'status': 'restarting'}))
+            states["Exited"] = len(client.containers.list(filters={'status': 'exited'}))
+            states["Created"] = len(client.containers.list(filters={'status': 'created'}))
+            states["Paused"] = len(client.containers.list(filters={'status': 'paused'}))
+            states["Dead"] = len(client.containers.list(filters={'status': 'dead'}))
+            if all(count == 0 for count in states.values()):
+                return 'Starting up'
+            else:
+                return states
+        else:
+            return status
     except docker.errors.NotFound:
         return 'stopped'
     except Exception as e:
@@ -114,6 +130,8 @@ def display_daemon_status(robot_name):
     
 def check_stopped(robot_name):
     status = display_daemon_status(robot_name)
+    if isinstance(status, dict):
+        return
     if status != 'stopped':
         check_stopped(robot_name)
     
@@ -152,7 +170,8 @@ def stop_container(robot_name):
             raise e
 
 async def restart_container(robot_name: str):
-    if display_daemon_status(robot_name) == 'running':
+    status = display_daemon_status(robot_name)
+    if status == 'running' or isinstance(status, dict):
         message = await run.io_bound(lambda: stop_container(robot_name))
         logger.info(message)
     check_stopped(robot_name)

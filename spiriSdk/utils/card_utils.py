@@ -52,25 +52,36 @@ async def addRobot():
     
     d.open()
     
-def update_status(name, label: ui.label):
+def update_status(name, label: ui.label, chips):
     status = display_daemon_status(name)
-    label.text = f'{status.capitalize()}'
+    if isinstance(status, dict):
+        for state in status.keys():
+            if status[state] > 0:
+                chips[state].visible = True
+                chips[state].text = f'{state}: {status.get(state, 0)}'
+            else:
+                chips[state].visible = False
+        label.visible = False
+    else:
+        for state in chips.keys():
+            chips[state].visible = False
+        label.visible = True
+        label.text = f'{status.capitalize()}'
     if status == 'running':
         label.classes('text-[#609926]')
     elif status == 'stopped':
-        label.classes('text-[#d43131]')
-    return status
+        label.classes('text-[#BF5234]')
 
 polling_tasks = {}
 
-def start_polling(name, label, gz_toggle: ToggleButton):
+def start_polling(name, label, gz_toggle: ToggleButton, chips):
     if name in polling_tasks and not polling_tasks[name].done():
         old = polling_tasks.get(name)
         old.cancel()
 
     async def polling_loop():
         while True:
-            status = update_status(name, label)
+            update_status(name, label, chips)
             world_running = get_running_worlds()
             if gz_toggle:
                 if len(world_running) > 0:
@@ -119,11 +130,10 @@ async def power_off(robot, buttons: list):
         n.spinner = True
         await asyncio.sleep(1)
         
-    message, type = stop_container(robot)
+    message = stop_container(robot)
     logger.info(message)
     
     n.message = message
-    n.type = type
     n.spinner = False
     n.timeout = 4
     
@@ -220,8 +230,15 @@ def displayCards():
 
                     with ui.card_section().classes('p-0'):
                         label_status = ui.label('Status Loading...').classes('text-lg font-semibold')
+                        chips = {}
+                        chips["Running"] = ui.chip("", color='running', text_color='white')
+                        chips["Restarting"] = ui.chip("", color='restarting')
+                        chips["Exited"] = ui.chip("", color='exited')
+                        chips["Created"] = ui.chip("", color='created')
+                        chips["Paused"] = ui.chip("", color='paused')
+                        chips["Dead"] = ui.chip("", color='dead')
                         
-                    update_status(robotName, label_status)
+                    update_status(robotName, label_status, chips)
 
                 # Stats/info
                 if daemons[robotName].container is not None and daemons[robotName].container.status == 'running': 
@@ -244,9 +261,6 @@ def displayCards():
                             if 'ARC' in robotName:
                                 url = f'http://{daemons[robotName].get_ip()}:{8080}'
                                 ui.link(f'Access the Web Interface at: {url}', url, new_tab=True).classes('py-3')
-                # else:
-                #     with ui.card_section().classes('w-full p-0 mb-2'):
-                #         ui.label('Robot stats not available')
 
                 # Actions
                 with ui.card_section().classes('w-full p-0 mt-auto'):
@@ -271,4 +285,4 @@ def displayCards():
                         power.off_switch = lambda r=robotName, b=buttons: power_on(r, b)
                         reboot_btn.on_click(lambda r=robotName, b=buttons: reboot(r, b))
 
-                start_polling(robotName, label_status, gz_toggle)
+                start_polling(robotName, label_status, gz_toggle, chips)
