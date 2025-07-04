@@ -93,7 +93,7 @@ async def start_services(robot_name: str):
                 inside_path = f"/robots/{robot_type}/services/{service_path.name}"
                 command = f"docker compose --env-file=/data/config.env -f {inside_path}/{compose_path.name} up -d"
                 result = await run.io_bound(lambda r=robot_name, c=command, i=inside_path: daemons[r].container.exec_run(c, workdir=i))
-                logger.debug(result.output.decode())
+                print(result.output.decode())
 
     except Exception as e:
         return f"Error starting services for {robot_name}: {str(e)}"
@@ -141,31 +141,31 @@ async def start_container(robot_name):
 
 def stop_container(robot_name):
     if robot_name not in daemons:
-        return f"No daemon found for {robot_name}."
+        return f"No daemon found for {robot_name}.", 'negative'
 
     container = daemons[robot_name].container
     if container is None:
-        return f"No container found for {robot_name}. It may have already been removed."
+        return f"No container found for {robot_name}. It may have already been removed.", 'negative'
 
     try:
         container.reload()
     except NotFound:
         daemons[robot_name].container = None
-        return f"Container {robot_name} is already removed."
+        return f"Container {robot_name} is already removed.", 'info'
 
     if container.status != "running":
-        return f"Container {robot_name} is not running or has already stopped."
+        return f"Container {robot_name} is not running or has already stopped.", 'info'
 
     try:
         container.stop()
-        return f"Container {robot_name} stopped."
+        return f"Container {robot_name} stopped.", 'positive'
     except NotFound:
         daemons[robot_name].container = None
-        return f"Container {robot_name} was already removed before stopping."
+        return f"Container {robot_name} was already removed before stopping.", 'info'
     except APIError as e:
         if e.response is not None and e.response.status_code == 404:
             daemons[robot_name].container = None
-            return f"Container {robot_name} was already removed before stopping."
+            return f"Container {robot_name} was already removed before stopping.", 'negative'
         else:
             raise e
 
@@ -176,4 +176,4 @@ async def restart_container(robot_name: str):
         logger.info(message)
     check_stopped(robot_name)
     await start_container(robot_name)
-    logger.success(f"Container {robot_name} restarted successfully.")
+    logger.info(f"Container {robot_name} restarted successfully.")
