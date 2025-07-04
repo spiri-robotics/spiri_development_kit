@@ -52,9 +52,22 @@ async def addRobot():
     
     d.open()
     
-def update_status(name, label: ui.label):
+def update_status(name, label: ui.label, running_chip: ui.chip = None, restarting_chip: ui.chip = None, exited_chip: ui.chip = None):
     status = display_daemon_status(name)
-    label.text = f'{status.capitalize()}'
+    if isinstance(status, dict):
+        running_chip.visible = True
+        restarting_chip.visible = True 
+        exited_chip.visible = True
+        running_chip.text = f'Running: {status.get("running", 0)}'
+        restarting_chip.text = f'Restarting: {status.get("restarting", 0)}'
+        exited_chip.text = f'Exited: {status.get("exited", 0)}'
+        label.visible = False
+    else:
+        running_chip.visible = False
+        restarting_chip.visible = False
+        exited_chip.visible = False
+        label.visible = True
+        label.text = f'{status.capitalize()}'
     if status == 'running':
         label.classes('text-[#609926]')
     elif status == 'stopped':

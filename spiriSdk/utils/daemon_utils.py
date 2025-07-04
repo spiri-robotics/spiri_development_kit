@@ -107,7 +107,22 @@ def display_daemon_status(robot_name):
         if container is None:
             return 'not created or removed'
         container.reload()
-        return container.status
+        status = container.status
+        if status == 'running':
+            client = docker.DockerClient(base_url=container.client.api.base_url)
+            running = len(client.containers.list(filters={'status': 'running'}))
+            restarting = len(client.containers.list(filters={'status': 'restarting'}))
+            exited = len(client.containers.list(filters={'status': 'exited'}))
+            if running == 0 and restarting == 0 and exited == 0:
+                return 'starting up'
+            else:
+                return {
+                    'running': running,
+                    'restarting': restarting,
+                    'exited': exited,
+                }
+        else:
+            return status
     except docker.errors.NotFound:
         return 'stopped'
     except Exception as e:
