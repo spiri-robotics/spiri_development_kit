@@ -44,7 +44,7 @@ async def get_running_worlds() -> list:
                             running_worlds.append(world_name)
             return running_worlds
         except subprocess.CalledProcessError as e:
-            print(f"Error running command: {e}")
+            logger.error(f"Error running command: {e}")
 
 class World:
     def __init__(self, name):
@@ -66,9 +66,9 @@ class World:
         try:
             cmd = ['gz', 'sim', '-r', f'{WORLD_PATHS[self.name]}.world']
             subprocess.Popen(cmd)
-            print('world started')
+            logger.success('world started')
         except FileNotFoundError:
-            print(f"File not found: {self.name}. Make sure it is installed and available in the PATH.")
+            logger.error(f"File not found: {self.name}. Make sure it is installed and available in the PATH.")
 
     async def reset(self, name):
         running_world = await get_running_worlds()
@@ -95,7 +95,7 @@ class World:
                 stdout=subprocess.PIPE
             )
         except subprocess.CalledProcessError as e:
-            print(f"Error running command: {e}")
+            logger.error(f"Error running command: {e}")
 
 class Model:
     def __init__(self, parent: World, name: str, type: str ='spiri_mu', ip: str = '127.0.0.1', position: Optional[list[int]] = None, daemon=None ):
@@ -116,7 +116,7 @@ class Model:
 
     async def launch_model(self) -> bool:
         """Launch the model in the Gazebo simulator."""
-        print("adding model")
+        logger.debug("adding model")
         if (self.type == 'spiri_mu' or self.type == 'spiri_mu_no_gimbal'):
             XACRO_CMD = [
                 "xacro",

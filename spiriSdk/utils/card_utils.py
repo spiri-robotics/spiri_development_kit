@@ -147,7 +147,7 @@ async def reboot(robot, buttons: list):
 async def add_to_world(robot):
     try:
         robotType = "_".join(str(robot).split('_')[0:-1])
-        print(robotType)
+        # print(robotType)
         await gz_world.prep_bot(robot, robotType)
         running_worlds = await get_running_worlds()
         if len(running_worlds) > 0:
@@ -156,7 +156,7 @@ async def add_to_world(robot):
         else:
             raise Exception('No world running')
     except Exception as e:
-        print(e)
+        logger.warning(e)
         return False
 
 async def remove_from_world(robot):
@@ -164,7 +164,7 @@ async def remove_from_world(robot):
         robot = gz_world.models[robot].kill_model()
         return True
     except Exception as e:
-        print(e)
+        logger.warning(e)
         return False
     
 async def delete(robot):
