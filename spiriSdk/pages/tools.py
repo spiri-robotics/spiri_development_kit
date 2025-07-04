@@ -41,8 +41,6 @@ async def tools():
                     color='secondary'
                     ).classes('text-base')
 
-    await styles()
-
     with ui.row():
         ui.button('Launch Gazebo', on_click=gz_dialog.open, color='secondary')
         for app_name, command in applications.items():
