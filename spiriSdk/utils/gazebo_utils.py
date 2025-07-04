@@ -25,7 +25,7 @@ def is_robot_alive(name):
     else:
         return False
 
-async def get_running_worlds() -> list:
+def get_running_worlds() -> list:
         """Get a list of running Gazebo world names."""
         try:
             running_worlds = []
@@ -71,7 +71,7 @@ class World:
             print(f"File not found: {self.name}. Make sure it is installed and available in the PATH.")
 
     async def reset(self, name):
-        running_world = await get_running_worlds()
+        running_world = get_running_worlds()
         if len(running_world) > 0:
             self.end_gz_proc()
         self.name = name
@@ -174,4 +174,8 @@ class Model:
         remove_entity_proc.kill()
         del self.parent.models[self.name]
 
-gz_world = World('empty_world')
+running_world = get_running_worlds()
+if len(running_world) > 0:
+    gz_world = World(running_world[0])
+else:
+    gz_world = World('empty_world')
