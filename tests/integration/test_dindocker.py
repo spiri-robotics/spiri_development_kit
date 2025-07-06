@@ -5,7 +5,14 @@ These tests require Docker to be installed and running.
 import pytest
 import time
 from pathlib import Path
+from loguru import logger
 from spiriSdk.docker.dindocker import Container, DockerInDocker
+
+# Disable Loguru output during test teardown
+@pytest.fixture(autouse=True)
+def disable_loguru_during_teardown():
+    yield
+    logger.remove()
 
 @pytest.fixture
 def temp_container():
