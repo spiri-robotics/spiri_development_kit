@@ -58,14 +58,16 @@ class TestContainer:
             image_name="alpine:latest",
             container_name="test_env_container",
             environment={"TEST_VAR": "test_value"},
-            command="env",
-            auto_remove=True
+            command="tail -f /dev/null",  # Keep container running
+            auto_remove=False
         )
         
         container.ensure_started()
-        time.sleep(1)  # Give container time to run
-        logs = container.container.logs().decode()
-        assert "TEST_VAR=test_value" in logs
+        # Check environment variables inside running container
+        exit_code, output = container.container.exec_run("env")
+        assert exit_code == 0
+        assert "TEST_VAR=test_value" in output.decode()
+        container.cleanup()
 
 class TestDockerInDocker:
     def test_dind_lifecycle(self, temp_dind):
@@ -76,14 +78,15 @@ class TestDockerInDocker:
         client = temp_dind.get_client()
         assert client.ping()
         
-        # Test running a container inside DinD
-        test_container = client.containers.run(
+        # Test running a container inside DinD and capture output
+        result = client.containers.run(
             "alpine:latest",
             "echo hello world",
-            remove=True
+            remove=True,
+            stdout=True,
+            stderr=True
         )
-        logs = test_container.logs().decode()
-        assert "hello world" in logs
+        assert b"hello world" in result
 
     def test_compose_operations(self, temp_dind):
         """Test docker compose operations through DinD"""
