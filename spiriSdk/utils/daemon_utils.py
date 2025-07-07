@@ -125,7 +125,7 @@ def display_daemon_status(robot_name):
                 else:
                     return states
             except Exception as e:
-                return 'Starting up'
+                return 'Loading...'
         else:
             return status
     except docker.errors.NotFound:
