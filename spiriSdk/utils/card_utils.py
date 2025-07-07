@@ -69,7 +69,7 @@ def update_status(name, label: ui.label, chips):
     if status == 'stopped':
         label.classes('text-[#BF5234]')
     else:
-        label.classes('text-black')
+        label.classes('text-black dark:text-white')
 
 polling_tasks = {}
 
