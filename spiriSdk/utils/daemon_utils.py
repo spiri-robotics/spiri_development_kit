@@ -168,6 +168,7 @@ def stop_container(robot_name):
 
 
 async def restart_container(robot_name: str):
-    await run.io_bound(lambda: stop_container(robot_name))
+    if daemons[robot_name].container.status == 'running':
+        await run.io_bound(lambda: stop_container(robot_name))
     await start_container(robot_name)
     logger.success(f"Container {robot_name} restarted successfully.")
