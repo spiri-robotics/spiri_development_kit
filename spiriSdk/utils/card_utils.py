@@ -61,7 +61,8 @@ def update_status(name, label: ui.label, chips):
                 chips[state].text = f'{state}: {status.get(state, 0)}'
             else:
                 chips[state].visible = False
-        label.visible = False
+        label.visible = True
+        label.text = 'Status: '
     else:
         for state in chips.keys():
             chips[state].visible = False
@@ -98,7 +99,7 @@ def start_polling(name, label, gz_toggle: ToggleButton, chips):
                     gz_toggle.update()
             if len(world_running) == 0:
                 gz_world.models = {}
-            await asyncio.sleep(3)
+            await asyncio.sleep(1)
     polling_tasks[name] = asyncio.create_task(polling_loop())
     
 async def power_on(robot, buttons: list):
@@ -156,11 +157,10 @@ async def reboot(robot, buttons: list):
 async def add_to_world(robot):
     try:
         robotType = "_".join(str(robot).split('_')[0:-1])
-        # print(robotType)
         await gz_world.prep_bot(robot, robotType)
         running_worlds = get_running_worlds()
         if len(running_worlds) > 0:
-            ui.notify(f'Added {robot} to world')
+            ui.notify(f'Added {robot} to world', type='positive')
             return True
         else:
             raise Exception('No world running')
@@ -171,6 +171,7 @@ async def add_to_world(robot):
 async def remove_from_world(robot):
     try:
         robot = gz_world.models[robot].kill_model()
+        ui.notify(f'Removed {robot} from world', type='positive')
         return True
     except Exception as e:
         logger.warning(e)
@@ -217,27 +218,25 @@ def displayCards():
             with ui.card().classes(f'p-[{card_padding}] w-full min-[1670px]:w-[{half}] min-[2372px]:w-[{third}] h-auto'):
 
                 # Name(s) and status
-                with ui.row(align_items='start').classes('w-full mb-2'):
-                    with ui.card_section().classes('p-0'):
-                        if desc == None:
-                            ui.label(f'{robotName}').classes('text-xl font-semibold pb-6')
-                        else:
-                            ui.label(f'{robotName}').classes('text-xl font-semibold')
-                            ui.label(f'{desc[1:-1]}').classes('text-base font-normal italic text-gray-700 dark:text-gray-300')
+                with ui.card_section().classes('w-full p-0 mb-auto'):
+                    with ui.row(align_items='center').classes('w-full'):
+                        ui.label(f'{robotName}').classes('text-xl font-semibold')
 
-                    ui.space()
+                        ui.space()
 
-                    with ui.card_section().classes('p-0'):
                         label_status = ui.label('Status Loading...').classes('text-lg font-semibold')
                         chips = {}
-                        chips["Running"] = ui.chip("", color='running')
-                        chips["Restarting"] = ui.chip("", color='restarting')
-                        chips["Exited"] = ui.chip("", color='exited')
-                        chips["Created"] = ui.chip("", color='created')
-                        chips["Paused"] = ui.chip("", color='paused')
-                        chips["Dead"] = ui.chip("", color='dead')
+                        chips["Running"] = ui.chip("", color='running', text_color='white')
+                        chips["Restarting"] = ui.chip("", color='restarting', text_color='white')
+                        chips["Exited"] = ui.chip("", color='exited', text_color='white')
+                        chips["Created"] = ui.chip("", color='created', text_color='white')
+                        chips["Paused"] = ui.chip("", color='paused', text_color='white')
+                        chips["Dead"] = ui.chip("", color='dead', text_color='white')
+                            
+                        update_status(robotName, label_status, chips)
                         
-                    update_status(robotName, label_status, chips)
+                    if desc != None:
+                        ui.label(f'{desc[1:-1]}').classes('text-base font-normal italic text-gray-700 dark:text-gray-300')
 
                 # Stats/info
                 if daemons[robotName].container is not None and daemons[robotName].container.status == 'running': 
@@ -245,7 +244,7 @@ def displayCards():
                     with ui.card_section().classes('w-full p-0 mb-2'):
                         with ui.row():
                             command = f"DOCKER_HOST=unix:///tmp/dind-sockets/spirisdk_{robotName}.socket"
-                            ui.code(command, language='bash').classes('text-gray-600 dark:text-gray-200')
+                            ui.code(command, language='bash').classes('text-gray-600 dark:text-gray-200 mt-2')
 
                     # IP and web interface link
                     with ui.card_section().classes('w-full p-0 mb-2'):
@@ -261,7 +260,7 @@ def displayCards():
                             ui.link(f'Access the Web Interface at: {url}', url, new_tab=True).classes('py-3')
 
                 # Actions
-                with ui.card_section().classes('w-full p-0 mt-auto'):
+                with ui.card_section().classes('w-full p-0'):
                     with ui.row(align_items='end'):
                         on = False
                         if daemons[robotName].container is not None and daemons[robotName].container.status == 'running':
