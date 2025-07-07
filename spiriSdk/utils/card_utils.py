@@ -61,15 +61,17 @@ def update_status(name, label: ui.label, chips):
                 chips[state].text = f'{state}: {status.get(state, 0)}'
             else:
                 chips[state].visible = False
-        label.text = 'Status: '
+        label.visible = False
     else:
         for state in chips.keys():
             chips[state].visible = False
-        label.text = f'Status: {status.casefold()}'
+        label.visible = True
+        label.text = f'{status.casefold()}'
+        
     if status == 'stopped':
         label.classes('text-[#BF5234]')
     else:
-        label.classes('text-black dark:text-white')
+        label.classes(remove='text-[#BF5234]')
 
 polling_tasks = {}
 
@@ -222,7 +224,8 @@ def displayCards():
 
                         ui.space()
 
-                        label_status = ui.label('Status Loading...').classes('text-lg font-semibold')
+                        ui.label('Status:').classes('text-lg font-semibold')
+                        label_status = ui.label('loading...').classes('text-lg font-semibold')
                         chips = {}
                         chips["Running"] = ui.chip("", color='running', text_color='white')
                         chips["Restarting"] = ui.chip("", color='restarting', text_color='white')
