@@ -1,6 +1,11 @@
+from typing import cast
+from typing_extensions import Self
 from nicegui import ui
-
+from nicegui.binding import BindableProperty, bind_from
 class ToggleButton(ui.button):
+    state = BindableProperty(
+    on_change=lambda sender, value: cast(Self, sender)._handle_state_change(value)
+    )
     def __init__(self, *args, state=True, on_label="on", off_label="off", on_switch=None, off_switch=None, on_icon=None, off_icon=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.state = state
@@ -12,7 +17,11 @@ class ToggleButton(ui.button):
         self.off_icon = off_icon
         self.on('click', self.toggle)
         self.update()
-
+    
+    def _handle_state_change(self, state):
+        self.state = state
+        self.update()
+    
     async def toggle(self) -> None:
         result = False
         if self.state:
