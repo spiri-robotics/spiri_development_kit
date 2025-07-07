@@ -61,17 +61,15 @@ def update_status(name, label: ui.label, chips):
                 chips[state].text = f'{state}: {status.get(state, 0)}'
             else:
                 chips[state].visible = False
-        label.visible = True
         label.text = 'Status: '
     else:
         for state in chips.keys():
             chips[state].visible = False
-        label.visible = True
-        label.text = f'{status.capitalize()}'
-    if status == 'running':
-        label.classes('text-[#609926]')
-    elif status == 'stopped':
+        label.text = f'Status: {status.casefold()}'
+    if status == 'stopped':
         label.classes('text-[#BF5234]')
+    else:
+        label.classes('text-black')
 
 polling_tasks = {}
 
