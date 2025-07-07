@@ -42,13 +42,13 @@ async def addRobot():
             displayCards.refresh()
 
         with ui.card_actions().props('align=center'):
-            ui.button('Cancel', color='secondary', on_click=d.close).classes('text-base')
+            ui.button('Cancel', color='secondary', on_click=d.close)
             # Add button is disabled until all input fields have valid values
             ui.button(
                 'Add', 
                 color='secondary', 
                 on_click=lambda e: submit(e.sender)
-            ).classes('text-base').bind_enabled_from(checker, 'isValid')
+            ).bind_enabled_from(checker, 'isValid')
     
     d.open()
     

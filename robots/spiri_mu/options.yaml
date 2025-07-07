@@ -11,3 +11,7 @@ x-spiri-options:
     precision: 0
     step: 1
     value: 1
+  GIMBAL:
+    help-text: Whether or not the robot has a gimbal
+    type: bool
+    value: True
