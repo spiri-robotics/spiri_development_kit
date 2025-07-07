@@ -249,17 +249,16 @@ def displayCards():
 
                     # IP and web interface link
                     with ui.card_section().classes('w-full p-0 mb-2'):
-                        if 'Running' in label_status.text:
-                            ui.markdown(f'**Robot IP:** {daemons[robotName].get_ip()}').classes('text-base')
-                        
-                            # Link to the robot's web interface if applicable 
-                            # if "spiri_mu" in robotName:
-                            #     url = f'http://{daemons[robotName].get_ip()}:{80}'
-                            #     ui.link(f'Access the Web Interface at: {url}', url, new_tab=True).classes('py-3')
-                                        
-                            if 'ARC' in robotName:
-                                url = f'http://{daemons[robotName].get_ip()}:{8080}'
-                                ui.link(f'Access the Web Interface at: {url}', url, new_tab=True).classes('py-3')
+                        ui.markdown(f'**Robot IP:** {daemons[robotName].get_ip()}').classes('text-base')
+                    
+                        # Link to the robot's web interface if applicable 
+                        # if "spiri_mu" in robotName:
+                        #     url = f'http://{daemons[robotName].get_ip()}:{80}'
+                        #     ui.link(f'Access the Web Interface at: {url}', url, new_tab=True).classes('py-3')
+                                    
+                        if 'ARC' in robotName:
+                            url = f'http://{daemons[robotName].get_ip()}:{8080}'
+                            ui.link(f'Access the Web Interface at: {url}', url, new_tab=True).classes('py-3')
 
                 # Actions
                 with ui.card_section().classes('w-full p-0 mt-auto'):
