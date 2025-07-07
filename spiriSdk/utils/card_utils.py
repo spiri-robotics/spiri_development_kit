@@ -66,7 +66,7 @@ def update_status(name, label: ui.label, chips):
         for state in chips.keys():
             chips[state].visible = False
         label.visible = True
-        label.text = f'{status.casefold()}'
+        label.text = f'{status.title()}'
         
     if status == 'stopped':
         label.classes('text-[#BF5234]')
