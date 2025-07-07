@@ -371,7 +371,7 @@
     <plugin filename="ArduPilotPlugin" name="ArduPilotPlugin">
       <!-- Port settings -->
       <fdm_addr>0.0.0.0</fdm_addr>
-      <fdm_port_in>9032</fdm_port_in>
+      <fdm_port_in>9772</fdm_port_in>
       <connectionTimeoutMaxCount>5</connectionTimeoutMaxCount>
       <lock_step>1</lock_step>
       <!-- Frame conventions
