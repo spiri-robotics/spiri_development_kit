@@ -78,7 +78,7 @@ async def add_to_world(robot):
 
 async def remove_from_world(robot):
     try:
-        robot = gz_world.models[robot].kill_model()
+        gz_world.models[robot].kill_model()
         ui.notify(f'Removed {robot} from world', type='positive')
         return True
     except Exception as e:
@@ -174,10 +174,6 @@ class RobotCard:
                 #     url = f'http://{daemons[robotName].get_ip()}:{80}'
                 #     ui.link(f'Access the Web Interface at: {url}', url, new_tab=True).classes('py-3')
                             
-                if 'ARC' in self.name:
-                    url = f'http://{self.ip}:{8080}'
-                    link = ui.link(f'Access the Web Interface at: {url}', url, new_tab=True).classes('py-3')
-                    link.bind_visibility(self.__dict__, 'on')
             # Actions
             with ui.card_section().classes('w-full p-0'):
                 with ui.row(align_items='end'):
