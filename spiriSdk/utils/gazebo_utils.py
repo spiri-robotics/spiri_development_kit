@@ -9,7 +9,6 @@ from spiriSdk.utils.daemon_utils import daemons
 MODEL_PATHS = {
     'spiri_mu': 'robots/spiri_mu/models/spiri_mu',
     'spiri_mu_no_gimbal': 'robots/spiri_mu_no_gimbal/models/spiri_mu',
-    'ARC': 'robots/ARC/models/ARC_simplified'
 }
 
 WORLD_PATHS = {

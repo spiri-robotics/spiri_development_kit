@@ -176,10 +176,6 @@ class DroneCard:
                     # if "spiri_mu" in robotName:
                     #     url = f'http://{daemons[robotName].get_ip()}:{80}'
                     #     ui.link(f'Access the Web Interface at: {url}', url, new_tab=True).classes('py-3')
-                                
-                    if 'ARC' in self.name:
-                        url = f'http://{self.ip}:{8080}'
-                        ui.link(f'Access the Web Interface at: {url}', url, new_tab=True).classes('py-3')
 
             # Actions
             with ui.card_section().classes('w-full p-0'):

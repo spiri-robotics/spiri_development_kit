@@ -4,7 +4,7 @@ from spiriSdk.ui.styles import styles
 from spiriSdk.utils.InputChecker import InputChecker
 from spiriSdk.utils.new_robot_utils import ensure_options_yaml, display_robot_options
 
-robots = ['Spiri Mu', 'ARC']
+robots = ['Spiri Mu']
 selected_options = {}
 selected_robot = None
 

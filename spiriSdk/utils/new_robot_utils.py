@@ -56,14 +56,11 @@ def ensure_options_yaml():
 
     return robots
 
-async def save_robot_config(robot_type, selected_options, dialog):
-    if robot_type == "ARC":
-        robot_id = selected_options.get('ARC_SYS_ID', uuid.uuid4().hex[:6])
-    else:   
-        robot_id = selected_options.get('MAVLINK_SYS_ID', uuid.uuid4().hex[:6])
-        
+async def save_robot_config(robot_type, selected_options, dialog): 
+    robot_id = selected_options.get('MAVLINK_SYS_ID', uuid.uuid4().hex[:6])
     if robot_type == 'spiri_mu' and selected_options.get('GIMBAL') == False:
         robot_type = 'spiri_mu_no_gimbal'
+        
     folder_name = f"{robot_type}_{robot_id}"
     folder_path = ROOT_DIR / 'data' / folder_name
 
@@ -72,8 +69,7 @@ async def save_robot_config(robot_type, selected_options, dialog):
     new_daemon = DockerInDocker(image_name="docker:dind", container_name=folder_name)
 
     config_path = new_daemon.robot_env
-    name_key = 'ARC_NAME' if robot_type == 'ARC' else 'ROBOT_NAME'
-    dotenv.set_key(config_path, name_key, folder_name)
+    dotenv.set_key(config_path, 'ROBOT_NAME', folder_name)
     for key, value in selected_options.items():
         if 'DESC' in key:
             if value:
@@ -120,7 +116,6 @@ def display_robot_options(robot_type: str, selected_options, options_container: 
         options = yaml.safe_load(yaml_file)
     
     format_rules = {
-        'Arc': 'ARC',
         'Mavlink': 'MAVLink',
         'Sys': 'System',
         'Id': 'ID',
@@ -172,8 +167,7 @@ def display_robot_options(robot_type: str, selected_options, options_container: 
                     on_change=lambda e, k=key: handleNum(e.sender, k),
                     validation={
                         'Field cannot be empty': lambda value: value,
-                        'Value must be an integer': lambda value: str(value).isdigit(),
-                        'Value must be between 1 and 254': lambda value, minVal=min_val, maxVal = max_val: float(value) >= minVal and float(value) <= maxVal,
+                        'Value must be an integer between 1 and 254': lambda value, minVal=min_val, maxVal = max_val: str(value).isdigit() and float(value) >= minVal and float(value) <= maxVal,
                         'System ID already in use': lambda value: int(value) not in active_sys_ids
                     }
                 ).classes('w-full pb-1')
