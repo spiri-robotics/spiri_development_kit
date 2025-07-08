@@ -14,8 +14,8 @@ async def styles():
         info='#586469',
         warning='#fac529',
         exited="#811D1D",
-        restarting="#96491D",
-        running="#1f800b", 
+        restarting="#77400D",
+        running="#609926", 
         created="#818307", 
         paused="#0e1977", 
         dead="#000000")
