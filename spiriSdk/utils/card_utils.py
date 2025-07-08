@@ -50,7 +50,6 @@ async def addRobot():
             d.close()
 
             # Refresh display to update visible cards
-            displayCards.refresh()
 
         with ui.card_actions().props('align=center'):
             ui.button('Cancel', color='secondary', on_click=d.close)
@@ -102,8 +101,7 @@ async def delete(robot):
     
     n.spinner = False
     n.timeout = 4
-    del cards[robot]
-    displayCards.refresh()
+    cards[robot].destroy()
     
 cards = {}
             
@@ -111,13 +109,12 @@ cards = {}
 def displayCards():
     names = daemons.keys()
     for name in names:
-        card = DroneCard(name, daemons[name])
+        card = RobotCard(name, daemons[name])
         cards[name] = card
     with ui.row(align_items='stretch').classes('w-full'):
         for name, card in cards.items():
             card.render()
-            
-class DroneCard:
+class RobotCard:
     def __init__(self, name, daemon):
         self.name = name
         self.config_file = DATA_DIR / self.name / 'config.env'
@@ -126,13 +123,14 @@ class DroneCard:
         self.gz_state = False
         self.gz_visible = False
         self.on = False
+        self.last_updated = 2
         with open(self.config_file) as f:
             for line in f:
                 if 'DESC' in line:
                     self.desc = line.split('=', 1)
                     self.desc = self.desc[1].strip()
                     break
-        self.ip = daemon.get_ip()
+        self.ip = ''
         update_cards.connect(self.listen_to_polling)
     
     @ui.refreshable
@@ -226,6 +224,8 @@ class DroneCard:
             self.on = False
             self.label_status.classes('text-[#BF5234]')
         else: #TEMPORARY FIX IN THE FUTURE
+            if self.ip == '':
+                self.ip = self.daemon.get_ip()
             self.on = True
             self.label_status.classes('text-[#609926]')
     
@@ -281,6 +281,9 @@ class DroneCard:
         self.on = True
         
         self.render.refresh()
+        
+    def destroy(self):
+        update_cards.disconnect(self.listen_to_polling)
     
     async def listen_to_polling(self, sender, visible=True):
         self.update_status()
