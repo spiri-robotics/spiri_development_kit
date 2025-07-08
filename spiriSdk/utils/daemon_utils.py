@@ -140,14 +140,14 @@ async def start_container(robot_name):
 
 def stop_container(robot_name):
     if robot_name not in daemons:
-        return f"No daemon found for {robot_name}."
+        return f"No daemon found for {robot_name}.", 'negative'
 
     container = daemons[robot_name].container
     try:
         container.stop()
     except Exception as e:
         logger.error(f"Error stopping container {robot_name}: {e}")
-        return f"Error stopping container {robot_name}: {str(e)}"
+        return f"Error stopping container {robot_name}: {str(e)}", 'negative'
 
     while True:
         try:
@@ -159,12 +159,14 @@ def stop_container(robot_name):
             # Container has been removed, consider it stopped
             break
         except Exception as e:
-            logger.error(f"Error checking container status {robot_name}: {e}")
-            break
+            logger.error(f"Error checking container status for {robot_name}: {e}")
+            return(f'Error checking container status for {robot_name}: {e}'), 'negative'
 
         time.sleep(1)
         logger.debug(f"Waiting for container {robot_name} to stop... {status}")
-    return f"Container {robot_name} stopped"
+        
+    logger.success(f'Container {robot_name} stopped')
+    return f"Container {robot_name} stopped", 'positive'
 
 
 async def restart_container(robot_name: str):

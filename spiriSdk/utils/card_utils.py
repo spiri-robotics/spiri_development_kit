@@ -255,10 +255,10 @@ class DroneCard:
             n.message = f'Powering off {self.name}...'
             n.spinner = True
             await asyncio.sleep(1)
-        message = await run.io_bound(lambda: stop_container(self.name))
-        logger.info(message)
+        message, type = await run.io_bound(lambda: stop_container(self.name))
         
         n.message = message
+        n.type = type
         n.spinner = False
         n.timeout = 4
         self.on = False
