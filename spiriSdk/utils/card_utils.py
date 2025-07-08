@@ -79,7 +79,7 @@ async def add_to_world(robot):
 
 async def remove_from_world(robot):
     try:
-        robot = gz_world.models[robot].kill_model()
+        gz_world.models[robot].kill_model()
         ui.notify(f'Removed {robot} from world', type='positive')
         return True
     except Exception as e:
