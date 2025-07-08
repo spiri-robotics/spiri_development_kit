@@ -1,11 +1,10 @@
-import docker, docker.errors, yaml
-from spiriSdk.docker.dindocker import DockerInDocker
+import docker, docker.errors, yaml, time
+
 from nicegui import run
-from docker.errors import NotFound, APIError
-from spiriSdk.settings import SIM_ADDRESS, SDK_ROOT, GROUND_CONTROL_ADDRESS
 from loguru import logger
-import asyncio
-import time
+
+from spiriSdk.docker.dindocker import DockerInDocker
+from spiriSdk.settings import SDK_ROOT
 
 DATA_DIR = SDK_ROOT / 'data'
 ROBOTS_DIR = SDK_ROOT / 'robots'
@@ -51,7 +50,7 @@ async def start_services(robot_name: str):
 
     try:
         container.reload()
-    except NotFound:
+    except docker.errors.NotFound:
         daemons[robot_name].container = None
         return f"Container {robot_name} is already removed."
 
@@ -60,15 +59,13 @@ async def start_services(robot_name: str):
 
     try:
         robot_type = "_".join(robot_name.split('_')[:-1])
-        # services_dir = os.path.join(ROBOTS_DIR, robot_type, "services")
         services_dir = ROBOTS_DIR / robot_type / 'services'
         logger.debug(f"Checking services in {services_dir} for {robot_name}...")
-        if not services_dir.exists():
+        if not services_dir.is_dir():
             return f"Services directory {services_dir} does not exist for {robot_name}."
 
         for service_path in services_dir.iterdir():
-            # service_path = os.path.join(services_dir, service)
-            if not service_path.iterdir():
+            if not service_path.is_dir():
                 logger.debug(f"Skipping {service_path} as it is not a directory.")
                 continue
 
@@ -84,7 +81,7 @@ async def start_services(robot_name: str):
                 with open(compose_path, 'r') as f:
                     compose_data = yaml.safe_load(f)
             except Exception as e:
-                logger.error(f"Error reading {compose_path}: {e}")
+                logger.error(f"Error reading {compose_path.name}: {e}")
                 continue
 
             # Step 4: Check x-spiri-sdk-autostart

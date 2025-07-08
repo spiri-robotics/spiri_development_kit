@@ -1,8 +1,10 @@
-from nicegui import ui
-from spiriSdk.pages.sidebar import sidebar
-from pathlib import Path
-from spiriSdk.ui.styles import styles
 import os
+
+from nicegui import ui
+from pathlib import Path
+from spiriSdk.pages.sidebar import sidebar
+from spiriSdk.ui.styles import styles
+
 ENV_FILE_PATH = Path(os.environ.get("SDK_ROOT", "."))/'.env'
 
 auth_registries = []

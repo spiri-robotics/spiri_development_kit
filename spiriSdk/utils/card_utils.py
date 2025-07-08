@@ -1,23 +1,25 @@
-import os, asyncio, httpx
+import asyncio, httpx
+
 from nicegui import ui, run
 from nicegui.binding import bind_from
 from loguru import logger
-from spiriSdk.utils.daemon_utils import daemons, display_daemon_status, start_container, stop_container, restart_container
-from spiriSdk.utils.new_robot_utils import delete_robot, save_robot_config
-from spiriSdk.pages.tools import gz_world
-from spiriSdk.utils.gazebo_utils import get_running_worlds, is_robot_alive
+from pathlib import Path
+
 from spiriSdk.pages.new_robots import new_robots
+from spiriSdk.pages.tools import gz_world
 from spiriSdk.ui.ToggleButton import ToggleButton
+from spiriSdk.utils.daemon_utils import daemons, display_daemon_status, start_container, stop_container, restart_container
+from spiriSdk.utils.gazebo_utils import get_running_worlds, is_robot_alive
 from spiriSdk.utils.InputChecker import InputChecker
-from datetime import datetime
+from spiriSdk.utils.new_robot_utils import delete_robot, save_robot_config
 from spiriSdk.utils.signals import update_cards
-from blinker import signal
 
 half = 'calc(50%-(var(--nicegui-default-gap)/2))'
 third = 'calc((100%/3)-(var(--nicegui-default-gap)/1.5))' # formula: (100% / {# of cards}) - ({default gap} / ({# of cards} / {# of gaps}))
 card_padding = 'calc(var(--nicegui-default-padding)*1.2)'
-ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
-DATA_DIR = os.path.join(ROOT_DIR, 'data')
+
+ROOT_DIR = Path(__file__).parents[2].absolute()
+DATA_DIR = ROOT_DIR / 'data'
 
 async def is_service_ready(url: str, timeout: float = 0.5) -> bool:
     try:
@@ -118,7 +120,7 @@ def displayCards():
 class DroneCard:
     def __init__(self, name, daemon):
         self.name = name
-        self.config_file = os.path.join(DATA_DIR, name, 'config.env')
+        self.config_file = DATA_DIR / self.name / 'config.env'
         self.desc = None
         self.daemon = daemon
         self.gz_state = False
