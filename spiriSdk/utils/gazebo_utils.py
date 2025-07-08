@@ -1,12 +1,10 @@
+import subprocess, time
+
 from pathlib import Path
-from dataclasses import field
-from spiriSdk.utils.daemon_utils import ROBOTS_DIR, ROOT_DIR, DATA_DIR
-import subprocess
-import os
-import time
-from typing import Optional
-from spiriSdk.utils.daemon_utils import daemons
 from loguru import logger
+from typing import Optional
+
+from spiriSdk.utils.daemon_utils import daemons
 
 MODEL_PATHS = {
     'spiri_mu': 'robots/spiri_mu/models/spiri_mu',
@@ -39,8 +37,7 @@ def get_running_worlds() -> list:
                     command = ' '.join(parts[10:])
                     for token in command.split():
                         if token.endswith('.world'):
-                            world_file = os.path.basename(token)
-                            world_name = os.path.splitext(world_file)[0]
+                            world_name = Path(token).stem
                             running_worlds.append(world_name)
             return running_worlds
         except subprocess.CalledProcessError as e:

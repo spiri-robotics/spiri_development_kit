@@ -1,7 +1,8 @@
 from nicegui import ui
+
 from spiriSdk.ui.styles import styles
-from spiriSdk.utils.new_robot_utils import ensure_options_yaml, display_robot_options
 from spiriSdk.utils.InputChecker import InputChecker
+from spiriSdk.utils.new_robot_utils import ensure_options_yaml, display_robot_options
 
 robots = ['Spiri Mu', 'ARC']
 selected_options = {}

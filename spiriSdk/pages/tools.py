@@ -1,10 +1,10 @@
-from nicegui import ui
-from pathlib import Path
-from spiriSdk.ui.styles import styles
-from spiriSdk.utils.gazebo_utils import World, WORLD_PATHS, gz_world
-from spiriSdk.utils.InputChecker import InputChecker
 import subprocess
+
+from nicegui import ui
 from loguru import logger
+from spiriSdk.ui.styles import styles
+from spiriSdk.utils.gazebo_utils import WORLD_PATHS, gz_world
+from spiriSdk.utils.InputChecker import InputChecker
 
 #Commands to run applications
 applications = {

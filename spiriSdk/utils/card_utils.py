@@ -1,23 +1,25 @@
-import os, asyncio, httpx
+import asyncio, httpx
+
 from nicegui import ui, run
 from nicegui.binding import bind_from
 from loguru import logger
-from spiriSdk.utils.daemon_utils import daemons, display_daemon_status, start_container, stop_container, restart_container
-from spiriSdk.utils.new_robot_utils import delete_robot, save_robot_config
-from spiriSdk.pages.tools import gz_world
-from spiriSdk.utils.gazebo_utils import get_running_worlds, is_robot_alive
+from pathlib import Path
+
 from spiriSdk.pages.new_robots import new_robots
+from spiriSdk.pages.tools import gz_world
 from spiriSdk.ui.ToggleButton import ToggleButton
+from spiriSdk.utils.daemon_utils import daemons, display_daemon_status, start_container, stop_container, restart_container
+from spiriSdk.utils.gazebo_utils import get_running_worlds, is_robot_alive
 from spiriSdk.utils.InputChecker import InputChecker
-from datetime import datetime
+from spiriSdk.utils.new_robot_utils import delete_robot, save_robot_config
 from spiriSdk.utils.signals import update_cards
-from blinker import signal
 
 half = 'calc(50%-(var(--nicegui-default-gap)/2))'
 third = 'calc((100%/3)-(var(--nicegui-default-gap)/1.5))' # formula: (100% / {# of cards}) - ({default gap} / ({# of cards} / {# of gaps}))
 card_padding = 'calc(var(--nicegui-default-padding)*1.2)'
-ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
-DATA_DIR = os.path.join(ROOT_DIR, 'data')
+
+ROOT_DIR = Path(__file__).parents[2].absolute()
+DATA_DIR = ROOT_DIR / 'data'
 
 async def is_service_ready(url: str, timeout: float = 0.5) -> bool:
     try:
@@ -115,7 +117,7 @@ def displayCards():
 class RobotCard:
     def __init__(self, name, daemon):
         self.name = name
-        self.config_file = os.path.join(DATA_DIR, name, 'config.env')
+        self.config_file = DATA_DIR / self.name / 'config.env'
         self.desc = None
         self.daemon = daemon
         self.gz_state = False
@@ -136,53 +138,48 @@ class RobotCard:
         container = self.daemon.container
         with ui.card().classes(f'p-[{card_padding}] w-full min-[1466px]:w-[{half}] min-[2040px]:w-[{third}] h-auto'):
             # Name(s) and status
-            with ui.row(align_items='start').classes('w-full mb-2'):
-                with ui.card_section().classes('p-0'):
-                    if self.desc == None:
-                        ui.label(f'{self.name}').classes('text-xl font-semibold pb-6')
-                    else:
-                        ui.label(f'{self.name}').classes('text-xl font-semibold')
-                        ui.label(f'{self.desc[1:-1]}').classes('text-base font-normal italic text-gray-700 dark:text-gray-300')
+            with ui.card_section().classes('w-full p-0 pb-2 mb-auto'):
+                with ui.row(align_items='center').classes('w-full'):
+                    ui.label(f'{self.name}').classes('text-xl font-semibold')
 
-                ui.space()
+                    ui.space()
 
-                with ui.card_section().classes('p-0'):
                     self.label_status = ui.label('Status Loading...').classes('text-lg font-semibold')
                     self.chips = {}
-                    self.chips["Running"] = ui.chip("", color='running')
-                    self.chips["Restarting"] = ui.chip("", color='restarting')
-                    self.chips["Exited"] = ui.chip("", color='exited')
-                    self.chips["Created"] = ui.chip("", color='created')
-                    self.chips["Paused"] = ui.chip("", color='paused')
-                    self.chips["Dead"] = ui.chip("", color='dead')
+                    self.chips["Running"] = ui.chip("", color='running', text_color='white')
+                    self.chips["Restarting"] = ui.chip("", color='restarting', text_color='white')
+                    self.chips["Exited"] = ui.chip("", color='exited', text_color='white')
+                    self.chips["Created"] = ui.chip("", color='created', text_color='white')
+                    self.chips["Paused"] = ui.chip("", color='paused', text_color='white')
+                    self.chips["Dead"] = ui.chip("", color='dead', text_color='white')
                     
                 self.update_status()
+                
+                if self.desc != None:
+                    ui.label(f'{self.desc[1:-1]}').classes('text-base font-normal italic text-gray-700 dark:text-gray-300')
 
-            # Stats/info
-            if container is not None and container.status == 'running': 
-                # Docker host
-                with ui.card_section().classes('w-full p-0 mb-2'):
-                    with ui.row():
-                        command = f"DOCKER_HOST=unix:///tmp/dind-sockets/spirisdk_{self.name}.socket"
-                        docker_host = ui.code(command, language='bash').classes('text-gray-600 dark:text-gray-200')
-                        docker_host.bind_visibility(self.__dict__, 'on')
+            # Docker host
+            with ui.card_section().classes('w-full p-0 mb-2'):
+                command = f"DOCKER_HOST=unix:///tmp/dind-sockets/spirisdk_{self.name}.socket"
+                docker_host = ui.code(command, language='bash').classes('text-gray-600 dark:text-gray-200')
+                docker_host.bind_visibility(self.__dict__, 'on')
 
-                # IP and web interface link
-                with ui.card_section().classes('w-full p-0 mb-2'):
-                    if 'Running' in self.label_status.text:
-                        ui.markdown(f'**Robot IP:** {self.ip}').classes('text-base')
-
-                        # Link to the robot's web interface if applicable 
-                        # if "spiri_mu" in robotName:
-                        #     url = f'http://{daemons[robotName].get_ip()}:{80}'
-                        #     ui.link(f'Access the Web Interface at: {url}', url, new_tab=True).classes('py-3')
-                                    
-                        if 'ARC' in self.name:
-                            url = f'http://{self.ip}:{8080}'
-                            ui.link(f'Access the Web Interface at: {url}', url, new_tab=True).classes('py-3')
-
+            # IP and web interface link
+            with ui.card_section().classes('w-full p-0 mb-2'):
+                ip = ui.markdown(f'**Robot IP:** {self.ip}').classes('text-base')
+                ip.bind_visibility(self.__dict__, 'on')
+            
+                # Link to the robot's web interface if applicable 
+                # if "spiri_mu" in robotName:
+                #     url = f'http://{daemons[robotName].get_ip()}:{80}'
+                #     ui.link(f'Access the Web Interface at: {url}', url, new_tab=True).classes('py-3')
+                            
+                if 'ARC' in self.name:
+                    url = f'http://{self.ip}:{8080}'
+                    link = ui.link(f'Access the Web Interface at: {url}', url, new_tab=True).classes('py-3')
+                    link.bind_visibility(self.__dict__, 'on')
             # Actions
-            with ui.card_section().classes('w-full p-0 mt-auto'):
+            with ui.card_section().classes('w-full p-0'):
                 with ui.row(align_items='end'):
                     if container is not None and container.status == 'running':
                         self.on = True
@@ -200,11 +197,12 @@ class RobotCard:
                     trash = ui.button(icon='delete', on_click=lambda n=self.name: delete(n), color='negative')
                     
                     buttons = [power, reboot_btn, gz_toggle, trash]
-                    power.on_switch = lambda r=self.name, b=buttons: self.power_off(b)
-                    power.off_switch = lambda r=self.name, b=buttons: self.power_on(b)
+                    
+                    power.on_switch = lambda b=buttons: self.power_off(b)
+                    power.off_switch = lambda b=buttons: self.power_on(b)
+                    reboot_btn.on_click(lambda b=buttons: self.reboot(b))
                     gz_toggle.on_switch = lambda r=self.name: remove_from_world(r)
                     gz_toggle.off_switch = lambda r=self.name: add_to_world(r)
-                    reboot_btn.on_click(lambda r=self.name, b=buttons: self.reboot(b))
     
     def update_status(self):
         status = display_daemon_status(self.name)
@@ -258,10 +256,10 @@ class RobotCard:
             n.message = f'Powering off {self.name}...'
             n.spinner = True
             await asyncio.sleep(1)
-        message = await run.io_bound(lambda: stop_container(self.name))
-        logger.info(message)
+        message, type = await run.io_bound(lambda: stop_container(self.name))
         
         n.message = message
+        n.type = type
         n.spinner = False
         n.timeout = 4
         self.on = False

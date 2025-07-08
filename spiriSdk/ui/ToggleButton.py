@@ -1,7 +1,7 @@
+from nicegui import ui
+from nicegui.binding import BindableProperty
 from typing import cast
 from typing_extensions import Self
-from nicegui import ui
-from nicegui.binding import BindableProperty, bind_from
 class ToggleButton(ui.button):
     state = BindableProperty(
     on_change=lambda sender, value: cast(Self, sender)._handle_state_change(value)

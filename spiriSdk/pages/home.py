@@ -1,10 +1,12 @@
-from nicegui import ui
-from spiriSdk.ui.styles import styles
-from spiriSdk.pages.sidebar import sidebar
-from spiriSdk.utils.card_utils import addRobot, displayCards
-from spiriSdk.pages.tools import tools
-from pathlib import Path
 import asyncio
+
+from nicegui import ui
+from pathlib import Path
+
+from spiriSdk.pages.sidebar import sidebar
+from spiriSdk.pages.tools import tools
+from spiriSdk.ui.styles import styles
+from spiriSdk.utils.card_utils import addRobot, displayCards
 
 ENV_FILE_PATH = Path('.env')
 
