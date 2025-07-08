@@ -107,12 +107,12 @@ cards = {}
 def displayCards():
     names = daemons.keys()
     for name in names:
-        card = DroneCard(name, daemons[name])
+        card = RobotCard(name, daemons[name])
         cards[name] = card
     with ui.row(align_items='stretch').classes('w-full'):
         for name, card in cards.items():
             card.render()
-class DroneCard:
+class RobotCard:
     def __init__(self, name, daemon):
         self.name = name
         self.config_file = os.path.join(DATA_DIR, name, 'config.env')
