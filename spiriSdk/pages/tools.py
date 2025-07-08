@@ -2,6 +2,7 @@ from nicegui import ui
 from pathlib import Path
 from spiriSdk.ui.styles import styles
 from spiriSdk.utils.gazebo_utils import World, WORLD_PATHS, gz_world
+from spiriSdk.utils.InputChecker import InputChecker
 import subprocess
 from loguru import logger
 
@@ -25,8 +26,11 @@ async def tools():
     global gz_world
     with ui.dialog() as gz_dialog, ui.card().classes('items-center'):
     
+        select_check = InputChecker()
         ui.label('Gazebo Launch Settings').classes('text-h5')
         w = ui.select(WORLD_NAMES, label='Select World*').classes('text-base w-full')
+        select_check.add(w, False)
+        w.on_value_change(lambda e, ch=select_check: ch.checkSelect(e.sender))
         ui.space()
         
         async def start_and_close(): 
@@ -36,10 +40,12 @@ async def tools():
             else:
                 ui.notify("Please Select a World")
         
-        ui.button('Start World', 
-                    on_click=start_and_close,
-                    color='secondary'
-                    ).classes('text-base')
+        ui.button(
+            'Start World', 
+            on_click=start_and_close,
+            color='secondary'
+        ).bind_enabled_from(select_check, 'isValid')
+        print(select_check.isValid)
 
     with ui.row():
         ui.button('Launch Gazebo', on_click=gz_dialog.open, color='secondary')

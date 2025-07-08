@@ -12,14 +12,14 @@ options_container = None
 def on_select(e: ui.select, checker: InputChecker):
     checker.checkSelect(e)
     checker.reset()
-    robot_name = str(e.value)
-    if robot_name == 'Spiri Mu':
-        robot_name = 'spiri_mu'
+    robot_type = str(e.value)
+    if robot_type == 'Spiri Mu':
+        robot_type = 'spiri_mu'
     global selected_robot
-    selected_robot = robot_name
+    selected_robot = robot_type
     selected_options.clear()
     options_container.clear()
-    display_robot_options(robot_name, selected_options, options_container, checker)
+    display_robot_options(robot_type, selected_options, options_container, checker)
     return selected_robot
 
 def display_fields(checker: InputChecker):
