@@ -45,7 +45,6 @@ async def tools():
             on_click=start_and_close,
             color='secondary'
         ).bind_enabled_from(select_check, 'isValid')
-        print(select_check.isValid)
 
     with ui.row():
         ui.button('Launch Gazebo', on_click=gz_dialog.open, color='secondary')
