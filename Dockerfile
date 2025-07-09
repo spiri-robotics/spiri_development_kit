@@ -19,7 +19,7 @@ RUN apt-get update && apt-get -y install qterminal mesa-utils \
 
 ENV RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
 
-COPY --from=git.spirirobotics.com/spiri/gazebo-resources:main /plugins /plugins
+COPY --from=ghcr.io/spiri-robotics/ardupilot_gazebo:fix-udp-client-address /plugins /plugins
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
 ENV GZ_SIM_SYSTEM_PLUGIN_PATH=/plugins

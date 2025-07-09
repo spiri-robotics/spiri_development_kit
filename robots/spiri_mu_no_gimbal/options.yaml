@@ -1,8 +1,8 @@
 x-spiri-options:
-  ROBOT_NAME:
-    help-text: The robot's custom name
+  ROBOT_DESC:
+    help-text: The robot's custom description 
     type: text
-    value: Gregory
+    value: 
   MAVLINK_SYS_ID:
     help-text: The robot's system ID - each robot must have a unique ID!
     type: int
@@ -11,3 +11,7 @@ x-spiri-options:
     precision: 0
     step: 1
     value: 1
+  GIMBAL:
+    help-text: Whether or not the robot has a gimbal
+    type: bool
+    value: False

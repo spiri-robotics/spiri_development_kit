@@ -179,3 +179,4 @@ cython_debug/
 cache/
 # Don't include user config in the git repo
 data/ 
+robots/spiri_mu/models/spiri_mu/model.sdf

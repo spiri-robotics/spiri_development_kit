@@ -1,17 +1,14 @@
+import subprocess, time
+
 from pathlib import Path
-from dataclasses import field
-from spiriSdk.utils.daemon_utils import ROBOTS_DIR, ROOT_DIR, DATA_DIR
-import subprocess
-import os
-import time
-from typing import Optional
-from spiriSdk.utils.daemon_utils import daemons
 from loguru import logger
+from typing import Optional
+
+from spiriSdk.utils.daemon_utils import daemons
 
 MODEL_PATHS = {
     'spiri_mu': 'robots/spiri_mu/models/spiri_mu',
     'spiri_mu_no_gimbal': 'robots/spiri_mu_no_gimbal/models/spiri_mu',
-    'ARC': 'robots/ARC/models/ARC_simplified'
 }
 
 WORLD_PATHS = {
@@ -25,7 +22,7 @@ def is_robot_alive(name):
     else:
         return False
 
-async def get_running_worlds() -> list:
+def get_running_worlds() -> list:
         """Get a list of running Gazebo world names."""
         try:
             running_worlds = []
@@ -39,8 +36,7 @@ async def get_running_worlds() -> list:
                     command = ' '.join(parts[10:])
                     for token in command.split():
                         if token.endswith('.world'):
-                            world_file = os.path.basename(token)
-                            world_name = os.path.splitext(world_file)[0]
+                            world_name = Path(token).stem
                             running_worlds.append(world_name)
             return running_worlds
         except subprocess.CalledProcessError as e:
@@ -71,7 +67,7 @@ class World:
             logger.error(f"File not found: {self.name}. Make sure it is installed and available in the PATH.")
 
     async def reset(self, name):
-        running_world = await get_running_worlds()
+        running_world = get_running_worlds()
         if len(running_world) > 0:
             self.end_gz_proc()
         self.name = name
@@ -105,13 +101,14 @@ class Model:
         self.path = MODEL_PATHS.get(type)
         self.position = position
         self.daemon = daemon
-        self.sitl_port = 9002 + 10 * int(self.daemon.env_get('MAVLINK_SYS_ID', 0))
+        self.sys_id = int(self.daemon.env_get('MAVLINK_SYS_ID', 0))
+        self.sitl_port = 9002 + 10 * self.sys_id
         logger.debug(f"Model {self.name} of type {self.type} will use SITL port {self.sitl_port}")
 
         if self.position == None:
-            self.position = [len(self.parent.models.keys()) + 1, 0, 0, 0, 0, 0]
+            self.position = [self.sys_id, 0, 0, 0, 0, 0]
         if type == 'spiri_mu' or type == 'spiri_mu_no_gimbal':
-            self.position[2] = self.position[2] + 0.195
+            self.position[2] = self.position[2] + 0.3
 
 
     async def launch_model(self) -> bool:
@@ -174,4 +171,8 @@ class Model:
         remove_entity_proc.kill()
         del self.parent.models[self.name]
 
-gz_world = World('empty_world')
+running_world = get_running_worlds()
+if len(running_world) > 0:
+    gz_world = World(running_world[0])
+else:
+    gz_world = World('empty_world')
