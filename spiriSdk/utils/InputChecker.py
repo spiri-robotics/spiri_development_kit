@@ -1,4 +1,5 @@
 from nicegui import ui
+
 from spiriSdk.utils.daemon_utils import active_sys_ids
 
 class InputChecker:

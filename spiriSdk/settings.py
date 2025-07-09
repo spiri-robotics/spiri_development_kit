@@ -1,7 +1,7 @@
+import os, socket
+
 from dotenv import load_dotenv
 from pathlib import Path
-import os
-import socket
 from loguru import logger
 
 load_dotenv(Path(os.environ.get("SDK_ROOT", ".")) / '.env')

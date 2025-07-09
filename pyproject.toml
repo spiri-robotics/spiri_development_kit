@@ -6,6 +6,7 @@ readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "aiodocker>=0.24.0",
+    "blinker>=1.9.0",
     "docker>=7.1.0",
     "loguru>=0.7.3",
     "nicegui==2.15.0",
