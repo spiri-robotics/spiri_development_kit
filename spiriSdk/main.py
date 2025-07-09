@@ -14,8 +14,9 @@ favicon = """
 
 async def on_startup():
     ensure_options_yaml()
-    await init_daemons()
     asyncio.create_task(polling_loop())
+    await init_daemons()
+    
     
 async def polling_loop():
     while True:
