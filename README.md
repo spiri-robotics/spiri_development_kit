@@ -47,18 +47,16 @@ their own IP policy and licensing.
 The Spiri-SDK can be installed by running the following command in a
 terminal:
 
-[git clone blablabla]{.mark}
+`git clone https://github.com/spiri-robotics/spiri_development_kit.git`
 
 # **Running the Spiri-SDK**
 
-Run the Spiri-SDK by opening the [spirisdk]{.mark} folder in VScode,
-installing the "Dev Containers" extension
+Run the Spiri-SDK by opening the spiriSdk folder in VScode,
+installing the "Dev Containers" extension, and reopening in devcontainers.
 
-# 
+You can then use the command `uv run python -m spiriSdk.main` to launch the project.
 
-# 
-
-# 
+Running using docker compose instead of a development environment is a roadmap feature.
 
 # **Using the Spiri-SDK**
 
@@ -71,12 +69,11 @@ Upon App Startup, a new browser tab will appear with your Spiri-SDK UI.
 
 You can configure your Authentication Settings by navigating to the
 Settings page, then following the instructions to save your Gitea
-Credentials.![](./docs/readme_img/media/image5.png){width="6.25in"
-height="2.8333333333333335in"}
+Credentials.![](./docs/readme_img/media/image5.png)
 
-## 
+## **Adding a Robot**
 
-## **Adding a Robot**![](./docs/readme_img/media/image2.png){width="3.0461417322834645in" height="2.2806189851268592in"}
+![](./docs/readme_img/media/image2.png)
 
 To add a Robot, navigate to the Dashboard and click "Add Robot".
 
@@ -98,12 +95,10 @@ From the Dropdown menu, select your desired world to run, then hit
 The robot cards should then display an "Add to GZ Sim" button, which can
 be clicked to add each robot to the simulation.
 
-![](./docs/readme_img/media/image6.png){width="6.5in"
-height="2.7777777777777777in"}
+![](./docs/readme_img/media/image6.png)
 
-![](./docs/readme_img/media/image7.png){width="6.5in" height="3.0in"}
+![](./docs/readme_img/media/image7.png)
 
-## 
 
 ## **Controlling a simulated robot with QGroundControl**
 
@@ -113,8 +108,7 @@ height="2.7777777777777777in"}
 2.  Then, ensure you have installed QGroundControl and run it on your
     local machine.
 
-> Note: Instructions for QGC can be found here: [ADD SPOMETHING
-> HERE]{.mark}
+    Note: Instructions for installing QGC can be found here: https://docs.qgroundcontrol.com/master/en/qgc-user-guide/getting_started/download_and_install.html
 
 3.  In QGroundControl, click on the Q in the top left corner, then
     navigate to Application Settings -\> Comm Links -\> Add Link.
@@ -138,12 +132,8 @@ height="2.7777777777777777in"}
 
 7.  Repeat this for as many robots as desired.
 
-![](./docs/readme_img/media/image1.png){width="3.4427088801399823in"
-height="2.8753707349081363in"}
+![](./docs/readme_img/media/image1.png)
 
-## 
-
-## 
 
 ## **Stopping, Starting, and Restarting a Robot**
 
@@ -156,8 +146,8 @@ power button toggles the robot on and off, and the reboot button serves
 as an easy way to turn the robot off, then back on again with just one
 click.
 
-![](./docs/readme_img/media/image3.png){width="5.848958880139983in"
-height="2.3901990376202975in"}
+![](./docs/readme_img/media/image3.png)
+
 
 ## **Deleting a Robot**
 
@@ -165,7 +155,9 @@ Deleting a Robot can be done by clicking the trash can icon on its
 display card and waiting a moment for the success message to display and
 its card to be removed.
 
-## **Inspecting a Robot's Services**![](./docs/readme_img/media/image4.png){width="3.4732141294838144in" height="2.026042213473316in"}
+## **Inspecting a Robot's Services**
+
+![](./docs/readme_img/media/image4.png)
 
 A robot's services can be inspected using the socket provided in the
 robot's display card.
@@ -180,7 +172,7 @@ It should look something like this:
 DOCKER_HOST=unix:///tmp/dind-sockets/spirisdk_spiri_mu_1.socket
 lazydocker
 
-Lazydocker can be installed using: [LINK HERE]{.mark}
+Lazydocker can be installed as per their instructions here: https://github.com/jesseduffield/lazydocker#installation
 
 # **Developer Instructions**
 
@@ -260,8 +252,8 @@ We have the following project templates available for getting started
 quickly with our SDK
 
 -   A generic ros2 template:
-    [[https://git.spirirobotics.com/Spiri/template-ros2-pkg]{.underline}](https://git.spirirobotics.com/Spiri/template-ros2-pkg)
+    [https://git.spirirobotics.com/Spiri/template-ros2-pkg](https://git.spirirobotics.com/Spiri/template-ros2-pkg)
 
-All of our templates use Copier. Please see the [[copier
-documentation]{.underline}](https://copier.readthedocs.io/en/stable/#installation)
+All of our templates use Copier. Please see the [copier
+documentation](https://copier.readthedocs.io/en/stable/#installation)
 for installation instructions.
