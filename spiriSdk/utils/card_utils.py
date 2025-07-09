@@ -86,6 +86,8 @@ async def remove_from_world(robot):
         return False
     
 async def delete(robot):
+    cards[robot].destroy()
+    del cards[robot]
     n = ui.notification(timeout=False)
     for i in range(1):
         n.message = f'Deleting {robot}...'
@@ -101,7 +103,7 @@ async def delete(robot):
     
     n.spinner = False
     n.timeout = 4
-    cards[robot].destroy()
+
     
 cards = {}
             
