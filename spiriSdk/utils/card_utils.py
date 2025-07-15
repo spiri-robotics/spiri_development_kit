@@ -20,20 +20,6 @@ card_padding = 'calc(var(--nicegui-default-padding)*1.2)'
 
 ROOT_DIR = Path(__file__).parents[2].absolute()
 DATA_DIR = ROOT_DIR / 'data'
-
-async def is_service_ready(url: str, timeout: float = 0.5) -> bool:
-    try:
-        async with httpx.AsyncClient() as client:
-            response = await client.get(url, timeout=timeout)            
-            return response.status_code == 200
-    except Exception:
-        return False
-    
-def copy_text(command):
-    ui.run_javascript(f'''
-        navigator.clipboard.writeText("{command}");
-    ''')
-    ui.notify("Copied to clipboard!")
     
 async def addRobot():
     with ui.dialog() as d, ui.card(align_items='stretch').classes('w-full'):
