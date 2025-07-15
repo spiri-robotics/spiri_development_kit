@@ -42,10 +42,29 @@ def get_running_worlds() -> list:
         except subprocess.CalledProcessError as e:
             logger.error(f"Error running command: {e}")
 
+def find_worlds(p = Path('./worlds')):
+    try:
+        worlds = {}
+        for subdir in p.iterdir():
+            world_in_dir = []
+            if subdir.is_dir():
+                for world in subdir.rglob('*.world'):
+                    world_in_dir = {subdir.name: f"worlds/{subdir.name}/worlds/{world.name}"}
+                worlds.update(world_in_dir)
+        return worlds
+    except FileNotFoundError:
+        print(f"Directory not found: {p}. Make sure it exists.")
+        return {}
+
+world_paths = find_worlds()
+world_names = list(world_paths.keys())
+
+
 class World:
     def __init__(self, name):
         self.name = name
         self.models: dict[str:Model]  = {}
+        self.path = world_paths[name]
 
     def get_name(self) -> str:
         return self.name
@@ -60,7 +79,7 @@ class World:
     async def run_world(self) -> None:
         """Run world in Gazebo simulator."""
         try:
-            cmd = ['gz', 'sim', '-r', f'{WORLD_PATHS[self.name]}.world']
+            cmd = ['gz', 'sim', '-r', self.path]
             subprocess.Popen(cmd)
             logger.success('world started')
         except FileNotFoundError:
@@ -70,6 +89,7 @@ class World:
         running_world = get_running_worlds()
         if len(running_world) > 0:
             self.end_gz_proc()
+        self.path = world_paths[name]
         self.name = name
         self.models = {
         

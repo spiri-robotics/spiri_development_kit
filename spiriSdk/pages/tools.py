@@ -3,7 +3,7 @@ import subprocess
 from nicegui import ui
 from loguru import logger
 from spiriSdk.ui.styles import styles
-from spiriSdk.utils.gazebo_utils import WORLD_PATHS, gz_world
+from spiriSdk.utils.gazebo_utils import gz_world, world_paths, world_names
 from spiriSdk.utils.InputChecker import InputChecker
 
 #Commands to run applications
@@ -22,19 +22,19 @@ def launch_app(command):
 
 @ui.page('/tools')
 async def tools():
-    WORLD_NAMES = list(WORLD_PATHS.keys())
+    
     global gz_world
     with ui.dialog() as gz_dialog, ui.card().classes('items-center'):
-    
         select_check = InputChecker()
         ui.label('Gazebo Launch Settings').classes('text-h5')
-        w = ui.select(WORLD_NAMES, label='Select World*').classes('text-base w-full')
+        w = ui.select(world_names, label='Select World*').classes('text-base w-full')
         select_check.add(w, False)
         w.on_value_change(lambda e, ch=select_check: ch.checkSelect(e.sender))
         ui.space()
-        
+
         async def start_and_close(): 
             if(w.value != None):
+                path = world_paths[w.value]
                 await gz_world.reset(w.value)
                 gz_dialog.close()
             else:
