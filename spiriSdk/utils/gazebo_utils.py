@@ -16,6 +16,7 @@ WORLD_PATHS = {
     'citadel_hill': 'worlds/citadel_hill/worlds/citadel_hill',
     'yarmouth_airport': 'worlds/yarmouth_airport/worlds/yarmouth_airport'
 }
+
 def is_robot_alive(name):
     if name in gz_world.models.keys():
         return True
