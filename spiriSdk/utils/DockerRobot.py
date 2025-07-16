@@ -1,12 +1,11 @@
 from pathlib import Path
+from loguru import logger
 import docker
 import dotenv
 
 from spiriSdk.utils import Robot
-from gazebo_utils import get_running_worlds
-from spiriSdk.utils.gazebo_utils import Model
+from gazebo_utils import get_running_worlds, Model
 from spiriSdk.pages.tools import gz_world
-from loguru import logger
 
 class DockerRobot(Robot):
     """
@@ -15,16 +14,19 @@ class DockerRobot(Robot):
     """
     
     def __init__(self, name: str, folder: Path = Path("/services/")):
-        """Initialize a DockerRobot instance."""
+        """
+        Initialize a DockerRobot instance.
+        
+        param name: The name of the robot, of the format <robot_type>_<sys_id>.
+        param folder: The folder where the robot's services are located.
+        This folder should contain a docker-compose.yml file to start the robot's services.
+        """
         self.name = name
         self.docker_client : docker.DockerClient | None = docker.from_env()
         self.services_folder : Path = folder
         self.connection_url : str | None = self.docker_client.api.base_url
         self.spawned: bool = False
         self.running: bool = False
-        
-        #somthing to show started
-        
         self.start_services()
 
     def delete(self) -> None:
