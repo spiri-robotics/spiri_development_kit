@@ -3,9 +3,16 @@ import docker
 import dotenv
 
 from spiriSdk.utils import Robot
+from gazebo_utils import get_running_worlds
+from spiriSdk.utils.gazebo_utils import Model
+from spiriSdk.pages.tools import gz_world
+from loguru import logger
 
 class DockerRobot(Robot):
+    """A class representing a robot managed by Docker."""
+    
     def __init__(self, name: str, folder: Path = Path("/services/")):
+        """Initialize a DockerRobot instance."""
         self.name = name
         self.docker_client : docker.DockerClient | None = docker.from_env()
         self.services_folder : Path = folder
@@ -17,13 +24,25 @@ class DockerRobot(Robot):
         
         self.start_services()
 
-    def delete(self):
-        self.remove_from_system()
+    def delete(self) -> None:
+        """Delete the robot's Docker container and clean up resources."""
+        self.stop_services()
+        if self.docker_client is not None:
+            try:
+                self.docker_client.close()
+            except Exception as e:
+                logger.error(f"Error closing Docker client: {str(e)}")
+        if self.spawned:
+            self.unspawn()
+        self.spawned = False
+        self.running = False
         
-    def get_ip(self):
+    def get_ip(self) -> str:
+        """Get the IP address of the robot."""
         return "127.0.0.1"
 
-    def get_status(self):
+    def get_status(self) -> str:
+        """Get the status of the robot's Docker container."""
         if self.docker_client is None:
             return 'not created or removed'
         try:
@@ -48,28 +67,72 @@ class DockerRobot(Robot):
             return f'error: {str(e)}'
 
     def get_env(self) -> dict:
+        """Get the environment variables for the robot."""
         return dotenv.dotenv_values(self.folder / 'config.env')
 
     def set_env(self, key: str, value: str) -> None:
+        """Set an environment variable for the robot."""
         dotenv.set_key(self.folder / 'config.env', key, value)
     
-    def start_services(self):
+    def start_services(self) -> None:
+        """Start the robot's services using Docker Compose."""
         for service in self.folder.iterdir():
             if service.is_dir() and (service / 'docker-compose.yml').exists():
                 try:
                     compose_file = service / 'docker-compose.yml'
                     self.docker_client.compose.up(compose_file, detach=True)
                 except Exception as e:
-                    print(f"Error starting services for {service.name}: {str(e)}")
+                    logger.error(f"Error starting services for {service.name}: {str(e)}")
+            elif service.is_dir() and (service / 'docker-compose.yaml').exists():
+                try:
+                    compose_file = service / 'docker-compose.yaml'
+                    self.docker_client.compose.up(compose_file, detach=True)
+                except Exception as e:
+                    logger.error(f"Error starting services for {service.name}: {str(e)}")
+            else:
+                logger.info(f"No docker-compose file found in {service.name}, skipping.")
     
-    def stop_services(self):
-        raise NotImplementedError("This method should be implemented by subclasses.")
-    
-    def run_compose(self):
-        raise NotImplementedError("This method should be implemented by subclasses.")
+    def stop_services(self) -> None:
+        """Stop the robot's services using Docker Compose."""
+        for service in self.folder.iterdir():
+            if service.is_dir() and (service / 'docker-compose.yml').exists():
+                try:
+                    compose_file = service / 'docker-compose.yml'
+                    self.docker_client.compose.down(compose_file, remove_images=True)
+                except Exception as e:
+                    logger.error(f"Error stopping services for {service.name}: {str(e)}")
+            elif service.is_dir() and (service / 'docker-compose.yaml').exists():
+                try:
+                    compose_file = service / 'docker-compose.yaml'
+                    self.docker_client.compose.down(compose_file, remove_images=True)
+                except Exception as e:
+                    logger.error(f"Error stopping services for {service.name}: {str(e)}")
+            else:
+                logger.info(f"No docker-compose file found in {service.name}, skipping.")
 
-    def spawn(self):
-        raise NotImplementedError("This method should be implemented by subclasses.")
+    async def spawn(self) -> bool:
+        """Spawn the robot in the Gazebo world."""
+        try:
+            robotType = "_".join(str(self.name).split('_')[0:-1])
+            model = Model(self, self.name, robotType, '127.0.0.1', self.docker_client)
+            await model.launch_model()
+            gz_world.models.update({self.name:model})
+            running_worlds = get_running_worlds()
+            if len(running_worlds) > 0:
+                logger.info(f'Added {self.name} to world')
+                return True
+            else:
+                raise Exception('No world running')
+        except Exception as e:
+            logger.warning(f'Failed to spawn {self.name}: {str(e)}')
+            return False
 
-    def unspawn(self):
-        raise NotImplementedError("This method should be implemented by subclasses.")
+    def unspawn(self) -> bool:
+        """Unspawn the robot from the Gazebo world."""
+        try:
+            gz_world.models[self.name].kill_model()
+            logger.info(f'Removed {self.name} from world')
+            return True
+        except Exception as e:
+            logger.warning(f'Failed to remove {self.name} from world: {str(e)}')
+            return False

@@ -31,9 +31,6 @@ class Robot(object):
     def stop_services(self):
         raise NotImplementedError("This method should be implemented by subclasses.")
     
-    def run_compose(self):
-        raise NotImplementedError("This method should be implemented by subclasses.")
-
     def spawn(self):
         raise NotImplementedError("This method should be implemented by subclasses.")
 
