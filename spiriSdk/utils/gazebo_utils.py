@@ -4,7 +4,7 @@ from pathlib import Path
 from loguru import logger
 from typing import Optional
 
-from spiriSdk.utils.daemon_utils import daemons
+from spiriSdk.utils.daemon_utils import robots
 
 MODEL_PATHS = {
     'spiri_mu': 'robots/spiri_mu/models/spiri_mu',
@@ -69,13 +69,6 @@ class World:
     def get_name(self) -> str:
         return self.name
     
-    async def prep_bot(self, model_name: str ='bot', model_type: str='spiri_mu_no_gimbal', ip: str='127.0.0.1'):
-        
-        model = Model(self, model_name, model_type, ip, daemon=daemons[model_name])
-        await model.launch_model()
-        self.models.update({model_name:model})
-        return
-
     async def run_world(self) -> None:
         """Run world in Gazebo simulator."""
         try:

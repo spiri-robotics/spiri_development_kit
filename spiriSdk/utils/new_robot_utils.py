@@ -1,11 +1,10 @@
-import yaml, re, uuid, shutil, dotenv
-
-from nicegui import ui, run
+import yaml, re, uuid
+from nicegui import ui
 from pathlib import Path
 from loguru import logger
 
-from spiriSdk.docker.dindocker import DockerInDocker
-from spiriSdk.utils.daemon_utils import daemons, start_services, active_sys_ids
+from spiriSdk.utils.SDKRobot import SDKRobot
+from spiriSdk.utils.daemon_utils import robots, active_sys_ids
 from spiriSdk.utils.InputChecker import InputChecker
 
 ROOT_DIR = Path(__file__).parents[2].absolute()
@@ -60,47 +59,22 @@ async def save_robot_config(robot_type, selected_options, dialog):
     robot_id = selected_options.get('MAVLINK_SYS_ID', uuid.uuid4().hex[:6])
     if robot_type == 'spiri_mu' and selected_options.get('GIMBAL') == False:
         robot_type = 'spiri_mu_no_gimbal'
-        
-    folder_name = f"{robot_type}_{robot_id}"
-    folder_path = ROOT_DIR / 'data' / folder_name
-
-    folder_path.mkdir(parents=True, exist_ok=True)
-    
-    new_daemon = DockerInDocker(image_name="docker:dind", container_name=folder_name)
-
-    config_path = new_daemon.robot_env
-    dotenv.set_key(config_path, 'ROBOT_NAME', folder_name)
-    for key, value in selected_options.items():
-        if 'DESC' in key:
-            if value:
-                dotenv.set_key(config_path, key, value)
-        else:
-            dotenv.set_key(config_path, key, str(value))
-    
-    await run.io_bound(new_daemon.ensure_started)
-    daemons[folder_name] = new_daemon
+    robot_name = f"{robot_type}_{robot_id}"
+    new_robot= SDKRobot(robot_name, folder=ROBOTS_DIR / robot_type / 'services', selected_options=selected_options)
+    robots[robot_name] = new_robot
     active_sys_ids.append(robot_id)
-    
     dialog.close()  # Close the dialog after saving
-
     from spiriSdk.utils.card_utils import displayCards
     displayCards.refresh()
-    await start_services(folder_name)
-
-    # ui.notify(f"Saved config.env and started daemon for {folder_name}")
-    ui.notify(f"Robot {folder_name} added successfully!", type='positive')
+    ui.notify(f"Robot {robot_name} added successfully!", type='positive')
 
 async def delete_robot(robot_name: str) -> bool:
     logger.info(f"Deleting robot {robot_name}")
-    robot_path = ROOT_DIR / 'data' / robot_name
-    daemon = daemons.pop(robot_name)
+    robot = robots.pop(robot_name)
     from spiriSdk.utils.card_utils import displayCards
     displayCards.refresh()
-    daemon.cleanup()
-    robot_sys = str(robot_name).rsplit('_', 1)
-    active_sys_ids.remove(int(robot_sys[1]))
-    if robot_path.exists():
-        shutil.rmtree(robot_path)
+    robot.delete()
+    active_sys_ids.remove(int(robot_name.rsplit('_', 1)[1]))
     logger.success(f"Robot {robot_name} deleted successfully")
     return True
 

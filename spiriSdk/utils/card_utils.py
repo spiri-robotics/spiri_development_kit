@@ -8,7 +8,7 @@ from pathlib import Path
 from spiriSdk.pages.new_robots import new_robots
 from spiriSdk.pages.tools import gz_world
 from spiriSdk.ui.ToggleButton import ToggleButton
-from spiriSdk.utils.daemon_utils import daemons, display_daemon_status, start_container, stop_container, restart_container
+from spiriSdk.utils.daemon_utils import robots, display_daemon_status, start_container, stop_container, restart_container
 from spiriSdk.utils.gazebo_utils import get_running_worlds, is_robot_alive
 from spiriSdk.utils.InputChecker import InputChecker
 from spiriSdk.utils.new_robot_utils import delete_robot, save_robot_config
@@ -109,9 +109,9 @@ cards = {}
             
 @ui.refreshable
 def displayCards():
-    names = daemons.keys()
+    names = robots.keys()
     for name in names:
-        card = RobotCard(name, daemons[name])
+        card = RobotCard(name, robots[name])
         cards[name] = card
     with ui.row(align_items='stretch').classes('w-full'):
         for name, card in cards.items():
@@ -173,7 +173,7 @@ class RobotCard:
             
                 # Link to the robot's web interface if applicable 
                 # if "spiri_mu" in robotName:
-                #     url = f'http://{daemons[robotName].get_ip()}:{80}'
+                #     url = f'http://{robots[robotName].get_ip()}:{80}'
                 #     ui.link(f'Access the Web Interface at: {url}', url, new_tab=True).classes('py-3')
                             
             # Actions

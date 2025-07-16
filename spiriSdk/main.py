@@ -5,7 +5,7 @@ from pathlib import Path
 from blinker import signal
 
 from spiriSdk.pages import home, settings
-from spiriSdk.utils.daemon_utils import init_daemons
+from spiriSdk.utils.daemon_utils import init_robots
 from spiriSdk.utils.new_robot_utils import ensure_options_yaml
 from spiriSdk.utils.signals import update_cards
 
@@ -15,7 +15,7 @@ favicon = """
 async def on_startup():
     ensure_options_yaml()
     asyncio.create_task(polling_loop())
-    await init_daemons()
+    await init_robots()
     
     
 async def polling_loop():
