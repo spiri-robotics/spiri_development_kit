@@ -9,7 +9,10 @@ from spiriSdk.pages.tools import gz_world
 from loguru import logger
 
 class DockerRobot(Robot):
-    """A class representing a robot managed by Docker."""
+    """
+    An example implementation of the robot class.
+    This docker robot would be running directly off the host machine's docker daemon.
+    """
     
     def __init__(self, name: str, folder: Path = Path("/services/")):
         """Initialize a DockerRobot instance."""
