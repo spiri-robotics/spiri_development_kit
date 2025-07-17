@@ -13,17 +13,17 @@ class DockerRobot(Robot):
     This docker robot would be running directly off the host machine's docker daemon.
     """
     
-    def __init__(self, name: str, folder: Path = Path("/services/")):
+    def __init__(self, name: str, services_folder: Path = Path("/services/")):
         """
         Initialize a DockerRobot instance.
         
         param name: The name of the robot, of the format <robot_type>_<sys_id>.
-        param folder: The folder where the robot's services are located.
+        param services_folder: The services_folder where the robot's services are located.
         This folder should contain a docker-compose.yml file to start the robot's services.
         """
         self.name = name
         self.docker_client : docker.DockerClient | None = docker.from_env()
-        self.services_folder : Path = folder
+        self.services_folder : Path = services_folder
         self.connection_url : str | None = self.docker_client.api.base_url
         self.spawned: bool = False
         self.running: bool = False
@@ -73,15 +73,15 @@ class DockerRobot(Robot):
 
     def get_env(self) -> dict:
         """Get the environment variables for the robot."""
-        return dotenv.dotenv_values(self.folder / 'config.env')
+        return dotenv.dotenv_values(self.services_folder / 'config.env')
 
     def set_env(self, key: str, value: str) -> None:
         """Set an environment variable for the robot."""
-        dotenv.set_key(self.folder / 'config.env', key, value)
+        dotenv.set_key(self.services_folder / 'config.env', key, value)
     
     def start_services(self) -> None:
         """Start the robot's services using Docker Compose."""
-        for service in self.folder.iterdir():
+        for service in self.services_folder.iterdir():
             if service.is_dir() and (service / 'docker-compose.yml').exists():
                 try:
                     compose_file = service / 'docker-compose.yml'
@@ -99,7 +99,7 @@ class DockerRobot(Robot):
     
     def stop_services(self) -> None:
         """Stop the robot's services using Docker Compose."""
-        for service in self.folder.iterdir():
+        for service in self.services_folder.iterdir():
             if service.is_dir() and (service / 'docker-compose.yml').exists():
                 try:
                     compose_file = service / 'docker-compose.yml'

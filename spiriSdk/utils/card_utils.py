@@ -137,7 +137,7 @@ class RobotCard:
     
     @ui.refreshable
     def render(self):
-        container = self.daemon.container
+        status = self.daemon.get_status()
         with ui.card().classes(f'p-[{card_padding}] w-full min-[1466px]:w-[{half}] min-[2040px]:w-[{third}] h-auto'):
             # Name(s) and status
             with ui.card_section().classes('w-full p-0 pb-2 mb-auto'):
@@ -179,7 +179,7 @@ class RobotCard:
             # Actions
             with ui.card_section().classes('w-full p-0'):
                 with ui.row(align_items='end'):
-                    if container is not None and container.status == 'running':
+                    if isinstance(status, dict) and status.get('Running', 0) > 0:
                         self.on = True
                     power = ToggleButton(on_label='power off', off_label='power on', state=self.on)
                     bind_from(self_obj=power, self_name='state', other_obj=self, other_name='on', backward=lambda v: v)
@@ -203,7 +203,7 @@ class RobotCard:
                     gz_toggle.off_switch = lambda r=self.name: add_to_world(r)
     
     def update_status(self):
-        status = display_daemon_status(self.name)
+        status = robots[self.name].get_status()
         if isinstance(status, dict):
             for state in status.keys():
                 if status[state] > 0:
@@ -238,7 +238,7 @@ class RobotCard:
             
         await robots[self.name].start()
         
-        n.message = f'Container {self.name} started'
+        n.message = f'{self.name} started'
         n.type = 'positive'
         n.spinner = False
         n.timeout = 4
