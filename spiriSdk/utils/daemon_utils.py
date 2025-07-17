@@ -18,10 +18,11 @@ async def init_robots():
 
     for robot_dir in DATA_DIR.iterdir():
         robot_name = robot_dir.name
+        robot_type = "_".join(robot_name.split('_')[:-1])
 
         if robot_dir.exists():
             logger.debug(f"Starting a daemon for: {robot_name}")
-            new_robot = SDKRobot(robot_name, folder=ROBOTS_DIR / robot_name / 'services')
+            new_robot = SDKRobot(robot_name, services_folder=ROBOTS_DIR / robot_type / 'services')
             robots[robot_name] = new_robot
             displayCards.refresh()
 
@@ -30,6 +31,6 @@ async def init_robots():
             
     logger.debug(f"Starting services for {len(robots)} robots...")
     for robot in robots.values():
-        await run.io_bound(robot.start())
+        await run.io_bound(lambda: robot.start())
         
     logger.success("Docker robots initialized.")

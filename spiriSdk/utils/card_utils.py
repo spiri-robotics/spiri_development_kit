@@ -64,7 +64,7 @@ async def addRobot():
     
 async def add_to_world(robot):
     try:
-        robotType = "_".join(str(robot).split('_')[0:-1])
+        robotType = "_".join(str(robot).split('_')[:-1])
         await gz_world.prep_bot(robot, robotType)
         running_worlds = get_running_worlds()
         if len(running_worlds) > 0:
@@ -254,10 +254,10 @@ class RobotCard:
             n.message = f'Powering off {self.name}...'
             n.spinner = True
             await asyncio.sleep(1)
-        await robots[self.name].stop()
+        robots[self.name].stop()
         
         n.message = f"Stopped {self.name}"
-        n.type = type
+        n.type = 'positive'
         n.spinner = False
         n.timeout = 4
         self.on = False

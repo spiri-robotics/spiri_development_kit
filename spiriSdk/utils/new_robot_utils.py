@@ -61,7 +61,7 @@ async def save_robot_config(robot_type, selected_options, dialog):
         robot_type = 'spiri_mu_no_gimbal'
     robot_name = f"{robot_type}_{robot_id}"
     
-    new_robot= SDKRobot(robot_name, folder=ROBOTS_DIR / robot_type / 'services', selected_options=selected_options)
+    new_robot= SDKRobot(robot_name, services_folder=ROBOTS_DIR / robot_type / 'services', selected_options=selected_options)
     
     robots[robot_name] = new_robot
     active_sys_ids.append(robot_id)

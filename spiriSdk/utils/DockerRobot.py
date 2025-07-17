@@ -2,6 +2,8 @@ from pathlib import Path
 from loguru import logger
 import docker
 import dotenv
+import subprocess
+import asyncio
 
 from spiriSdk.utils.Robot import Robot
 from spiriSdk.utils.gazebo_utils import get_running_worlds, Model
@@ -22,6 +24,7 @@ class DockerRobot(Robot):
         This folder should contain a docker-compose.yml file to start the robot's services.
         """
         self.name = name
+        self.robot_type = "-".join(self.name.split('-')[:-1])
         self.docker_client : docker.DockerClient | None = docker.from_env()
         self.services_folder : Path = services_folder
         self.connection_url : str | None = self.docker_client.api.base_url
@@ -51,21 +54,35 @@ class DockerRobot(Robot):
         if self.docker_client is None:
             return 'not created or removed'
         try:
-            client = docker.DockerClient(base_url=self.connection_url)
-            states = {
-                "Running": len(client.containers.list(filters={'status': 'running'})),
-                "Restarting": len(client.containers.list(filters={'status': 'restarting'})),
-                "Exited": len(client.containers.list(filters={'status': 'exited'})),
-                "Created": len(client.containers.list(filters={'status': 'created'})),
-                "Paused": len(client.containers.list(filters={'status': 'paused'})),
-                "Dead": len(client.containers.list(filters={'status': 'dead'})),
+            client = self.docker_client
+            status_counts = {
+                "Running": 0,
+                "Restarting": 0,
+                "Exited": 0,
+                "Created": 0,
+                "Paused": 0,
+                "Dead": 0
             }
-            if all(count == 0 for count in states.values()):
+            # Iterate over each sub-service
+            for service in self.services_folder.iterdir():
+                if not service.is_dir():
+                    continue
+                if not (service / 'docker-compose.yml').exists() and not (service / 'docker-compose.yaml').exists():
+                    continue
+                project_name = service.name.replace("_", "-")
+                for status in status_counts:
+                    containers = client.containers.list(
+                        all=True,
+                        filters={
+                            'status': status.lower(),
+                            'label': f'com.docker.compose.project={project_name}'
+                        }
+                    )
+                    status_counts[status] += len(containers)
+            if all(count == 0 for count in status_counts.values()):
                 return 'Stopped'
             else:
-                return states
-        except Exception as e:
-            return 'Loading...'
+                return status_counts
         except docker.errors.NotFound:
             return 'stopped'
         except Exception as e:
@@ -82,38 +99,50 @@ class DockerRobot(Robot):
     def start_services(self) -> None:
         """Start the robot's services using Docker Compose."""
         for service in self.services_folder.iterdir():
-            if service.is_dir() and (service / 'docker-compose.yml').exists():
+            if service.is_dir() and ((service / 'docker-compose.yml').exists() or (service / 'docker-compose.yaml').exists()):
                 try:
-                    compose_file = service / 'docker-compose.yml'
-                    self.docker_client.compose.up(compose_file, detach=True)
+                    subprocess.run(
+                        ["docker", "compose", "up", "-d"],
+                        cwd=str(service),
+                        check=True
+                    )
+                    self.running = True
                 except Exception as e:
                     logger.error(f"Error starting services for {service.name}: {str(e)}")
-            elif service.is_dir() and (service / 'docker-compose.yaml').exists():
-                try:
-                    compose_file = service / 'docker-compose.yaml'
-                    self.docker_client.compose.up(compose_file, detach=True)
-                except Exception as e:
-                    logger.error(f"Error starting services for {service.name}: {str(e)}")
-            else:
-                logger.info(f"No docker-compose file found in {service.name}, skipping.")
     
     def stop_services(self) -> None:
         """Stop the robot's services using Docker Compose."""
         for service in self.services_folder.iterdir():
-            if service.is_dir() and (service / 'docker-compose.yml').exists():
-                try:
+            if service.is_dir():
+                compose_file = None
+                if (service / 'docker-compose.yml').exists():
                     compose_file = service / 'docker-compose.yml'
-                    self.docker_client.compose.down(compose_file, remove_images=True)
-                except Exception as e:
-                    logger.error(f"Error stopping services for {service.name}: {str(e)}")
-            elif service.is_dir() and (service / 'docker-compose.yaml').exists():
-                try:
+                elif (service / 'docker-compose.yaml').exists():
                     compose_file = service / 'docker-compose.yaml'
-                    self.docker_client.compose.down(compose_file, remove_images=True)
+                else:
+                    logger.info(f"No docker-compose file found in {service.name}, skipping.")
+                    continue
+
+                try:
+                    # Stop containers using subprocess
+                    subprocess.run(
+                        ["docker", "compose", "-f", str(compose_file), "down", "--remove-orphans"],
+                        cwd=str(service),
+                        check=True
+                    )
+
+                    # Wait until all containers in this project are gone
+                    project_name = service.name.replace("_", "-")
+                    while True:
+                        containers = self.docker_client.containers.list(all=True, filters={"label": f"com.docker.compose.project={project_name}"})
+                        if not any(c.status in {"running", "created", "restarting"} for c in containers):
+                            break
+                        logger.info(f"Waiting for containers of {project_name} to stop...")
+                        asyncio.sleep(1)
+
+                    logger.info(f"All containers for {project_name} have stopped.")
                 except Exception as e:
                     logger.error(f"Error stopping services for {service.name}: {str(e)}")
-            else:
-                logger.info(f"No docker-compose file found in {service.name}, skipping.")
 
     async def spawn(self) -> bool:
         """Spawn the robot in the Gazebo world."""
