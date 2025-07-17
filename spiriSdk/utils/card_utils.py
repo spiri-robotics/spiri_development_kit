@@ -1,6 +1,6 @@
 import asyncio, httpx
 
-from nicegui import ui, run
+from nicegui import ui
 from nicegui.binding import bind_from
 from loguru import logger
 from pathlib import Path
@@ -8,7 +8,7 @@ from pathlib import Path
 from spiriSdk.pages.new_robots import new_robots
 from spiriSdk.pages.tools import gz_world
 from spiriSdk.ui.ToggleButton import ToggleButton
-from spiriSdk.utils.daemon_utils import robots, display_daemon_status, start_container, stop_container, restart_container
+from spiriSdk.utils.daemon_utils import robots
 from spiriSdk.utils.gazebo_utils import get_running_worlds, is_robot_alive
 from spiriSdk.utils.InputChecker import InputChecker
 from spiriSdk.utils.new_robot_utils import delete_robot, save_robot_config

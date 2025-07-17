@@ -4,8 +4,6 @@ from pathlib import Path
 from loguru import logger
 from typing import Optional
 
-from spiriSdk.utils.daemon_utils import robots
-
 MODEL_PATHS = {
     'spiri_mu': 'robots/spiri_mu/models/spiri_mu',
     'spiri_mu_no_gimbal': 'robots/spiri_mu_no_gimbal/models/spiri_mu',

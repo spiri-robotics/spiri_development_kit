@@ -3,9 +3,8 @@ from loguru import logger
 import docker
 import shutil
 
-from spiriSdk.utils import DockerRobot
+from spiriSdk.utils.DockerRobot import DockerRobot
 from spiriSdk.settings import SDK_ROOT
-from spiriSdk.utils.daemon_utils import robots, active_sys_ids
 
 class SDKRobot(DockerRobot):
     """

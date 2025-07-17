@@ -3,8 +3,8 @@ from loguru import logger
 import docker
 import dotenv
 
-from spiriSdk.utils import Robot
-from gazebo_utils import get_running_worlds, Model
+from spiriSdk.utils.Robot import Robot
+from spiriSdk.utils.gazebo_utils import get_running_worlds, Model
 from spiriSdk.pages.tools import gz_world
 
 class DockerRobot(Robot):

@@ -60,9 +60,12 @@ async def save_robot_config(robot_type, selected_options, dialog):
     if robot_type == 'spiri_mu' and selected_options.get('GIMBAL') == False:
         robot_type = 'spiri_mu_no_gimbal'
     robot_name = f"{robot_type}_{robot_id}"
+    
     new_robot= SDKRobot(robot_name, folder=ROBOTS_DIR / robot_type / 'services', selected_options=selected_options)
+    
     robots[robot_name] = new_robot
     active_sys_ids.append(robot_id)
+    
     dialog.close()  # Close the dialog after saving
     from spiriSdk.utils.card_utils import displayCards
     displayCards.refresh()
@@ -126,7 +129,6 @@ def display_robot_options(robot_type: str, selected_options, options_container: 
             elif option_type == 'int':
                 min_val = option.get('min', None)
                 max_val = option.get('max', None)
-                step = option.get('step', 1)
                 current_value = option.get('value', 0)
 
                 def handleNum(e, k):
