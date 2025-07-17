@@ -27,9 +27,10 @@ class SDKRobot(DockerRobot):
         self.connection_url : str | None = self.docker_client.api.base_url
         self.spawned: bool = False
         self.running: bool = False
-        self.add_to_system()
-        for key, value in selected_options.items():
-            self.set_env({key: value})
+        if selected_options is not None:
+            self.add_to_system()
+            for key, value in selected_options.items():
+                self.set_env({key: value})
         
     def start(self) -> None:
         """Start the robot's Docker container."""
