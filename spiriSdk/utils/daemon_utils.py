@@ -35,25 +35,3 @@ async def init_robots():
         await run.io_bound(robot.start())
         
     logger.success("Docker robots initialized.")
-
-
-async def start_container(robot_name):
-    logger.info(f'Starting container for {robot_name}...')
-    await run.io_bound(robots[robot_name].start())
-
-
-async def stop_container(robot_name):
-    if robot_name not in robots:
-        return f"No daemon found for {robot_name}.", 'negative'
-
-    await robots[robot_name].stop()
-        
-    logger.success(f'Container {robot_name} stopped')
-    return f"Container {robot_name} stopped", 'positive'
-
-
-async def restart_container(robot_name: str):
-    if robots[robot_name].container.status == 'running':
-        await run.io_bound(lambda: stop_container(robot_name))
-    await start_container(robot_name)
-    logger.success(f"Container {robot_name} restarted successfully.")

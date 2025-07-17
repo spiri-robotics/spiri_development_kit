@@ -236,7 +236,7 @@ class RobotCard:
             n.spinner = True
             await asyncio.sleep(1)
             
-        await start_container(self.name)
+        await robots[self.name].start()
         
         n.message = f'Container {self.name} started'
         n.type = 'positive'
@@ -254,9 +254,9 @@ class RobotCard:
             n.message = f'Powering off {self.name}...'
             n.spinner = True
             await asyncio.sleep(1)
-        message, type = await run.io_bound(lambda: stop_container(self.name))
+        await robots[self.name].stop()
         
-        n.message = message
+        n.message = f"Stopped {self.name}"
         n.type = type
         n.spinner = False
         n.timeout = 4
@@ -269,7 +269,7 @@ class RobotCard:
             button.disable()
         n = ui.notification(message=f'Rebooting {self.name}...', spinner=True, timeout=None)
 
-        await restart_container(self.name)
+        await robots[self.name].restart()
         
         n.message = f'{self.name} rebooted'
         n.spinner = False

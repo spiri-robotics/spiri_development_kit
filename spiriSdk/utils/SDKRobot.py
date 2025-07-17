@@ -40,6 +40,11 @@ class SDKRobot(DockerRobot):
         """Stop the robot's Docker container."""
         self.stop_services()
         
+    def restart(self) -> None:
+        """Restart the robot's Docker container."""
+        self.stop_services()
+        self.start_services()
+        
     def delete(self) -> None:
         """Delete the robot's Docker container and clean up resources."""
         self.stop_services()
