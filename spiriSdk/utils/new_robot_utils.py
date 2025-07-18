@@ -10,9 +10,6 @@ from spiriSdk.utils.InputChecker import InputChecker
 ROOT_DIR = Path(__file__).parents[2].absolute()
 ROBOTS_DIR = ROOT_DIR / 'robots'
 
-# Get the list of robots dynamically from the robots folder
-robots = [folder.name for folder in ROBOTS_DIR.iterdir() if folder.exists()]
-
 def ensure_options_yaml():
     robots = []
     for folder in ROBOTS_DIR.iterdir():

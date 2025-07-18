@@ -27,6 +27,7 @@ class DockerRobot(Robot):
         self.robot_type = "-".join(self.name.split('-')[:-1])
         self.docker_client : docker.DockerClient | None = docker.from_env()
         self.services_folder : Path = services_folder
+        self.env_path : Path = self.services_folder / 'config.env'
         self.connection_url : str | None = self.docker_client.api.base_url
         self.spawned: bool = False
         self.running: bool = False
@@ -90,11 +91,11 @@ class DockerRobot(Robot):
 
     def get_env(self) -> dict:
         """Get the environment variables for the robot."""
-        return dotenv.dotenv_values(self.services_folder / 'config.env')
+        return dotenv.dotenv_values(self.env_path)
 
     def set_env(self, key: str, value: str) -> None:
         """Set an environment variable for the robot."""
-        dotenv.set_key(self.services_folder / 'config.env', key, value)
+        dotenv.set_key(self.env_path, key, value)
     
     def start_services(self) -> None:
         """Start the robot's services using Docker Compose."""
@@ -102,7 +103,7 @@ class DockerRobot(Robot):
             if service.is_dir() and ((service / 'docker-compose.yml').exists() or (service / 'docker-compose.yaml').exists()):
                 try:
                     subprocess.run(
-                        ["docker", "compose", "up", "-d"],
+                        ["docker", "compose", "--env-file", str(self.env_path), "up", "-d"],
                         cwd=str(service),
                         check=True
                     )

@@ -24,13 +24,14 @@ class SDKRobot(DockerRobot):
         self.robot_type = "-".join(self.name.split('-')[:-1])
         self.docker_client : docker.DockerClient | None = docker.from_env()
         self.services_folder : Path = services_folder
+        self.env_path : Path = SDK_ROOT / 'data' / self.name / 'config.env'
         self.connection_url : str | None = self.docker_client.api.base_url
         self.spawned: bool = False
         self.running: bool = False
         if selected_options is not None:
             self.add_to_system()
             for key, value in selected_options.items():
-                self.set_env({key: value})
+                self.set_env(str(key), str(value))
         
     def start(self) -> None:
         """Start the robot."""
@@ -71,9 +72,9 @@ class SDKRobot(DockerRobot):
         """Get the environment variables for the robot."""
         return super().get_env()
 
-    def set_env(self, env_vars: dict) -> None:
+    def set_env(self, key: str, value: str) -> None:
         """Set the environment variables for the robot."""
-        super().set_env(env_vars)
+        super().set_env(key, value)
     
     def start_services(self) -> None:
         """Start the robot's services using Docker Compose."""
