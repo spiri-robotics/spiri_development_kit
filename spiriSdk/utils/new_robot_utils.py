@@ -6,6 +6,7 @@ from loguru import logger
 from spiriSdk.utils.SDKRobot import SDKRobot
 from spiriSdk.utils.daemon_utils import robots, active_sys_ids
 from spiriSdk.utils.InputChecker import InputChecker
+from spiriSdk.settings import SIM_ADDRESS, GROUND_CONTROL_ADDRESS
 
 ROOT_DIR = Path(__file__).parents[2].absolute()
 ROBOTS_DIR = ROOT_DIR / 'robots'
@@ -57,6 +58,9 @@ async def save_robot_config(robot_type, selected_options, dialog):
     if robot_type == 'spiri_mu' and selected_options.get('GIMBAL') == False:
         robot_type = 'spiri_mu_no_gimbal'
     robot_name = f"{robot_type}_{robot_id}"
+    selected_options["SIM_ADDRESS"] = SIM_ADDRESS
+    selected_options["GROUND_CONTROL_ADDRESS"] = GROUND_CONTROL_ADDRESS
+    selected_options["ROBOT_NAME"] = robot_name
     
     new_robot= SDKRobot(robot_name, services_folder=ROBOTS_DIR / robot_type / 'services', selected_options=selected_options)
     

@@ -2,9 +2,10 @@ from pathlib import Path
 from loguru import logger
 import docker
 import shutil
+import dotenv
 
 from spiriSdk.utils.DockerRobot import DockerRobot
-from spiriSdk.settings import SDK_ROOT
+from spiriSdk.settings import SDK_ROOT, SIM_ADDRESS, GROUND_CONTROL_ADDRESS
 
 class SDKRobot(DockerRobot):
     """
