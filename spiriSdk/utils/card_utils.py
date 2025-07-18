@@ -217,7 +217,7 @@ class RobotCard:
                 self.chips[state].visible = False
             self.label_status.visible = True
             self.label_status.text = f'{status.title()}'
-        if status == 'stopped':
+        if isinstance(status, str) and status.lower() == 'stopped':
             self.on = False
             self.label_status.classes('text-[#BF5234]')
         else: #TEMPORARY FIX IN THE FUTURE
@@ -236,7 +236,7 @@ class RobotCard:
             n.spinner = True
             await asyncio.sleep(1)
             
-        await robots[self.name].start()
+        robots[self.name].start()
         
         n.message = f'{self.name} started'
         n.type = 'positive'
@@ -269,7 +269,7 @@ class RobotCard:
             button.disable()
         n = ui.notification(message=f'Rebooting {self.name}...', spinner=True, timeout=None)
 
-        await robots[self.name].restart()
+        robots[self.name].restart()
         
         n.message = f'{self.name} rebooted'
         n.spinner = False
