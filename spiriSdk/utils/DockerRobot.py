@@ -149,7 +149,7 @@ class DockerRobot(Robot):
         """Spawn the robot in the Gazebo world."""
         try:
             robotType = "_".join(str(self.name).split('_')[0:-1])
-            model = Model(self, self.name, robotType, '127.0.0.1', self.docker_client)
+            model = Model(gz_world, self.name, robotType, sys_id=int(self.get_env().get('MAVLINK_SYS_ID', 1)))
             await model.launch_model()
             gz_world.models.update({self.name:model})
             running_worlds = get_running_worlds()

@@ -87,7 +87,7 @@ class SDKRobot(DockerRobot):
 
     async def spawn(self) -> bool:
         """Spawn the robot in the Gazebo world."""
-        return super().spawn()
+        await super().spawn()
 
     def unspawn(self) -> bool:
         """Unspawn the robot from the Gazebo world."""

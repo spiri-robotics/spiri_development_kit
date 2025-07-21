@@ -105,14 +105,13 @@ class World:
             logger.error(f"Error running command: {e}")
 
 class Model:
-    def __init__(self, parent: World, name: str, type: str ='spiri_mu', ip: str = '127.0.0.1', position: Optional[list[int]] = None, daemon=None ):
+    def __init__(self, parent: World, name: str, type: str ='spiri_mu', position: Optional[list[int]] = None, sys_id : int = 1):
         self.parent: World = parent
         self.name = name
         self.type = type
         self.path = MODEL_PATHS.get(type)
         self.position = position
-        self.daemon = daemon
-        self.sys_id = int(self.daemon.env_get('MAVLINK_SYS_ID', 0))
+        self.sys_id = sys_id
         self.sitl_port = 9002 + 10 * self.sys_id
         logger.debug(f"Model {self.name} of type {self.type} will use SITL port {self.sitl_port}")
 
@@ -133,7 +132,7 @@ class Model:
                 "-o",
                 "model.sdf",
             ]
-            xacro_proc = subprocess.Popen(
+            subprocess.Popen(
                 XACRO_CMD,
                 cwd=f"{self.path}",
                 stdout=subprocess.PIPE,
@@ -141,13 +140,14 @@ class Model:
             )
             
         ROS2_CMD = f"ros2 run ros_gz_sim create -world {self.parent.name} -file {self.path}/model.sdf -name {self.name} -x {self.position[0]} -y {self.position[1]} -z {self.position[2]}"        
+        print(ROS2_CMD)
         ros2_gz_create_proc = subprocess.Popen(
             ROS2_CMD.split(),
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE
         )
         
-        out, err = ros2_gz_create_proc.communicate(timeout=3)
+        ros2_gz_create_proc.communicate(timeout=10)
         ros2_gz_create_proc.kill()
         return True
 

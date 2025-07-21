@@ -200,7 +200,7 @@ class RobotCard:
                     power.off_switch = lambda b=buttons: self.power_on(b)
                     reboot_btn.on_click(lambda b=buttons: self.reboot(b))
                     gz_toggle.on_switch = lambda r=self.name: remove_from_world(r)
-                    gz_toggle.off_switch = lambda r=self.name: add_to_world(r)
+                    gz_toggle.off_switch = lambda: self.spawn()
     
     def update_status(self):
         status = robots[self.name].get_status()
@@ -225,6 +225,22 @@ class RobotCard:
                 self.ip = self.daemon.get_ip()
             self.on = True
             self.label_status.classes('text-[#609926]')
+            
+    async def spawn(self):
+        if not is_robot_alive(self.name):
+            logger.info(f'Spawning {self.name}...')
+            n = ui.notification(timeout=None)
+            for i in range(1):
+                n.message = f'Spawning {self.name}...'
+                n.spinner = True
+                await asyncio.sleep(1)
+            await robots[self.name].spawn()
+            n.message = f'{self.name} spawned'
+            n.type = 'positive'
+            n.spinner = False
+            n.timeout = 4
+            self.on = True
+            self.render.refresh()
     
     async def power_on(self, buttons: list):
         for button in buttons:
