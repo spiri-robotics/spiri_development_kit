@@ -58,8 +58,9 @@ async def save_robot_config(robot_type, selected_options, dialog):
     if robot_type == 'spiri_mu' and selected_options.get('GIMBAL') == False:
         robot_type = 'spiri_mu_no_gimbal'
     robot_name = f"{robot_type}_{robot_id}"
-    selected_options["SIM_ADDRESS"] = SIM_ADDRESS
+    selected_options["SIM_ADDRESS"] = "127.0.0.1"
     selected_options["GROUND_CONTROL_ADDRESS"] = GROUND_CONTROL_ADDRESS
+    selected_options['ARDUPILOT_PORT'] = str(5760 + 10 * robot_id)
     selected_options["ROBOT_NAME"] = robot_name
     
     new_robot= SDKRobot(robot_name, services_folder=ROBOTS_DIR / robot_type / 'services', selected_options=selected_options)
@@ -70,6 +71,7 @@ async def save_robot_config(robot_type, selected_options, dialog):
     dialog.close()  # Close the dialog after saving
     from spiriSdk.utils.card_utils import displayCards
     displayCards.refresh()
+    new_robot.start()
     ui.notify(f"Robot {robot_name} added successfully!", type='positive')
 
 async def delete_robot(robot_name: str) -> bool:
