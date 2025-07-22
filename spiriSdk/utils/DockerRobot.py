@@ -155,6 +155,7 @@ class DockerRobot(Robot):
             running_worlds = get_running_worlds()
             if len(running_worlds) > 0:
                 logger.info(f'Added {self.name} to world')
+                self.spawned = True
                 return True
             else:
                 raise Exception('No world running')
@@ -167,6 +168,7 @@ class DockerRobot(Robot):
         try:
             gz_world.models[self.name].kill_model()
             logger.info(f'Removed {self.name} from world')
+            self.speawned = False
             return True
         except Exception as e:
             logger.warning(f'Failed to remove {self.name} from world: {str(e)}')
