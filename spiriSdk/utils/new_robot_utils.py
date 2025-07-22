@@ -47,10 +47,8 @@ def ensure_options_yaml():
                             "value": 0,  # Default to spiri.env value if available
                             "help-text": f"Auto-detected variable {var}"
                         }
-
                 with open(options_path, 'w') as yaml_file:
                     yaml.dump(default_options, yaml_file)
-
     return robots
 
 async def save_robot_config(robot_type, selected_options, dialog): 

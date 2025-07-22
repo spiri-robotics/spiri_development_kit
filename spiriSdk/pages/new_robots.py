@@ -10,7 +10,7 @@ selected_robot = None
 
 options_container = None
 
-def on_select(e: ui.select, checker: InputChecker):
+def on_type_select(e: ui.select, checker: InputChecker):
     checker.checkSelect(e)
     checker.reset()
     robot_type = str(e.value)
@@ -27,7 +27,7 @@ def display_fields(checker: InputChecker):
     with ui.label('New Robot').classes('text-h5'):
         ui.label('Fields marked with a * are required').classes('text-base italic text-gray-700 dark:text-gray-300')
     with ui.row().classes('w-full'):
-        i = ui.select([f'{robot}' for robot in robots], label='Select robot type*', on_change=lambda e: on_select(e.sender, checker)).classes('w-full')
+        i = ui.select([f'{robot}' for robot in robots], label='Select robot type*', on_change=lambda e: on_type_select(e.sender, checker)).classes('w-full')
         checker.add(i, False)
 
     global options_container
