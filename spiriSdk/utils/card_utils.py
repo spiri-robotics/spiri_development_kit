@@ -47,24 +47,13 @@ async def addRobot():
             ).bind_enabled_from(checker, 'isValid')
     
     d.open()
-    
-async def add_to_world(robot):
-    try:
-        robotType = "_".join(str(robot).split('_')[:-1])
-        await gz_world.prep_bot(robot, robotType)
-        running_worlds = get_running_worlds()
-        if len(running_worlds) > 0:
-            ui.notify(f'Added {robot} to world', type='positive')
-            return True
-        else:
-            raise Exception('No world running')
-    except Exception as e:
-        logger.warning(e)
-        return False
 
 async def remove_from_world(robot):
     try:
-        gz_world.models[robot].kill_model()
+        result = robots[robot].unspawn()
+        if not result:
+            logger.warning(f'Failed to remove {robot} from world')
+            return False
         ui.notify(f'Removed {robot} from world', type='positive')
         return True
     except Exception as e:
@@ -90,7 +79,6 @@ async def delete(robot):
     n.spinner = False
     n.timeout = 4
 
-    
 cards = {}
             
 @ui.refreshable
@@ -203,14 +191,14 @@ class RobotCard:
                 self.chips[state].visible = False
             self.label_status.visible = True
             self.label_status.text = f'{status.title()}'
-        if isinstance(status, str) and status.lower() == 'stopped':
-            self.on = False
-            self.label_status.classes('text-[#BF5234]')
-        else: #TEMPORARY FIX IN THE FUTURE
-            if self.ip == '':
-                self.ip = self.daemon.get_ip()
-            self.on = True
-            self.label_status.classes('text-[#609926]')
+            if status.lower() == 'stopped':
+                self.on = False
+                self.label_status.classes('text-[#BF5234]')
+            else: #TEMPORARY FIX IN THE FUTURE
+                if self.ip == '':
+                    self.ip = self.daemon.get_ip()
+                self.on = True
+                self.label_status.classes('text-[#609926]')
             
     async def spawn(self):
         if not is_robot_alive(self.name):
