@@ -77,7 +77,7 @@ async def delete_robot(robot_name: str) -> bool:
     robot = robots.pop(robot_name)
     from spiriSdk.utils.card_utils import displayCards
     displayCards.refresh()
-    robot.delete()
+    await robot.delete()
     active_sys_ids.remove(int(robot_name.rsplit('_', 1)[1]))
     logger.success(f"Robot {robot_name} deleted successfully")
     return True

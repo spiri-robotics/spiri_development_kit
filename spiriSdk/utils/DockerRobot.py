@@ -1,5 +1,7 @@
 from pathlib import Path
 from loguru import logger
+from nicegui import run
+from functools import wraps
 import docker
 import dotenv
 import subprocess
@@ -8,6 +10,13 @@ import asyncio
 from spiriSdk.utils.Robot import Robot
 from spiriSdk.utils.gazebo_utils import get_running_worlds, Model
 from spiriSdk.pages.tools import gz_world
+
+def make_async(func):
+    @wraps(func)
+    async def wrapped_function(*args, **kwargs):
+        logger.debug(f"Running {func.__name__} asynchronously with args: {args}, kwargs: {kwargs}")
+        return await run.io_bound(func, *args, **kwargs)
+    return wrapped_function
 
 class DockerRobot(Robot):
     """
@@ -33,7 +42,7 @@ class DockerRobot(Robot):
         self.running: bool = False
         self.start_services()
 
-    def delete(self) -> None:
+    def sync_delete(self) -> None: # make it stop blocking the loop
         """Delete the robot's Docker container and clean up resources."""
         self.stop_services()
         if self.docker_client is not None:
@@ -46,12 +55,15 @@ class DockerRobot(Robot):
         self.spawned = False
         self.running = False
         
+    delete = make_async(sync_delete)
+        
     def get_ip(self) -> str:
         """Get the IP address of the robot."""
         return "127.0.0.1"
+        
 
-    def get_status(self) -> str:
-        """Get the status of the robot's Docker container."""
+    def get_status(self) -> str | dict:
+        """Get the status of the robot's Docker containers."""
         if self.docker_client is None:
             return 'not created or removed'
         try:

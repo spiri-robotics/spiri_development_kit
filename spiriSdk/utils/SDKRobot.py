@@ -2,10 +2,9 @@ from pathlib import Path
 from loguru import logger
 import docker
 import shutil
-import dotenv
 
-from spiriSdk.utils.DockerRobot import DockerRobot
-from spiriSdk.settings import SDK_ROOT, SIM_ADDRESS, GROUND_CONTROL_ADDRESS
+from spiriSdk.utils.DockerRobot import DockerRobot, make_async
+from spiriSdk.settings import SDK_ROOT
 
 class SDKRobot(DockerRobot):
     """
@@ -46,8 +45,8 @@ class SDKRobot(DockerRobot):
         """Restart the robot."""
         self.stop_services()
         self.start_services()
-        
-    def delete(self) -> None:
+
+    def sync_delete(self) -> None:
         """Delete the robot's system files and clean up resources."""
         self.stop_services()
         self.remove_from_system()
@@ -61,39 +60,14 @@ class SDKRobot(DockerRobot):
         self.spawned = False
         self.running = False
         
+    delete = make_async(sync_delete)
+        
     def get_ip(self) -> str:
         """Get the IP address of the robot."""
         return "127.0.0.1"
-
-    def get_status(self) -> str:
-        """Get the status of the robot."""
-        return super().get_status()
-
-    def get_env(self) -> dict:
-        """Get the environment variables for the robot."""
-        return super().get_env()
-
-    def set_env(self, key: str, value: str) -> None:
-        """Set the environment variables for the robot."""
-        super().set_env(key, value)
-    
-    def start_services(self) -> None:
-        """Start the robot's services using Docker Compose."""
-        super().start_services()
-    
-    def stop_services(self) -> None:
-        """Stop the robot's services using Docker Compose."""
-        super().stop_services()
-
-    async def spawn(self) -> bool:
-        """Spawn the robot in the Gazebo world."""
-        await super().spawn()
-
-    def unspawn(self) -> bool:
-        """Unspawn the robot from the Gazebo world."""
-        return super().unspawn()
         
     def add_to_system(self) -> None:
+        """Save the robot's configuration to the system for future use."""
         folder_path = SDK_ROOT / 'data' / self.name
         folder_path.mkdir(parents=True, exist_ok=True)
         config_path = folder_path / 'config.env'
