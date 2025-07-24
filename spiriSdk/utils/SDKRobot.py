@@ -30,21 +30,6 @@ class SDKRobot(DockerRobot):
         self.running: bool = False
         if selected_options is not None:
             self.add_to_system(selected_options)
-        
-    async def start(self) -> None:
-        """Starts the robot by starting the services."""
-        await self.start_services()
-
-    async def stop(self) -> None:
-        """Stops the robot by stopping the services."""
-        await self.stop_services()
-        
-    async def restart(self) -> None:
-        """
-        Restarts the robot by simply calling stop then start.
-        """
-        await self.stop_services()
-        await self.start_services()
 
     def sync_delete(self) -> None:
         """
