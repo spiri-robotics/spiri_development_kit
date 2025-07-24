@@ -113,7 +113,7 @@ class RobotCard:
     
     @ui.refreshable
     async def render(self):
-        status = self.daemon.get_status()
+        status = await self.daemon.get_status()
         with ui.card().classes(f'p-[{card_padding}] w-full min-[1466px]:w-[{half}] min-[2040px]:w-[{third}] h-auto'):
             # Name(s) and status
             with ui.card_section().classes('w-full p-0 pb-2 mb-auto'):
