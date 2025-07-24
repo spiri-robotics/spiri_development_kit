@@ -32,20 +32,27 @@ class SDKRobot(DockerRobot):
             self.add_to_system(selected_options)
         
     async def start(self) -> None:
-        """Start the robot."""
+        """Starts the robot by starting the services."""
         await self.start_services()
 
     async def stop(self) -> None:
-        """Stop the robot."""
+        """Stops the robot by stopping the services."""
         await self.stop_services()
         
     async def restart(self) -> None:
-        """Restart the robot."""
+        """
+        Restarts the robot by simply calling stop then start.
+        """
         await self.stop_services()
         await self.start_services()
 
     def sync_delete(self) -> None:
-        """Delete the robot's system files and clean up resources."""
+        """
+        Cleans up resources associated with the robot.
+        This includes stopping the robot's services, removing it from the system,
+        closing the Docker client, and unspawning the robot if it was spawned 
+        into a simulation environment.
+        """
         self.stop_services()
         self.remove_from_system()
         if self.docker_client is not None:
@@ -59,7 +66,12 @@ class SDKRobot(DockerRobot):
         self.running = False
         
     def get_ip(self) -> str:
-        """Get the IP address of the robot."""
+        """
+        This method returns the IP at which the robot can be accessed.
+        
+        Returns:
+            str: The IP address of the robot.
+        """
         return "127.0.0.1"
         
     def sync_add_to_system(self, selected_options: dict) -> None:

@@ -19,6 +19,27 @@ class Robot(object):
         self.spawned: bool = False
         self.running: bool = False
         
+    async def start(self):
+        """
+        This method should start the robot.
+        This includes starting the robot's services, and if applicable, its docker container.
+        """
+        raise NotImplementedError("This method should be implemented by subclasses.")
+    
+    async def stop(self):
+        """
+        This method should stop the robot.
+        This includes stopping the robot's services, and if applicable, its docker container.
+        """
+        raise NotImplementedError("This method should be implemented by subclasses.")
+    
+    async def restart(self):
+        """
+        This method should restart the robot.
+        It can do so by simply calling stop then start.
+        """
+        raise NotImplementedError("This method should be implemented by subclasses.")
+        
     def sync_delete(self):
         """
         This method should remove the robot from the system and clean up resources.
