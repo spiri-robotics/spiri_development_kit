@@ -24,7 +24,7 @@ async def init_robots():
             logger.debug(f"Starting a daemon for: {robot_name}")
             new_robot = SDKRobot(robot_name, services_folder=ROBOTS_DIR / robot_type / 'services')
             robots[robot_name] = new_robot
-            displayCards.refresh()
+            await displayCards.refresh()
 
             robot_sys = str(robot_name).rsplit('_', 1)
             active_sys_ids.append(int(robot_sys[1]))

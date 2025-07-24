@@ -82,14 +82,14 @@ async def delete(robot):
 cards = {}
             
 @ui.refreshable
-def displayCards():
+async def displayCards():
     names = robots.keys()
     for name in names:
         card = RobotCard(name, robots[name])
         cards[name] = card
     with ui.row(align_items='stretch').classes('w-full'):
         for name, card in cards.items():
-            card.render()
+            await card.render()
             
             
 class RobotCard:
