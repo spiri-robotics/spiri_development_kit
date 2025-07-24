@@ -33,4 +33,4 @@ async def home():
     ui.separator()
 
     await asyncio.sleep(0.5)
-    displayCards()
+    await displayCards()

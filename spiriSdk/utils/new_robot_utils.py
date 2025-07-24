@@ -69,7 +69,7 @@ async def save_robot_config(robot_type, selected_options, dialog):
     
     dialog.close()  # Close the dialog after saving
     from spiriSdk.utils.card_utils import displayCards
-    await displayCards.refresh()
+    displayCards.refresh()
     await new_robot.start()
     ui.notify(f"Robot {robot_name} added successfully!", type='positive')
 
@@ -77,7 +77,7 @@ async def delete_robot(robot_name: str) -> bool:
     logger.info(f"Deleting robot {robot_name}")
     robot = robots.pop(robot_name)
     from spiriSdk.utils.card_utils import displayCards
-    await displayCards.refresh()
+    displayCards.refresh()
     await robot.delete()
     active_sys_ids.remove(int(robot_name.rsplit('_', 1)[1]))
     logger.success(f"Robot {robot_name} deleted successfully")
