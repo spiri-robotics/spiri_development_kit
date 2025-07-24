@@ -29,9 +29,7 @@ class SDKRobot(DockerRobot):
         self.spawned: bool = False
         self.running: bool = False
         if selected_options is not None:
-            self.add_to_system()
-            for key, value in selected_options.items():
-                self.set_env(str(key), str(value))
+            self.add_to_system(selected_options)
         
     async def start(self) -> None:
         """Start the robot."""
@@ -64,7 +62,7 @@ class SDKRobot(DockerRobot):
         """Get the IP address of the robot."""
         return "127.0.0.1"
         
-    def sync_add_to_system(self) -> None:
+    def sync_add_to_system(self, selected_options: dict) -> None:
         """Save the robot's configuration to the system for future use."""
         folder_path = SDK_ROOT / 'data' / self.name
         folder_path.mkdir(parents=True, exist_ok=True)
@@ -72,6 +70,8 @@ class SDKRobot(DockerRobot):
         if not config_path.exists():
             with open(config_path, 'w') as f:
                 f.write("# Config File\n")
+        for key, value in selected_options.items():
+            self.set_env(str(key), str(value))
                 
     def sync_remove_from_system(self) -> None:
         """Remove the robot from the system."""
