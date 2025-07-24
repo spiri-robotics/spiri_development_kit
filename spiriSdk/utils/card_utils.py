@@ -274,7 +274,7 @@ class RobotCard:
     def destroy(self):
         update_cards.disconnect(self.listen_to_polling)
     
-    async def listen_to_polling(self, sender, visible=True):
+    async def listen_to_polling(self):
         await self.update_status()
         world_running = get_running_worlds()
         if len(world_running) > 0:
