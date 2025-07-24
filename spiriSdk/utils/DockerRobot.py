@@ -33,7 +33,11 @@ class DockerRobot(Robot):
         self.start_services()
 
     def sync_delete(self) -> None:
-        """Delete the robot's Docker container and clean up resources."""
+        """
+        Cleans up resources associated with the robot.
+        This includes stopping the robot's services, closing the Docker client,
+        and unspawning the robot if it was spawned into a simulation environment.
+        """
         self.stop_services()
         if self.docker_client is not None:
             try:
@@ -46,11 +50,23 @@ class DockerRobot(Robot):
         self.running = False
         
     def get_ip(self) -> str:
-        """Get the IP address of the robot."""
+        """
+        This method returns the IP at which the robot can be accessed.
+        
+        Returns:
+            str: The IP address of the robot.
+        """
         return "127.0.0.1"
 
     def sync_get_status(self) -> str | dict:
-        """Get the status of the robot's Docker containers."""
+        """
+        Get the status of the robot's Docker containers.
+        Return a string with the status of the robot if no services are running,
+        or a dictionary with the status of the robot's services if they are running.
+        
+        Returns:
+            str | dict: The status of the robot, which can be a string or a dictionary.
+        """
         if self.docker_client is None:
             return 'not created or removed'
         try:
@@ -89,15 +105,31 @@ class DockerRobot(Robot):
             return f'error: {str(e)}'
 
     def get_env(self) -> dict:
-        """Get the environment variables for the robot."""
+        """
+        Get the environment variables of the robot as a dictionary
+        as they are found in the config.env file at self.env_path.
+
+        Returns:
+            dict: The environment variables of the robot.
+        """
         return dotenv.dotenv_values(self.env_path)
 
     def set_env(self, key: str, value: str) -> None:
-        """Set an environment variable for the robot."""
+        """
+        Sets an environment variable for the robot in the 
+        config.env file at self.env_path.
+        
+        Args:
+            key (str): The name of the environment variable.
+            value (str): The value of the environment variable.
+        """
         dotenv.set_key(self.env_path, key, value)
     
     def sync_start_services(self) -> None:
-        """Start the robot's services using Docker Compose."""
+        """
+        Starts each of the robot's services, found in the service_folder
+        each as their own folder with a Docker Compose.
+        """
         for service in self.services_folder.iterdir():
             if service.is_dir() and ((service / 'docker-compose.yml').exists() or (service / 'docker-compose.yaml').exists()):
                 try:
@@ -111,7 +143,10 @@ class DockerRobot(Robot):
                     logger.error(f"Error starting services for {service.name}: {str(e)}")
     
     def sync_stop_services(self) -> None:
-        """Stop the robot's services using Docker Compose."""
+        """
+        Stops each of the robot's services, found in the service_folder 
+        each as their own folder with a Docker Compose.
+        """
         for service in self.services_folder.iterdir():
             if service.is_dir():
                 compose_file = None
@@ -145,7 +180,10 @@ class DockerRobot(Robot):
                     logger.error(f"Error stopping services for {service.name}: {str(e)}")
 
     async def sync_spawn(self) -> bool:
-        """Spawn the robot in the Gazebo world."""
+        """
+        Spawns a model of the robot into a simulation environment.
+        In this SDK, we use Gazebo.
+        """
         try:
             robotType = "_".join(str(self.name).split('_')[0:-1])
             model = Model(gz_world, self.name, robotType, sys_id=int(self.get_env().get('MAVLINK_SYS_ID', 1)))
@@ -163,7 +201,10 @@ class DockerRobot(Robot):
             return False
 
     def sync_unspawn(self) -> bool:
-        """Unspawn the robot from the Gazebo world."""
+        """
+        Unspawns the robot from the simulation environment.
+        In this SDK, we use Gazebo.
+        """
         try:
             gz_world.models[self.name].kill_model()
             logger.info(f'Removed {self.name} from world')
@@ -172,3 +213,17 @@ class DockerRobot(Robot):
         except Exception as e:
             logger.warning(f'Failed to remove {self.name} from world: {str(e)}')
             return False
+        
+    def sync_add_to_system(self):
+        """
+        A temporary implementation of the add_to_system method.
+        This does not do anything yet.
+        """
+        pass
+    
+    def sync_remove_from_system(self):
+        """
+        A temporary implementation of the remove_from_system method.
+        This does not do anything yet.
+        """
+        pass
