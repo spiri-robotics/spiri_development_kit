@@ -216,7 +216,7 @@ class RobotCard:
             n.spinner = False
             n.timeout = 4
             self.on = True
-            await self.render.refresh()
+            self.render.refresh()
     
     async def power_on(self, buttons: list):
         for button in buttons:
@@ -235,7 +235,7 @@ class RobotCard:
         n.spinner = False
         n.timeout = 4
         self.on = True
-        await self.render.refresh()
+        self.render.refresh()
     
     async def power_off(self, buttons: list):
         logger.info(f'Powering off {self.name}...')
@@ -253,7 +253,7 @@ class RobotCard:
         n.spinner = False
         n.timeout = 4
         self.on = False
-        await self.render.refresh()
+        self.render.refresh()
         
     async def reboot(self, buttons: list):
         logger.info(f'Rebooting {self.name}...')
@@ -269,7 +269,7 @@ class RobotCard:
         n.timeout = 4
         self.on = True
         
-        await self.render.refresh()
+        self.render.refresh()
         
     def destroy(self):
         update_cards.disconnect(self.listen_to_polling)
