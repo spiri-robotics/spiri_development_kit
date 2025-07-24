@@ -33,18 +33,18 @@ class SDKRobot(DockerRobot):
             for key, value in selected_options.items():
                 self.set_env(str(key), str(value))
         
-    def start(self) -> None:
+    async def start(self) -> None:
         """Start the robot."""
-        self.start_services()
+        await self.start_services()
 
-    def stop(self) -> None:
+    async def stop(self) -> None:
         """Stop the robot."""
-        self.stop_services()
+        await self.stop_services()
         
-    def restart(self) -> None:
+    async def restart(self) -> None:
         """Restart the robot."""
-        self.stop_services()
-        self.start_services()
+        await self.stop_services()
+        await self.start_services()
 
     def sync_delete(self) -> None:
         """Delete the robot's system files and clean up resources."""
@@ -60,13 +60,11 @@ class SDKRobot(DockerRobot):
         self.spawned = False
         self.running = False
         
-    delete = make_async(sync_delete)
-        
     def get_ip(self) -> str:
         """Get the IP address of the robot."""
         return "127.0.0.1"
         
-    def add_to_system(self) -> None:
+    def sync_add_to_system(self) -> None:
         """Save the robot's configuration to the system for future use."""
         folder_path = SDK_ROOT / 'data' / self.name
         folder_path.mkdir(parents=True, exist_ok=True)
@@ -74,8 +72,8 @@ class SDKRobot(DockerRobot):
         if not config_path.exists():
             with open(config_path, 'w') as f:
                 f.write("# Config File\n")
-
-    def remove_from_system(self) -> None:
+                
+    def sync_remove_from_system(self) -> None:
         """Remove the robot from the system."""
         logger.info(f"Deleting robot {self.name}")
         robot_path = SDK_ROOT / 'data' / self.name

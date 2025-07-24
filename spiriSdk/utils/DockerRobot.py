@@ -1,7 +1,5 @@
 from pathlib import Path
 from loguru import logger
-from nicegui import run
-from functools import wraps
 import docker
 import dotenv
 import subprocess
@@ -10,14 +8,6 @@ import asyncio
 from spiriSdk.utils.Robot import Robot
 from spiriSdk.utils.gazebo_utils import get_running_worlds, Model
 from spiriSdk.pages.tools import gz_world
-
-def make_async(func):
-    @wraps(func)
-    async def wrapped_function(*args, **kwargs):
-        logger.debug(f"Running {func.__name__} asynchronously with args: {args}, kwargs: {kwargs}")
-        return await run.io_bound(func, *args, **kwargs)
-    return wrapped_function
-
 class DockerRobot(Robot):
     """
     An example implementation of the robot class.
@@ -42,7 +32,7 @@ class DockerRobot(Robot):
         self.running: bool = False
         self.start_services()
 
-    def sync_delete(self) -> None: # make it stop blocking the loop
+    def sync_delete(self) -> None:
         """Delete the robot's Docker container and clean up resources."""
         self.stop_services()
         if self.docker_client is not None:
@@ -55,14 +45,11 @@ class DockerRobot(Robot):
         self.spawned = False
         self.running = False
         
-    delete = make_async(sync_delete)
-        
     def get_ip(self) -> str:
         """Get the IP address of the robot."""
         return "127.0.0.1"
-        
 
-    def get_status(self) -> str | dict:
+    def sync_get_status(self) -> str | dict:
         """Get the status of the robot's Docker containers."""
         if self.docker_client is None:
             return 'not created or removed'
@@ -109,7 +96,7 @@ class DockerRobot(Robot):
         """Set an environment variable for the robot."""
         dotenv.set_key(self.env_path, key, value)
     
-    def start_services(self) -> None:
+    def sync_start_services(self) -> None:
         """Start the robot's services using Docker Compose."""
         for service in self.services_folder.iterdir():
             if service.is_dir() and ((service / 'docker-compose.yml').exists() or (service / 'docker-compose.yaml').exists()):
@@ -123,7 +110,7 @@ class DockerRobot(Robot):
                 except Exception as e:
                     logger.error(f"Error starting services for {service.name}: {str(e)}")
     
-    def stop_services(self) -> None:
+    def sync_stop_services(self) -> None:
         """Stop the robot's services using Docker Compose."""
         for service in self.services_folder.iterdir():
             if service.is_dir():
@@ -157,7 +144,7 @@ class DockerRobot(Robot):
                 except Exception as e:
                     logger.error(f"Error stopping services for {service.name}: {str(e)}")
 
-    async def spawn(self) -> bool:
+    async def sync_spawn(self) -> bool:
         """Spawn the robot in the Gazebo world."""
         try:
             robotType = "_".join(str(self.name).split('_')[0:-1])
@@ -175,7 +162,7 @@ class DockerRobot(Robot):
             logger.warning(f'Failed to spawn {self.name}: {str(e)}')
             return False
 
-    def unspawn(self) -> bool:
+    def sync_unspawn(self) -> bool:
         """Unspawn the robot from the Gazebo world."""
         try:
             gz_world.models[self.name].kill_model()
