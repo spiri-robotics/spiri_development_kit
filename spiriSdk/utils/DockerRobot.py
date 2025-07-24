@@ -30,7 +30,6 @@ class DockerRobot(Robot):
         self.connection_url : str | None = self.docker_client.api.base_url
         self.spawned: bool = False
         self.running: bool = False
-        self.start_services()
         
     async def start(self) -> None:
         """Starts the robot by starting the services."""
@@ -47,20 +46,20 @@ class DockerRobot(Robot):
         await self.stop_services()
         await self.start_services()
 
-    def sync_delete(self) -> None:
+    async def delete(self) -> None:
         """
         Cleans up resources associated with the robot.
         This includes stopping the robot's services, closing the Docker client,
         and unspawning the robot if it was spawned into a simulation environment.
         """
-        self.stop_services()
+        await self.stop_services()
         if self.docker_client is not None:
             try:
                 self.docker_client.close()
             except Exception as e:
                 logger.error(f"Error closing Docker client: {str(e)}")
         if self.spawned:
-            self.unspawn()
+            await self.unspawn()
         self.spawned = False
         self.running = False
         

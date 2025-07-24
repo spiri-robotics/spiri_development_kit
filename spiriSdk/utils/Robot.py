@@ -39,8 +39,8 @@ class Robot(object):
         It can do so by simply calling stop then start.
         """
         raise NotImplementedError("This method should be implemented by subclasses.")
-        
-    def sync_delete(self):
+    
+    async def delete(self):
         """
         This method should remove the robot from the system and clean up resources.
         This includes deleting the robot's Docker container and closing the Docker client,
@@ -48,17 +48,6 @@ class Robot(object):
         and deleting the config.env and services folder.
         """
         raise NotImplementedError("This method should be implemented by subclasses.")
-    
-    async def delete(self):
-        """
-        The asynchronous call of sync_delete.
-        
-        This method should remove the robot from the system and clean up resources.
-        This includes deleting the robot's Docker container and closing the Docker client,
-        unspawning the robot if it was spawned into a simulation environment,
-        and deleting the config.env and services folder.
-        """
-        return await run.io_bound(self.sync_delete)
 
     def get_ip(self):
         """
@@ -187,7 +176,7 @@ class Robot(object):
         """
         raise NotImplementedError("This method should be implemented by subclasses.")
     
-    async def add_to_system(self) -> None:
+    async def add_to_system(self, selected_options: dict) -> None:
         """
         The asynchronous call of sync_add_to_system.
         
@@ -198,7 +187,7 @@ class Robot(object):
         Args:
             dict selected_options: A dictionary of settings to be saved in the config.env file.
         """
-        return await run.io_bound(self.sync_add_to_system)
+        return await run.io_bound(self.sync_add_to_system, selected_options)
     
     def sync_remove_from_system(self) -> None:
         """

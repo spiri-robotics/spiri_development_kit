@@ -31,6 +31,6 @@ async def init_robots():
             
     logger.debug(f"Starting services for {len(robots)} robots...")
     for robot in robots.values():
-        await run.io_bound(lambda: robot.start())
+        await robot.start()
         
     logger.success("Docker robots initialized.")

@@ -3,7 +3,7 @@ from loguru import logger
 import docker
 import shutil
 
-from spiriSdk.utils.DockerRobot import DockerRobot, make_async
+from spiriSdk.utils.DockerRobot import DockerRobot
 from spiriSdk.settings import SDK_ROOT
 
 class SDKRobot(DockerRobot):
@@ -12,7 +12,7 @@ class SDKRobot(DockerRobot):
     This docker robot would be running directly off the host machine's docker daemon.
     """
     
-    def __init__(self, name: str, services_folder: Path = Path("/services/"), selected_options: dict = None):
+    def __init__(self, name: str, services_folder: Path = Path("/services/")):
         """
         Initialize a DockerRobot instance.
         
@@ -28,25 +28,23 @@ class SDKRobot(DockerRobot):
         self.connection_url : str | None = self.docker_client.api.base_url
         self.spawned: bool = False
         self.running: bool = False
-        if selected_options is not None:
-            self.add_to_system(selected_options)
 
-    def sync_delete(self) -> None:
+    async def delete(self) -> None:
         """
         Cleans up resources associated with the robot.
         This includes stopping the robot's services, removing it from the system,
         closing the Docker client, and unspawning the robot if it was spawned 
         into a simulation environment.
         """
-        self.stop_services()
-        self.remove_from_system()
+        await self.stop_services()
+        await self.remove_from_system()
         if self.docker_client is not None:
             try:
                 self.docker_client.close()
             except Exception as e:
                 logger.error(f"Error closing Docker client: {str(e)}")
         if self.spawned:
-            self.unspawn()
+            await self.unspawn()
         self.spawned = False
         self.running = False
         

@@ -61,7 +61,8 @@ async def save_robot_config(robot_type, selected_options, dialog):
     selected_options['ARDUPILOT_PORT'] = str(5760 + 10 * robot_id)
     selected_options["ROBOT_NAME"] = robot_name
     
-    new_robot= SDKRobot(robot_name, services_folder=ROBOTS_DIR / robot_type / 'services', selected_options=selected_options)
+    new_robot= SDKRobot(robot_name, services_folder=ROBOTS_DIR / robot_type / 'services')
+    await new_robot.add_to_system(selected_options)
     
     robots[robot_name] = new_robot
     active_sys_ids.append(robot_id)
@@ -69,7 +70,7 @@ async def save_robot_config(robot_type, selected_options, dialog):
     dialog.close()  # Close the dialog after saving
     from spiriSdk.utils.card_utils import displayCards
     displayCards.refresh()
-    new_robot.start()
+    await new_robot.start()
     ui.notify(f"Robot {robot_name} added successfully!", type='positive')
 
 async def delete_robot(robot_name: str) -> bool:

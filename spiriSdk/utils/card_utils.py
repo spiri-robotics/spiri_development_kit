@@ -50,7 +50,7 @@ async def addRobot():
 
 async def remove_from_world(robot):
     try:
-        result = robots[robot].unspawn()
+        result = await robots[robot].unspawn()
         if not result:
             logger.warning(f'Failed to remove {robot} from world')
             return False
@@ -90,6 +90,8 @@ def displayCards():
     with ui.row(align_items='stretch').classes('w-full'):
         for name, card in cards.items():
             card.render()
+            
+            
 class RobotCard:
     def __init__(self, name, daemon):
         self.name = name
@@ -110,7 +112,7 @@ class RobotCard:
         update_cards.connect(self.listen_to_polling)
     
     @ui.refreshable
-    def render(self):
+    async def render(self):
         status = self.daemon.get_status()
         with ui.card().classes(f'p-[{card_padding}] w-full min-[1466px]:w-[{half}] min-[2040px]:w-[{third}] h-auto'):
             # Name(s) and status
@@ -129,7 +131,7 @@ class RobotCard:
                     self.chips["Paused"] = ui.chip("", color='paused', text_color='white')
                     self.chips["Dead"] = ui.chip("", color='dead', text_color='white')
                     
-                self.update_status()
+                await self.update_status()
                 
                 if self.desc != None:
                     ui.label(f'{self.desc[1:-1]}').classes('text-base font-normal italic text-gray-700 dark:text-gray-300')
@@ -176,8 +178,8 @@ class RobotCard:
                     gz_toggle.on_switch = lambda r=self.name: remove_from_world(r)
                     gz_toggle.off_switch = lambda: self.spawn()
     
-    def update_status(self):
-        status = robots[self.name].get_status()
+    async def update_status(self):
+        status = await robots[self.name].get_status()
         if isinstance(status, dict):
             for state in status.keys():
                 if status[state] > 0:
@@ -214,7 +216,7 @@ class RobotCard:
             n.spinner = False
             n.timeout = 4
             self.on = True
-            self.render.refresh()
+            await self.render.refresh()
     
     async def power_on(self, buttons: list):
         for button in buttons:
@@ -226,14 +228,14 @@ class RobotCard:
             n.spinner = True
             await asyncio.sleep(1)
             
-        robots[self.name].start()
+        await robots[self.name].start()
         
         n.message = f'{self.name} started'
         n.type = 'positive'
         n.spinner = False
         n.timeout = 4
         self.on = True
-        self.render.refresh()
+        await self.render.refresh()
     
     async def power_off(self, buttons: list):
         logger.info(f'Powering off {self.name}...')
@@ -244,14 +246,14 @@ class RobotCard:
             n.message = f'Powering off {self.name}...'
             n.spinner = True
             await asyncio.sleep(1)
-        robots[self.name].stop()
+        await robots[self.name].stop()
         
         n.message = f"Stopped {self.name}"
         n.type = 'positive'
         n.spinner = False
         n.timeout = 4
         self.on = False
-        self.render.refresh()
+        await self.render.refresh()
         
     async def reboot(self, buttons: list):
         logger.info(f'Rebooting {self.name}...')
@@ -259,7 +261,7 @@ class RobotCard:
             button.disable()
         n = ui.notification(message=f'Rebooting {self.name}...', spinner=True, timeout=None)
 
-        robots[self.name].restart()
+        await robots[self.name].restart()
         
         n.message = f'{self.name} rebooted'
         n.spinner = False
@@ -267,13 +269,13 @@ class RobotCard:
         n.timeout = 4
         self.on = True
         
-        self.render.refresh()
+        await self.render.refresh()
         
     def destroy(self):
         update_cards.disconnect(self.listen_to_polling)
     
     async def listen_to_polling(self, sender, visible=True):
-        self.update_status()
+        await self.update_status()
         world_running = get_running_worlds()
         if len(world_running) > 0:
             self.gz_visible = True
