@@ -17,7 +17,7 @@ class DockerRobot(Robot):
     def __init__(self, name: str, services_folder: Path = Path("/services/")):
         """
         Initialize a DockerRobot instance.
-        
+        d
         param name: The name of the robot, of the format <robot_type>_<sys_id>.
         param services_folder: The services_folder where the robot's services are located.
         This folder should contain a docker-compose.yml file to start the robot's services.
@@ -31,6 +31,21 @@ class DockerRobot(Robot):
         self.spawned: bool = False
         self.running: bool = False
         self.start_services()
+        
+    async def start(self) -> None:
+        """Starts the robot by starting the services."""
+        await self.start_services()
+        
+    async def stop(self) -> None:
+        """Stops the robot by stopping the services."""
+        await self.stop_services()
+        
+    async def restart(self) -> None:
+        """
+        Restarts the robot by simply calling stop then start.
+        """
+        await self.stop_services()
+        await self.start_services()
 
     def sync_delete(self) -> None:
         """
