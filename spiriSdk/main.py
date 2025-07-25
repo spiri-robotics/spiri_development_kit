@@ -20,7 +20,7 @@ async def on_startup():
     
 async def polling_loop():
     while True:
-        await update_cards.send_async('polling_loop', visible=True)
+        await update_cards.send_async('polling_loop')
         await asyncio.sleep(3)
 
 app.on_startup(on_startup)
