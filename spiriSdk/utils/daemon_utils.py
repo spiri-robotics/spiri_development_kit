@@ -1,7 +1,7 @@
 from nicegui import run
 from loguru import logger
 
-from spiriSdk.utils.SDKRobot import SDKRobot
+from spiriSdk.classes.SDKRobot import SDKRobot
 from spiriSdk.settings import SDK_ROOT
 
 DATA_DIR = SDK_ROOT / 'data'

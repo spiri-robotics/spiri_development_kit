@@ -3,7 +3,7 @@ from nicegui import ui
 from pathlib import Path
 from loguru import logger
 
-from spiriSdk.utils.SDKRobot import SDKRobot
+from spiriSdk.classes.SDKRobot import SDKRobot
 from spiriSdk.utils.daemon_utils import robots, active_sys_ids
 from spiriSdk.utils.InputChecker import InputChecker
 from spiriSdk.settings import SIM_ADDRESS, GROUND_CONTROL_ADDRESS
