@@ -2,7 +2,6 @@ import os, asyncio
 
 from nicegui import app, ui
 from pathlib import Path
-from blinker import signal
 
 from spiriSdk.pages import home, settings
 from spiriSdk.utils.daemon_utils import init_robots
