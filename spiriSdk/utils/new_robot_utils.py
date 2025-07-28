@@ -3,7 +3,7 @@ from nicegui import ui
 from pathlib import Path
 from loguru import logger
 
-from spiriSdk.classes.SDKRobot import SDKRobot
+from spiriSdk.classes.DinDockerRobot import DinDockerRobot
 from spiriSdk.utils.daemon_utils import robots, active_sys_ids
 from spiriSdk.utils.InputChecker import InputChecker
 from spiriSdk.settings import SIM_ADDRESS, GROUND_CONTROL_ADDRESS
@@ -61,7 +61,7 @@ async def save_robot_config(robot_type, selected_options, dialog):
     selected_options['ARDUPILOT_PORT'] = str(5760 + 10 * robot_id)
     selected_options["ROBOT_NAME"] = robot_name
     
-    new_robot= SDKRobot(robot_name, services_folder=ROBOTS_DIR / robot_type / 'services')
+    new_robot= DinDockerRobot(robot_name)
     await new_robot.add_to_system(selected_options)
     
     robots[robot_name] = new_robot

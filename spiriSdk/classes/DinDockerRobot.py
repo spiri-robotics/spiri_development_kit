@@ -1,46 +1,61 @@
 from loguru import logger
 from pathlib import Path
+from nicegui import run
 import docker
 import shutil
+import yaml
 
 from spiriSdk.classes.DockerRobot import DockerRobot
 from spiriSdk.docker.dindocker import DockerInDocker
-from spiriSdk.settings import SDK_ROOT
+from spiriSdk.utils.daemon_utils import robots
+from spiriSdk.settings import SDK_ROOT, ROBOTS_DIR
 class DinDockerRobot(DockerRobot):
     """
     An example implementation of the robot class.
-    This docker robot would be running directly off the host machine's docker daemon.
+    This robot has its own Docker in Docker instance to run its services.
     """
     
-    def __init__(self, name: str, services_folder: Path = Path("/services/")):
+    def __init__(self, name: str):
         """
-        Initialize a DockerRobot instance.
+        Initialize a DinDockerRobot instance.
         
         param name: The name of the robot, of the format <robot_type>_<sys_id>.
-        param folder: The folder where the robot's services are located.
-        This folder should contain a docker-compose.yml file to start the robot's services.
+        param robot_type: The type of the robot, which is derived from the name (e.x. spiri_mu).
+        param services_folder: The services_folder where the robot's services are located.
+            This folder should contain a docker-compose.yml file to start the robot's services.
+        param env_path: The path to the environment file for the robot.
+        param connection_url: The URL to connect to the Docker daemon.
+        param spawned: A boolean indicating whether the robot has been spawned into a simulation environment.
+        param running: A boolean indicating whether the robot's services are currently running.
+        param dind: An instance of DockerInDocker to manage the Docker in Docker environment.
+        param docker_client: The Docker client used to interact with the Docker daemon.
+        param container: The Docker container instance for the robot.
         """
         self.name = name
         self.robot_type = "-".join(self.name.split('-')[:-1])
-        self.services_folder : Path = services_folder
+        self.services_folder : Path = ROBOTS_DIR / self.robot_type / 'services'
         self.env_path : Path = SDK_ROOT / 'data' / self.name / 'config.env'
         self.connection_url : str | None = self.docker_client.api.base_url
         self.spawned: bool = False
         self.running: bool = False
         self.dind = DockerInDocker(name=self.name, services_folder=self.services_folder)
         self.docker_client : docker.DockerClient | None = None
+        self.container : docker.models.containers.Container | None = None
         
     async def start(self) -> None:
         """Starts the robot by starting the dind instance and the services."""
         await self.dind.ensure_started()
         self.docker_client = self.dind.get_docker_client()
+        self.container = self.dind.get_container()
         await self.start_services()
+        self.running = True
         
     async def stop(self) -> None:
-        """Stops the robot by stopping the services and the dind instance."""
-        await self.stop_services()
+        """Stops the robot by stopping the dind instance."""
         await self.dind.ensure_stopped()
         self.docker_client = None
+        self.container = None
+        self.running = False
 
     async def delete(self) -> None:
         """
@@ -71,11 +86,43 @@ class DinDockerRobot(DockerRobot):
         """
         return self.dind.get_ip()
     
-    def sync_start_services(self):
-        return super().sync_start_services()
-    
-    def sync_stop_services(self):
-        return super().sync_stop_services()
+    async def start_services(self):
+        try:
+            logger.debug(f"Checking services in {self.services_folder.name} for {self.name}...")
+            if not self.services_folder.is_dir():
+                return f"Services directory {self.services_folder} does not exist for {self.name}."
+
+            for service_path in self.services_folder.iterdir():
+                if not service_path.is_dir():
+                    logger.debug(f"Skipping {service_path} as it is not a directory.")
+                    continue
+
+                compose_path = service_path / 'docker-compose.yaml'
+                if not compose_path.exists():
+                    compose_path = service_path / "docker-compose.yml"
+                    if not compose_path.exists():
+                        logger.error(f"docker-compose file not found for {self.name}/{service_path.name} at {compose_path}. Skipping.")
+                        continue
+
+                # Step 3: Load compose YAML
+                try:
+                    with open(compose_path, 'r') as f:
+                        compose_data = yaml.safe_load(f)
+                except Exception as e:
+                    logger.error(f"Error reading {compose_path.name}: {e}")
+                    continue
+
+                # Step 4: Check x-spiri-sdk-autostart
+                if compose_data.get("x-spiri-sdk-autostart", True):
+                    logger.info(f"Autostarting: {self.name}/{service_path.name}")
+                    # Step 5: Run `docker compose up -d` inside the DinD container
+                    inside_path = f"/robots/{self.robot_type}/services/{service_path.name}"
+                    command = f"docker compose --env-file=/data/config.env -f {inside_path}/{compose_path.name} up -d"
+                    result = await run.io_bound(lambda r=self.name, c=command, i=inside_path: robots[r].container.exec_run(c, workdir=i))
+                    logger.debug(result.output.decode())
+
+        except Exception as e:
+            return f"Error starting services for {self.name}: {str(e)}"
         
     def sync_add_to_system(self, selected_options: dict) -> None:
         """Save the robot's configuration to the system for future use."""

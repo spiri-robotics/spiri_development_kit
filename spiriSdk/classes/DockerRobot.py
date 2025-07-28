@@ -17,10 +17,16 @@ class DockerRobot(Robot):
     def __init__(self, name: str, services_folder: Path = Path("/services/")):
         """
         Initialize a DockerRobot instance.
-        d
+        
         param name: The name of the robot, of the format <robot_type>_<sys_id>.
+        param robot_type: The type of the robot, which is derived from the name (e.x. spiri_mu).
+        param docker_client: The Docker client used to interact with the Docker daemon.
         param services_folder: The services_folder where the robot's services are located.
-        This folder should contain a docker-compose.yml file to start the robot's services.
+            This folder should contain a docker-compose.yml file to start the robot's services.
+        param env_path: The path to the environment file for the robot.
+        param connection_url: The URL to connect to the Docker daemon.
+        param spawned: A boolean indicating whether the robot has been spawned into a simulation environment.
+        param running: A boolean indicating whether the robot's services are currently running.
         """
         self.name = name
         self.robot_type = "-".join(self.name.split('-')[:-1])

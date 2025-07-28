@@ -1,14 +1,14 @@
 from nicegui import run
 from loguru import logger
 
-from spiriSdk.classes.SDKRobot import SDKRobot
+from spiriSdk.classes.DinDockerRobot import DinDockerRobot
 from spiriSdk.settings import SDK_ROOT
 
 DATA_DIR = SDK_ROOT / 'data'
 ROBOTS_DIR = SDK_ROOT / 'robots'
 ROOT_DIR = SDK_ROOT
 
-robots : dict[str, SDKRobot]= {}
+robots : dict[str, DinDockerRobot]= {}
 active_sys_ids = []
 
 async def init_robots():
@@ -18,11 +18,10 @@ async def init_robots():
 
     for robot_dir in DATA_DIR.iterdir():
         robot_name = robot_dir.name
-        robot_type = "_".join(robot_name.split('_')[:-1])
 
         if robot_dir.exists():
             logger.debug(f"Starting a daemon for: {robot_name}")
-            new_robot = SDKRobot(robot_name, services_folder=ROBOTS_DIR / robot_type / 'services')
+            new_robot = DinDockerRobot(robot_name)
             robots[robot_name] = new_robot
             displayCards.refresh()
 
