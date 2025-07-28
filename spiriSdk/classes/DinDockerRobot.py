@@ -4,6 +4,7 @@ from nicegui import run
 import docker
 import shutil
 import yaml
+import time
 
 from spiriSdk.classes.DockerRobot import DockerRobot
 from spiriSdk.docker.dindocker import DockerInDocker
@@ -52,7 +53,29 @@ class DinDockerRobot(DockerRobot):
         
     async def stop(self) -> None:
         """Stops the robot by stopping the dind instance."""
-        await self.dind.ensure_stopped()
+        try:
+            self.container.stop()
+        except Exception as e:
+            logger.error(f"Error stopping container {self.name}: {e}")
+            return f"Error stopping container {self.name}: {str(e)}", 'negative'
+
+        while True:
+            try:
+                self.container.reload()  # Refresh container status
+                status = self.container.status
+                if status == "exited" or status == "stopped":
+                    break
+            except docker.errors.NotFound:
+                # Container has been removed, consider it stopped
+                break
+            except Exception as e:
+                logger.error(f"Error checking container status for {self.name}: {e}")
+
+            time.sleep(1)
+            logger.debug(f"Waiting for container {self.name} to stop... {status}")
+            
+        logger.success(f'Container {self.name} stopped')
+
         self.docker_client = None
         self.container = None
         self.running = False
