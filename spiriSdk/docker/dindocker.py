@@ -362,8 +362,6 @@ class DockerInDocker(Container):
         
         self.robot_env = Path(self.robot_data_root) / "config.env"
 
-        
-
     def ensure_started(self) -> None:
         """Start the Docker-in-Docker container with specialized configuration."""
         
