@@ -43,8 +43,8 @@ class DockerRobot(Robot):
         """
         Restarts the robot by simply calling stop then start.
         """
-        await self.stop_services()
-        await self.start_services()
+        await self.stop()
+        await self.start()
 
     async def delete(self) -> None:
         """

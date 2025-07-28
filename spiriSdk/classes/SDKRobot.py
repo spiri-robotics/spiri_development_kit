@@ -3,7 +3,7 @@ from loguru import logger
 import docker
 import shutil
 
-from spiriSdk.utils.DockerRobot import DockerRobot
+from spiriSdk.classes.DockerRobot import DockerRobot
 from spiriSdk.settings import SDK_ROOT
 
 class SDKRobot(DockerRobot):
