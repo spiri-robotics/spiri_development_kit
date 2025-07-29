@@ -12,13 +12,8 @@ services:
       - -c
       - |
         ./Tools/autotest/sim_vehicle.py -v copter -f gazebo-mu --model=JSON --no-rebuild \
-        -I$MAVLINK_SYS_ID --no-mavproxy --sim-address=$SIM_ADDRESS --sysid $MAVLINK_SYS_ID --out=tcp:127.0.0.1:5770
+        -I$MAVLINK_SYS_ID --no-mavproxy --sim-address=$SIM_ADDRESS --sysid $MAVLINK_SYS_ID        
     stdin_open: true
-    ports:
-      - "5760:5760/udp"
-      - "5770:5770/tcp"
-    expose:
-      - "5770"
     tty: true
     restart: always
 
@@ -32,6 +27,10 @@ services:
       --out tcpin:0.0.0.0:5760      
     stdin_open: true
     tty: true      
+    ports:
+      - 5760:5760/tcp
+    expose:
+      - '5760'
     restart: always
 
   mavros2:

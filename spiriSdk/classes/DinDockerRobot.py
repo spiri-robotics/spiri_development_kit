@@ -1,6 +1,7 @@
 from loguru import logger
 from pathlib import Path
 from nicegui import run
+from dataclasses import dataclass
 import docker
 import shutil
 import yaml
@@ -9,6 +10,8 @@ import time
 from spiriSdk.classes.DockerRobot import DockerRobot
 from spiriSdk.docker.dindocker import DockerInDocker
 from spiriSdk.settings import SDK_ROOT
+
+@dataclass
 class DinDockerRobot(DockerRobot):
     """
     An example implementation of the robot class.
@@ -106,7 +109,10 @@ class DinDockerRobot(DockerRobot):
         Returns:
             str: The IP address of the robot.
         """
-        return self.dind.get_ip()
+        if self.running:
+            return self.dind.get_ip()
+        else:
+            return "Loading..."
     
     def sync_get_status(self) -> str | dict:
         """

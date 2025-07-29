@@ -1,11 +1,13 @@
 from pathlib import Path
 from loguru import logger
+from dataclasses import dataclass
 import docker
 import shutil
 
 from spiriSdk.classes.DockerRobot import DockerRobot
 from spiriSdk.settings import SDK_ROOT
 
+@dataclass
 class SDKRobot(DockerRobot):
     """
     An example implementation of the robot class.

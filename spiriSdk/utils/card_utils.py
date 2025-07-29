@@ -12,6 +12,7 @@ from spiriSdk.utils.daemon_utils import robots
 from spiriSdk.utils.gazebo_utils import get_running_worlds, is_robot_alive
 from spiriSdk.utils.InputChecker import InputChecker
 from spiriSdk.utils.new_robot_utils import delete_robot, save_robot_config
+from spiriSdk.classes.DinDockerRobot import DinDockerRobot
 from spiriSdk.utils.signals import update_cards
 
 half = 'calc(50%-(var(--nicegui-default-gap)/2))'
@@ -93,11 +94,11 @@ async def displayCards():
             
             
 class RobotCard:
-    def __init__(self, name, daemon):
+    def __init__(self, name, robot):
         self.name = name
         self.config_file = DATA_DIR / self.name / 'config.env'
         self.desc = None
-        self.daemon = daemon
+        self.robot : DinDockerRobot = robot
         self.gz_state = False
         self.gz_visible = False
         self.on = False
@@ -108,12 +109,12 @@ class RobotCard:
                     self.desc = line.split('=', 1)
                     self.desc = self.desc[1].strip()
                     break
-        self.ip = ''
+        self.ip = None
         update_cards.connect(self.listen_to_polling)
     
     @ui.refreshable
     async def render(self):
-        status = await self.daemon.get_status()
+        status = await self.robot.get_status()
         with ui.card().classes(f'p-[{card_padding}] w-full min-[1466px]:w-[{half}] min-[2040px]:w-[{third}] h-auto'):
             # Name(s) and status
             with ui.card_section().classes('w-full p-0 pb-2 mb-auto'):
@@ -144,8 +145,8 @@ class RobotCard:
 
             # IP and web interface link
             with ui.card_section().classes('w-full p-0 mb-2'):
-                ip = ui.markdown(f'**Robot IP:** {self.ip}').classes('text-base')
-                ip.bind_visibility(self.__dict__, 'on')
+                self.ip = ui.markdown(f'**Robot IP:** {self.robot.get_ip()}').classes('text-base')
+                self.ip.bind_visibility(self.__dict__, 'on')
             
                 # Link to the robot's web interface if applicable 
                 # if "spiri_mu" in robotName:
@@ -196,11 +197,11 @@ class RobotCard:
             if status.lower() == 'stopped':
                 self.on = False
                 self.label_status.classes('text-[#BF5234]')
-            else: #TEMPORARY FIX IN THE FUTURE
-                if self.ip == '':
-                    self.ip = self.daemon.get_ip()
+            else: 
                 self.on = True
                 self.label_status.classes('text-[#609926]')
+        if self.ip:
+            self.ip.content = f'**Robot IP:** {self.robot.get_ip()}'
             
     async def spawn(self):
         if not is_robot_alive(self.name):

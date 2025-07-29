@@ -1,5 +1,6 @@
 from pathlib import Path
 from loguru import logger
+from dataclasses import dataclass
 import docker
 import dotenv
 import subprocess
@@ -8,6 +9,8 @@ import asyncio
 from spiriSdk.classes.Robot import Robot
 from spiriSdk.utils.gazebo_utils import get_running_worlds, Model
 from spiriSdk.pages.tools import gz_world
+
+@dataclass
 class DockerRobot(Robot):
     """
     An example implementation of the robot class.
@@ -199,7 +202,7 @@ class DockerRobot(Robot):
                 except Exception as e:
                     logger.error(f"Error stopping services for {service.name}: {str(e)}")
 
-    async def sync_spawn(self) -> bool:
+    async def spawn(self) -> bool:
         """
         Spawns a model of the robot into a simulation environment.
         In this SDK, we use Gazebo.

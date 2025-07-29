@@ -1,8 +1,9 @@
 from pathlib import Path
 from nicegui import run
+from dataclasses import dataclass
 import docker
-# use nicegui runiobound for asynchronizing methods
-# add comments on why you'd use these and how and when and who and where and what
+
+@dataclass
 class Robot(object):
     """
     An abstract class representing a robot to be simulated or controlled.
@@ -142,19 +143,10 @@ class Robot(object):
     
     async def spawn(self):
         """
-        The asynchronous call of sync_spawn.
-        
         This method should spawn a model of the robot into a simulation environment.
         In this SDK, we use Gazebo.
         """
-        return await run.io_bound(self.sync_spawn)
-
-    def sync_unspawn(self):
-        """
-        This method should unspawn the robot from the simulation environment.
-        In this SDK, we use Gazebo.
-        """
-        raise NotImplementedError("This method should   be implemented by subclasses.") 
+        raise NotImplementedError("This method should be implemented by subclasses.")
     
     async def unspawn(self):
         """
