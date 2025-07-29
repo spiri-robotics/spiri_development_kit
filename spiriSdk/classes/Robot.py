@@ -29,6 +29,15 @@ class Robot(object):
     
     async def stop(self):
         """
+        The asynchronous call of sync_stop.
+        
+        This method should stop the robot.
+        This includes stopping the robot's services, and if applicable, its docker container.
+        """
+        await run.io_bound(self.sync_stop)
+        
+    def sync_stop(self):
+        """
         This method should stop the robot.
         This includes stopping the robot's services, and if applicable, its docker container.
         """
