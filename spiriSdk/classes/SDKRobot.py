@@ -8,7 +8,7 @@ from spiriSdk.classes.DockerRobot import DockerRobot
 from spiriSdk.settings import SDK_ROOT
 
 @dataclass
-class SDKRobot(DockerRobot):
+class LocalRobot(DockerRobot):
     """
     An example implementation of the robot class.
     This docker robot would be running directly off the host machine's docker daemon.

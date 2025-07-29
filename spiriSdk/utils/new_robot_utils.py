@@ -60,6 +60,7 @@ async def save_robot_config(robot_type, selected_options, dialog):
     selected_options["GROUND_CONTROL_ADDRESS"] = GROUND_CONTROL_ADDRESS
     selected_options['ARDUPILOT_PORT'] = str(5760 + 10 * robot_id)
     selected_options["ROBOT_NAME"] = robot_name
+    logger.logger.info(f"Saving robot configuration for {robot_name} with options: {selected_options}")
     
     new_robot= DinDockerRobot(robot_name)
     await new_robot.add_to_system(selected_options)
@@ -151,6 +152,18 @@ def display_robot_options(robot_type: str, selected_options, options_container: 
                 ).classes('w-full pb-1')
                 
                 checker.add(numInput, False)
+                
+            elif option_type == 'dropdown':
+                options_list = option.get('options', [])
+                def on_dropdown_change(e, k):
+                    selected_options[k] = e.value   
+                dropdown = ui.select(
+                    options_list, 
+                    label=f'{formatted_key}*', 
+                    value=current_value, 
+                    on_change=lambda e, k=key: on_dropdown_change(e.sender, k)
+                ).classes('w-full pb-1')
+                checker.add(dropdown, False)
             
             else:
                 def handleText(e: ui.input, k):
