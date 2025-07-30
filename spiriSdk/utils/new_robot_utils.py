@@ -4,6 +4,8 @@ from pathlib import Path
 from loguru import logger
 
 from spiriSdk.classes.DinDockerRobot import DinDockerRobot
+from spiriSdk.classes.LocalRobot import LocalRobot
+from spiriSdk.classes.RemoteRobot import RemoteRobot
 from spiriSdk.utils.daemon_utils import robots, active_sys_ids
 from spiriSdk.utils.InputChecker import InputChecker
 from spiriSdk.settings import SIM_ADDRESS, GROUND_CONTROL_ADDRESS
@@ -62,7 +64,13 @@ async def save_robot_config(robot_type, selected_options, dialog):
     selected_options["ROBOT_NAME"] = robot_name
     logger.info(f"Saving robot configuration for {robot_name} with options: {selected_options}")
     
-    new_robot= DinDockerRobot(robot_name)
+    if selected_options.get('ROBOT_CLASS') == 'Docker in Docker':
+        new_robot= DinDockerRobot(robot_name)
+    elif selected_options.get('ROBOT_CLASS') == 'Local':
+        new_robot = LocalRobot(robot_name, ROBOTS_DIR / robot_type / 'services')
+    else:
+        new_robot = RemoteRobot(robot_name, ROBOTS_DIR / robot_type / 'services')
+        
     await new_robot.add_to_system(selected_options)
     
     robots[robot_name] = new_robot
@@ -155,6 +163,7 @@ def display_robot_options(robot_type: str, selected_options, options_container: 
                 
             elif option_type == 'dropdown':
                 options_list = option.get('options', [])
+                selected_options[key] = current_value
                 def on_dropdown_change(e, k):
                     selected_options[k] = e.value   
                 ui.select(

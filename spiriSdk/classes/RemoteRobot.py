@@ -7,11 +7,12 @@ import shutil
 from spiriSdk.classes.DockerRobot import DockerRobot
 from spiriSdk.settings import SDK_ROOT
 
+#TODO: implement this class
 @dataclass
-class LocalRobot(DockerRobot):
+class RemoteRobot(DockerRobot):
     """
     An implementation of the robot class.
-    This docker robot would be running directly off the host machine's docker daemon.
+    This docker robot would be running on a remote machine's docker daemon.
     """
     
     def __init__(self, name: str, services_folder: Path = Path("/services/")):

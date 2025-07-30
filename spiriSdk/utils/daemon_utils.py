@@ -1,7 +1,8 @@
-from nicegui import run
 from loguru import logger
+from dotenv import dotenv_values
 
 from spiriSdk.classes.DinDockerRobot import DinDockerRobot
+from spiriSdk.classes.LocalRobot import LocalRobot
 from spiriSdk.settings import SDK_ROOT
 
 DATA_DIR = SDK_ROOT / 'data'
@@ -18,10 +19,29 @@ async def init_robots():
 
     for robot_dir in DATA_DIR.iterdir():
         robot_name = robot_dir.name
+        env_path = DATA_DIR / robot_name / 'config.env'
+        
+        if not env_path.exists():
+            logger.warning(f"No config.env found in {robot_dir}, skipping.")
+            continue
+
+        try:
+            config = dotenv_values(env_path)
+        except Exception as e:
+            logger.error(f"Failed to read {env_path}: {e}")
+            continue
+        
+        robot_class = config.get("ROBOT_CLASS", "Docker in Docker").strip()
 
         if robot_dir.exists():
             logger.debug(f"Starting a daemon for: {robot_name}")
-            new_robot = DinDockerRobot(robot_name)
+            
+            if robot_class == 'Docker in Docker':
+                new_robot = DinDockerRobot(robot_name)
+            elif robot_class == 'Local':
+                new_robot = LocalRobot(robot_name, ROBOTS_DIR / robot_type)
+            else: 
+                new_robot = RemoteRobot()
             robots[robot_name] = new_robot
             displayCards.refresh()
 
