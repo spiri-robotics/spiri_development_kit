@@ -3,6 +3,7 @@ from dotenv import dotenv_values
 
 from spiriSdk.classes.DinDockerRobot import DinDockerRobot
 from spiriSdk.classes.LocalRobot import LocalRobot
+from spiriSdk.classes.RemoteRobot import RemoteRobot
 from spiriSdk.settings import SDK_ROOT
 
 DATA_DIR = SDK_ROOT / 'data'
@@ -19,6 +20,7 @@ async def init_robots():
 
     for robot_dir in DATA_DIR.iterdir():
         robot_name = robot_dir.name
+        robot_type = "_".join(robot_name.split('_')[:-1])
         env_path = DATA_DIR / robot_name / 'config.env'
         
         if not env_path.exists():
@@ -39,9 +41,9 @@ async def init_robots():
             if robot_class == 'Docker in Docker':
                 new_robot = DinDockerRobot(robot_name)
             elif robot_class == 'Local':
-                new_robot = LocalRobot(robot_name, ROBOTS_DIR / robot_type)
+                new_robot = LocalRobot(robot_name, ROBOTS_DIR / robot_type / 'services')
             else: 
-                new_robot = RemoteRobot()
+                new_robot = RemoteRobot(robot_name, ROBOTS_DIR / robot_type / 'services')
             robots[robot_name] = new_robot
             displayCards.refresh()
 

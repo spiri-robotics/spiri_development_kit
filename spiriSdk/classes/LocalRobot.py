@@ -23,7 +23,7 @@ class LocalRobot(DockerRobot):
         This folder should contain a docker-compose.yml file to start the robot's services.
         """
         self.name = name
-        self.robot_type = "-".join(self.name.split('-')[:-1])
+        self.robot_type = "_".join(self.name.split('_')[:-1])
         self.docker_client : docker.DockerClient | None = docker.from_env()
         self.services_folder : Path = services_folder
         self.env_path : Path = SDK_ROOT / 'data' / self.name / 'config.env'
