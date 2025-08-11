@@ -5,15 +5,16 @@ from spiriSdk.classes.DinDockerRobot import DinDockerRobot
 from spiriSdk.classes.LocalRobot import LocalRobot
 from spiriSdk.classes.RemoteRobot import RemoteRobot
 from spiriSdk.settings import SDK_ROOT
-
+# Define paths for data and robots directories
 DATA_DIR = SDK_ROOT / 'data'
 ROBOTS_DIR = SDK_ROOT / 'robots'
 ROOT_DIR = SDK_ROOT
-
+# Initialize global variables
 robots : dict[str, DinDockerRobot]= {}
 active_sys_ids = []
 
 async def init_robots():
+    """Initialize Docker robots listed in the data directory."""
     global robots
     from spiriSdk.utils.card_utils import displayCards
     logger.info(f"Initializing Docker robots for robots...")
