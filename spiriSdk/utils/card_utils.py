@@ -210,7 +210,7 @@ class RobotCard:
                 self.label_status.classes('text-[#BF5234]')
             else: 
                 self.on = True
-                self.label_status.classes('text-[#609926]')
+                self.label_status.classes('text-[#666666]')
         if self.ip:
             self.ip.content = f'**Robot IP:** {self.robot.get_ip()}'
             
