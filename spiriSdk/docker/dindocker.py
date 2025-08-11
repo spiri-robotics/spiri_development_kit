@@ -111,7 +111,7 @@ class Container:
         except Exception as e:
             raise RuntimeError(f"Failed to start container: {str(e)}")
 
-        logger.debug("Waiting for container to be ready...")
+        logger.debug(f"Waiting for container {self.container_name} to be ready...")
         # Wait for container to be ready
         for attempt in range(self.ready_timeout):
             try:
@@ -286,13 +286,17 @@ dotenv_path = Path(".env")
 if not dotenv_path.exists():
     dotenv_path.write_text("REGISTRIES=\nAUTH_REGISTRIES=\n")
     logger.info(".env file created with empty REGISTRIES and AUTH_REGISTRIES")    
-    
+
+dotenv.load_dotenv(dotenv_path=dotenv_path)
+
 creds = {
-    "REGISTRIES": os.getenv("REGISTRIES"),
+    "REGISTRIES": os.getenv("REGISTRIES", "*"),
     "AUTH_REGISTRIES": os.getenv("AUTH_REGISTRIES")
 }
 
-DEFAULT_REGISTRY_PROXY = DockerRegistryProxy(container_name="registry_proxy")
+
+
+DEFAULT_REGISTRY_PROXY = DockerRegistryProxy(container_name="registry_proxy",auto_remove=False)
 DEFAULT_REGISTRY_PROXY.environment.update(creds)
 
 @dataclass
