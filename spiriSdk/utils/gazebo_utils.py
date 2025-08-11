@@ -51,7 +51,7 @@ def find_worlds(p = Path('./worlds')):
                 worlds.update(world_in_dir)
         return worlds
     except FileNotFoundError:
-        print(f"Directory not found: {p}. Make sure it exists.")
+        logger.error(f"Directory not found: {p}. Make sure it exists.")
         return {}
 
 world_paths = find_worlds()
@@ -140,7 +140,6 @@ class Model:
             )
             
         ROS2_CMD = f"ros2 run ros_gz_sim create -world {self.parent.name} -file {self.path}/model.sdf -name {self.name} -x {self.position[0]} -y {self.position[1]} -z {self.position[2]}"        
-        print(ROS2_CMD)
         ros2_gz_create_proc = subprocess.Popen(
             ROS2_CMD.split(),
             stdout=subprocess.PIPE,
