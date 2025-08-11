@@ -567,3 +567,18 @@ class DockerInDocker(Container):
         raise RuntimeError(
             f"Failed to run compose after {max_attempts} attempts. Last error: {str(last_exception)}"
         )
+    
+    def clear_cache(self):
+        """Clear the DinD cache directory."""
+        client = docker.from_env()
+        client.containers.run(
+            self.image_name,
+            ["sh", "-c", "rm -rf /var/lib/docker/*"],
+            privileged=False,
+            volumes={
+                str(self.sdk_root / "cache" / "dind-cache" / self.container_name): {
+                    "bind": "/var/lib/docker",
+                    "mode": "rw"
+                }
+            }
+        )

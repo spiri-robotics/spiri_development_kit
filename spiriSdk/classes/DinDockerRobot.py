@@ -98,7 +98,7 @@ class DinDockerRobot(DockerRobot):
         closing the Docker client, and unspawning the robot if it was spawned 
         into a simulation environment.
         """
-        self.dind.cleanup()
+        self.dind.clear_cache()
         await self.remove_from_system()
         if self.docker_client is not None:
             try:

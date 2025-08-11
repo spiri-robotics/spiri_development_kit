@@ -4,13 +4,14 @@ from dotenv import dotenv_values
 from spiriSdk.classes.DinDockerRobot import DinDockerRobot
 from spiriSdk.classes.LocalRobot import LocalRobot
 from spiriSdk.classes.RemoteRobot import RemoteRobot
+from spiriSdk.classes.DockerRobot import DockerRobot
 from spiriSdk.settings import SDK_ROOT
 # Define paths for data and robots directories
 DATA_DIR = SDK_ROOT / 'data'
 ROBOTS_DIR = SDK_ROOT / 'robots'
 ROOT_DIR = SDK_ROOT
 # Initialize global variables
-robots : dict[str, DinDockerRobot]= {}
+robots : dict[str, DockerRobot]= {}
 active_sys_ids = []
 
 async def init_robots():

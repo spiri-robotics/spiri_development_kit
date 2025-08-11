@@ -20,6 +20,7 @@ x-spiri-options:
     type: dropdown
     options:
       - Docker in Docker
-      - Local
-      - Remote
+      # Uncomment this when these are implemented
+      # - Local
+      # - Remote
     value: Docker in Docker
