@@ -22,7 +22,7 @@ def launch_app(command):
 
 @ui.page('/tools')
 async def tools():
-    
+    """Toolbar for launching Gazebo and other applications."""
     global gz_world
     with ui.dialog() as gz_dialog, ui.card().classes('items-center'):
         select_check = InputChecker()
