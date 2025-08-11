@@ -70,7 +70,7 @@ async def save_robot_config(robot_type, selected_options, dialog):
     selected_options["GROUND_CONTROL_ADDRESS"] = GROUND_CONTROL_ADDRESS
     selected_options['ARDUPILOT_PORT'] = str(5760 + 10 * robot_id)
     selected_options["ROBOT_NAME"] = robot_name
-    logger.info(f"Saving robot configuration for {robot_name} with options: {selected_options}")
+    logger.info(f"Saving robot configuration for {robot_name}")
     
     if selected_options.get('ROBOT_CLASS') == 'Docker in Docker':
         new_robot= DinDockerRobot(robot_name)

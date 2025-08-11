@@ -148,7 +148,7 @@ class DinDockerRobot(DockerRobot):
             self.container.reload()
             status = self.container.status
             if status == 'running':
-                socket_path = self.connection_url
+                socket_path = self.docker_host
                 try:
                     client = docker.DockerClient(base_url=socket_path)
                     states = {
