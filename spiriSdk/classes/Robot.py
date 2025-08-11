@@ -10,13 +10,22 @@ class Robot(object):
 
     Args:
         str name: The name of the robot, typically in the format <robot_type>_<sys_id>.
+        
+    Params:
+        str name: The name of the robot, typically in the format <robot_type>_<sys_id>.
+        Path services_folder: The folder where the robot's services are located.
+        Path env_path: The path to the environment file for the robot.
+        docker.DockerClient docker_client: The Docker client used to interact with the Docker daemon.
+        str docker_host: The URL to connect to the Docker daemon.
+        bool spawned: A boolean indicating whether the robot has been spawned into a simulation environment.
+        bool running: A boolean indicating whether the robot's services are currently running.
     """
     def __init__(self, name: str):
         self.name: str = name
         self.services_folder : Path | None
         self.env_path: Path | None
         self.docker_client : docker.DockerClient  | None
-        self.connection_url: str | None = None
+        self.docker_host: str | None = None
         self.spawned: bool = False
         self.running: bool = False
         
@@ -65,6 +74,15 @@ class Robot(object):
         
         Returns:
             str: The IP address of the robot.
+        """
+        raise NotImplementedError("This method should be implemented by subclasses.")
+    
+    def get_docker_host(self):
+        """
+        This method should return the Docker host for the robot's docker container.
+        
+        Returns:
+            str: The Docker host.
         """
         raise NotImplementedError("This method should be implemented by subclasses.")
 

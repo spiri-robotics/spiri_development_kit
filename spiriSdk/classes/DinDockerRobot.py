@@ -27,7 +27,7 @@ class DinDockerRobot(DockerRobot):
         param services_folder: The services_folder where the robot's services are located.
             This folder should contain a docker-compose.yml file to start the robot's services.
         param env_path: The path to the environment file for the robot.
-        param connection_url: The URL to connect to the Docker daemon.
+        param docker_host: The URL to connect to the Docker daemon.
         param spawned: A boolean indicating whether the robot has been spawned into a simulation environment.
         param running: A boolean indicating whether the robot's services are currently running.
         param dind: An instance of DockerInDocker to manage the Docker in Docker environment.
@@ -43,7 +43,7 @@ class DinDockerRobot(DockerRobot):
         self.dind = DockerInDocker(container_name=self.name)
         self.docker_client : docker.DockerClient | None = None
         self.container : docker.models.containers.Container | None = None
-        self.connection_url : str | None = f"unix:///tmp/dind-sockets/spirisdk_{self.name}.socket"
+        self.docker_host : str | None = f"unix:///tmp/dind-sockets/spirisdk_{self.name}.socket"
         
     async def start(self) -> None:
         """Starts the robot by starting the dind instance and the services."""
@@ -121,6 +121,15 @@ class DinDockerRobot(DockerRobot):
             return self.dind.get_ip()
         else:
             return "Loading..."
+        
+    def get_docker_host(self) -> str:
+        """
+        This method returns the Docker host for the robot's docker container.
+        
+        Returns:
+            str: The Docker host.
+        """
+        return self.docker_host
     
     def sync_get_status(self) -> str | dict:
         """
