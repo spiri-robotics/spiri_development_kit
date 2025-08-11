@@ -193,6 +193,7 @@ class RobotCard:
         """Update the robot's status and visibility of chips based on the current state."""
         status = await robots[self.name].get_status()
         if isinstance(status, dict):
+            self.on = True
             for state in status.keys():
                 if status[state] > 0:
                     self.chips[state].visible = True
@@ -205,12 +206,12 @@ class RobotCard:
                 self.chips[state].visible = False
             self.label_status.visible = True
             self.label_status.text = f'{status.title()}'
-            if status.lower() == 'stopped':
+            if status.lower() == 'stopped' or status.lower() == 'not created or removed':
                 self.on = False
                 self.label_status.classes('text-[#BF5234]')
             else: 
                 self.on = True
-                self.label_status.classes('text-[#666666]')
+                self.label_status.classes(add='text-[#666666]', remove='text-[#BF5234]')
         if self.ip:
             self.ip.content = f'**Robot IP:** {self.robot.get_ip()}'
             
