@@ -27,7 +27,7 @@ class LocalRobot(DockerRobot):
         self.docker_client : docker.DockerClient | None = docker.from_env()
         self.services_folder : Path = services_folder
         self.env_path : Path = SDK_ROOT / 'data' / self.name / 'config.env'
-        self.connection_url : str | None = self.docker_client.api.base_url
+        self.docker_host : str | None = self.docker_client.api.base_url
         self.spawned: bool = False
         self.running: bool = False
 
@@ -58,6 +58,15 @@ class LocalRobot(DockerRobot):
             str: The IP address of the robot.
         """
         return "127.0.0.1"
+    
+    def get_docker_host(self) -> str:
+        """
+        This method returns the Docker host for the robot's docker container.
+        
+        Returns:
+            str: The Docker host.
+        """
+        return super().get_docker_host()
         
     def sync_add_to_system(self, selected_options: dict) -> None:
         """Save the robot's configuration to the system for future use."""

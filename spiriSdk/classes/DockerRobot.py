@@ -27,7 +27,7 @@ class DockerRobot(Robot):
         param services_folder: The services_folder where the robot's services are located.
             This folder should contain a docker-compose.yml file to start the robot's services.
         param env_path: The path to the environment file for the robot.
-        param connection_url: The URL to connect to the Docker daemon.
+        param docker_host: The URL to connect to the Docker daemon.
         param spawned: A boolean indicating whether the robot has been spawned into a simulation environment.
         param running: A boolean indicating whether the robot's services are currently running.
         """
@@ -36,7 +36,7 @@ class DockerRobot(Robot):
         self.docker_client : docker.DockerClient | None = docker.from_env()
         self.services_folder : Path = services_folder
         self.env_path : Path = self.services_folder / 'config.env'
-        self.connection_url : str | None = self.docker_client.api.base_url
+        self.docker_host : str | None = self.docker_client.api.base_url
         self.spawned: bool = False
         self.running: bool = False
         
@@ -80,6 +80,15 @@ class DockerRobot(Robot):
             str: The IP address of the robot.
         """
         return "127.0.0.1"
+    
+    def get_docker_host(self) -> str:
+        """
+        This method returns the Docker host for the robot's docker container.
+        
+        Returns:
+            str: The Docker host.
+        """
+        return self.docker_host
 
     def sync_get_status(self) -> str | dict:
         """

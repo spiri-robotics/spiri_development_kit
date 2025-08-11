@@ -148,9 +148,7 @@ class RobotCard:
 
             # Docker host
             with ui.card_section().classes('w-full p-0 mb-2'):
-                # TODO fix this for local and remote robots
-                command = f"DOCKER_HOST=unix:///tmp/dind-sockets/spirisdk_{self.name}.socket"
-                docker_host = ui.code(command, language='bash').classes('text-gray-600 dark:text-gray-200')
+                docker_host = ui.code(f"DOCKER_HOST={self.robot.get_docker_host()}", language='bash').classes('text-gray-600 dark:text-gray-200')
                 docker_host.bind_visibility(self.__dict__, 'on')
 
             # IP and web interface link
