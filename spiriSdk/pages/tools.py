@@ -2,7 +2,6 @@ import subprocess
 
 from nicegui import ui
 from loguru import logger
-from spiriSdk.ui.styles import styles
 from spiriSdk.utils.gazebo_utils import gz_world, world_paths, world_names
 from spiriSdk.utils.InputChecker import InputChecker
 
