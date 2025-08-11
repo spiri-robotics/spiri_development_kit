@@ -9,11 +9,15 @@ from spiriSdk.classes.RemoteRobot import RemoteRobot
 from spiriSdk.utils.daemon_utils import robots, active_sys_ids
 from spiriSdk.utils.InputChecker import InputChecker
 from spiriSdk.settings import SIM_ADDRESS, GROUND_CONTROL_ADDRESS
-
+# Define the root directory and robots directory
 ROOT_DIR = Path(__file__).parents[2].absolute()
 ROBOTS_DIR = ROOT_DIR / 'robots'
 
 def ensure_options_yaml():
+    """
+    Ensure that each robot folder has an options.yaml file.
+    If it does not exist, create a default one based on the docker-compose file.
+    """
     robots = []
     for folder in ROBOTS_DIR.iterdir():
         if folder.exists():
@@ -54,6 +58,7 @@ def ensure_options_yaml():
     return robots
 
 async def save_robot_config(robot_type, selected_options, dialog): 
+    """Save the robot configuration to the system based on the selected options."""
     robot_id = selected_options.get('MAVLINK_SYS_ID', uuid.uuid4().hex[:6])
     if robot_type == 'spiri_mu' and selected_options.get('GIMBAL') == False:
         robot_type = 'spiri_mu_no_gimbal'
@@ -83,6 +88,7 @@ async def save_robot_config(robot_type, selected_options, dialog):
     ui.notify(f"Robot {robot_name} added successfully!", type='positive')
 
 async def delete_robot(robot_name: str) -> bool:
+    """Delete a robot from the system."""
     logger.info(f"Deleting robot {robot_name}")
     robot = robots.pop(robot_name)
     from spiriSdk.utils.card_utils import displayCards
@@ -93,6 +99,7 @@ async def delete_robot(robot_name: str) -> bool:
     return True
 
 def display_robot_options(robot_type: str, selected_options, options_container: ui.column, checker: InputChecker):
+    """Display the options for a specific robot type in the UI."""
     options_path = ROBOTS_DIR / robot_type / 'options.yaml'
     if not options_path.exists():
         options_container.clear()
