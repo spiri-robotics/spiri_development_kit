@@ -132,6 +132,9 @@ class RobotCard:
                     self.chips["Paused"] = ui.chip("", color='paused', text_color='white')
                     self.chips["Dead"] = ui.chip("", color='dead', text_color='white')
                     
+                for chip in self.chips.values():
+                    chip.visible = False
+                
                 await self.update_status()
                 
                 if self.desc != None:
