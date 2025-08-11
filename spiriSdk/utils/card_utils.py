@@ -1,6 +1,6 @@
 import asyncio, httpx
 
-from nicegui import ui
+from nicegui import ui, run
 from nicegui.binding import bind_from
 from loguru import logger
 from pathlib import Path
@@ -65,7 +65,7 @@ async def remove_from_world(robot):
     
 async def delete(robot):
     """Delete the robot card and remove the robot from the system."""
-    cards[robot].destroy()
+    await cards[robot].destroy()
     del cards[robot]
     n = ui.notification(timeout=False)
     for i in range(1):
@@ -108,6 +108,7 @@ class RobotCard:
         self.gz_visible = False
         self.on = False
         self.last_updated = 2
+        self.chips = {}
         with open(self.config_file) as f:
             for line in f:
                 if 'DESC' in line:
@@ -130,7 +131,6 @@ class RobotCard:
                     ui.space()
 
                     self.label_status = ui.label('Status Loading...').classes('text-lg font-semibold')
-                    self.chips = {}
                     self.chips["Running"] = ui.chip("", color='running', text_color='white')
                     self.chips["Restarting"] = ui.chip("", color='restarting', text_color='white')
                     self.chips["Exited"] = ui.chip("", color='exited', text_color='white')
@@ -287,9 +287,9 @@ class RobotCard:
         
         self.render.refresh()
         
-    def destroy(self):
+    async def destroy(self):
         """Disconnect the update_cards signal listener to prevent memory leaks."""
-        update_cards.disconnect(self.listen_to_polling)
+        await run.io_bound(update_cards.disconnect, self.listen_to_polling)
     
     async def listen_to_polling(self, sender, visible=True):
         """Listen to the update_cards signal to update the robot's status and visibility in the Gazebo world."""

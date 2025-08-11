@@ -99,7 +99,6 @@ class DinDockerRobot(DockerRobot):
         into a simulation environment.
         """
         self.dind.cleanup()
-        await self.stop_services()
         await self.remove_from_system()
         if self.docker_client is not None:
             try:

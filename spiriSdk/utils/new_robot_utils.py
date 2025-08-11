@@ -59,6 +59,9 @@ def ensure_options_yaml():
 
 async def save_robot_config(robot_type, selected_options, dialog): 
     """Save the robot configuration to the system based on the selected options."""
+    for key, value in selected_options.items():
+        if value is None:
+            selected_options[key] = ''
     robot_id = selected_options.get('MAVLINK_SYS_ID', uuid.uuid4().hex[:6])
     if robot_type == 'spiri_mu' and selected_options.get('GIMBAL') == False:
         robot_type = 'spiri_mu_no_gimbal'
@@ -75,10 +78,6 @@ async def save_robot_config(robot_type, selected_options, dialog):
         new_robot = LocalRobot(robot_name, ROBOTS_DIR / robot_type / 'services')
     else:
         new_robot = RemoteRobot(robot_name, ROBOTS_DIR / robot_type / 'services')
-        
-    for key, value in selected_options.items():
-        if value is None:
-            selected_options[key] = ''
         
     await new_robot.add_to_system(selected_options)
     
