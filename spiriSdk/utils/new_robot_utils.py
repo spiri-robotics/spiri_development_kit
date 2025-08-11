@@ -76,6 +76,10 @@ async def save_robot_config(robot_type, selected_options, dialog):
     else:
         new_robot = RemoteRobot(robot_name, ROBOTS_DIR / robot_type / 'services')
         
+    for key, value in selected_options.items():
+        if value is None:
+            selected_options[key] = ''
+        
     await new_robot.add_to_system(selected_options)
     
     robots[robot_name] = new_robot
