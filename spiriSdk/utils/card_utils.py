@@ -14,15 +14,16 @@ from spiriSdk.utils.InputChecker import InputChecker
 from spiriSdk.utils.new_robot_utils import delete_robot, save_robot_config
 from spiriSdk.classes.DinDockerRobot import DinDockerRobot
 from spiriSdk.utils.signals import update_cards
-
+# Constants for card layout
 half = 'calc(50%-(var(--nicegui-default-gap)/2))'
 third = 'calc((100%/3)-(var(--nicegui-default-gap)/1.5))' # formula: (100% / {# of cards}) - ({default gap} / ({# of cards} / {# of gaps}))
 card_padding = 'calc(var(--nicegui-default-padding)*1.2)'
-
+# Define the root directory and data directory paths
 ROOT_DIR = Path(__file__).parents[2].absolute()
 DATA_DIR = ROOT_DIR / 'data'
 
 async def addRobot():
+    """Open a dialog to add a new robot."""
     with ui.dialog() as d, ui.card(align_items='stretch').classes('w-full'):
         checker = InputChecker()
         await new_robots(checker)
@@ -50,6 +51,7 @@ async def addRobot():
     d.open()
 
 async def remove_from_world(robot):
+    """Remove the robot from the Gazebo world."""
     try:
         result = await robots[robot].unspawn()
         if not result:
@@ -62,6 +64,7 @@ async def remove_from_world(robot):
         return False
     
 async def delete(robot):
+    """Delete the robot card and remove the robot from the system."""
     cards[robot].destroy()
     del cards[robot]
     n = ui.notification(timeout=False)
@@ -84,6 +87,7 @@ cards= {}
             
 @ui.refreshable
 async def displayCards():
+    """Display cards for each robot in the robots dictionary."""
     names = robots.keys()
     for name in names:
         card = RobotCard(name, robots[name])
@@ -94,6 +98,7 @@ async def displayCards():
             
             
 class RobotCard:
+    """A card representing a robot with its details and actions."""
     def __init__(self, name, robot):
         self.name = name
         self.config_file = DATA_DIR / self.name / 'config.env'
@@ -114,6 +119,7 @@ class RobotCard:
     
     @ui.refreshable
     async def render(self):
+        """Render the robot card with its details and buttons."""
         status = await self.robot.get_status()
         with ui.card().classes(f'p-[{card_padding}] w-full min-[1466px]:w-[{half}] min-[2040px]:w-[{third}] h-auto'):
             # Name(s) and status
@@ -184,6 +190,7 @@ class RobotCard:
                     gz_toggle.off_switch = lambda: self.spawn()
     
     async def update_status(self):
+        """Update the robot's status and visibility of chips based on the current state."""
         status = await robots[self.name].get_status()
         if isinstance(status, dict):
             for state in status.keys():
@@ -208,6 +215,7 @@ class RobotCard:
             self.ip.content = f'**Robot IP:** {self.robot.get_ip()}'
             
     async def spawn(self):
+        """Spawn the robot in the Gazebo world if it is not already alive."""
         if not is_robot_alive(self.name):
             logger.info(f'Spawning {self.name}...')
             n = ui.notification(timeout=None)
@@ -224,6 +232,7 @@ class RobotCard:
             self.render.refresh()
     
     async def power_on(self, buttons: list):
+        """Power on the robot and update the UI accordingly."""
         for button in buttons:
             button.disable()
         logger.info(f'Powering on {self.name}...')
@@ -243,6 +252,7 @@ class RobotCard:
         self.render.refresh()
     
     async def power_off(self, buttons: list):
+        """Power off the robot and update the UI accordingly."""
         logger.info(f'Powering off {self.name}...')
         for button in buttons:
             button.disable()
@@ -261,6 +271,7 @@ class RobotCard:
         self.render.refresh()
         
     async def reboot(self, buttons: list):
+        """Reboot the robot and update the UI accordingly."""
         logger.info(f'Rebooting {self.name}...')
         for button in buttons:
             button.disable()
@@ -277,9 +288,11 @@ class RobotCard:
         self.render.refresh()
         
     def destroy(self):
+        """Disconnect the update_cards signal listener to prevent memory leaks."""
         update_cards.disconnect(self.listen_to_polling)
     
     async def listen_to_polling(self, sender, visible=True):
+        """Listen to the update_cards signal to update the robot's status and visibility in the Gazebo world."""
         await self.update_status()
         world_running = get_running_worlds()
         if len(world_running) > 0:
