@@ -7,10 +7,10 @@ from spiriSdk.utils.new_robot_utils import display_robot_options
 robots = ['Spiri Mu']
 selected_options = {}
 selected_robot = None
-
 options_container = None
 
 def on_type_select(e: ui.select, checker: InputChecker):
+    """Handle the selection of a robot type and display its options."""
     checker.checkSelect(e)
     checker.reset()
     robot_type = str(e.value)
@@ -24,6 +24,7 @@ def on_type_select(e: ui.select, checker: InputChecker):
     return selected_robot
 
 def display_fields(checker: InputChecker):
+    """Display the fields for adding a new robot in the UI."""
     with ui.label('New Robot').classes('text-h5'):
         ui.label('Fields marked with a * are required').classes('text-base italic text-gray-700 dark:text-gray-300')
     with ui.row().classes('w-full'):
