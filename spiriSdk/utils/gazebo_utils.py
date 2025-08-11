@@ -3,47 +3,59 @@ import subprocess, time
 from pathlib import Path
 from loguru import logger
 from typing import Optional
-
-from spiriSdk.utils.daemon_utils import daemons
-
+# The path to each model for the Gazebo simulator.
 MODEL_PATHS = {
     'spiri_mu': 'robots/spiri_mu/models/spiri_mu',
     'spiri_mu_no_gimbal': 'robots/spiri_mu_no_gimbal/models/spiri_mu',
 }
-
+# The path to each world for the Gazebo simulator.
+# The paths are relative to the root of the spiriSdk repository.
 WORLD_PATHS = {
     'empty_world': 'worlds/empty_world/worlds/empty_world',
     'citadel_hill': 'worlds/citadel_hill/worlds/citadel_hill',
     'yarmouth_airport': 'worlds/yarmouth_airport/worlds/yarmouth_airport'
 }
 
-def is_robot_alive(name):
+def is_robot_alive(name: str) -> bool:
+    """
+    Check if a robot with the given name is alive in the Gazebo world.
+
+    Args:
+        name (str): the name of the robot to check
+
+    Returns:
+        bool: whether the robot is alive or not
+    """
     if name in gz_world.models.keys():
         return True
     else:
         return False
 
 def get_running_worlds() -> list:
-        """Get a list of running Gazebo world names."""
-        try:
-            running_worlds = []
-            cmd = "ps aux | grep '[g]z sim'"
-            process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
-            output, _ = process.communicate()
-            output = output.decode('utf-8')
-            for line in output.strip().split('\n'):
-                if line:
-                    parts = line.split()
-                    command = ' '.join(parts[10:])
-                    for token in command.split():
-                        if token.endswith('.world'):
-                            world_name = Path(token).stem
-                            running_worlds.append(world_name)
-            return running_worlds
-        except subprocess.CalledProcessError as e:
-            logger.error(f"Error running command: {e}")
+    """Get a list of running Gazebo world names."""
+    try:
+        running_worlds = []
+        cmd = "ps aux | grep '[g]z sim'"
+        process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
+        output, _ = process.communicate()
+        output = output.decode('utf-8')
+        for line in output.strip().split('\n'):
+            if line:
+                parts = line.split()
+                command = ' '.join(parts[10:])
+                for token in command.split():
+                    if token.endswith('.world'):
+                        world_name = Path(token).stem
+                        running_worlds.append(world_name)
+        return running_worlds
+    except subprocess.CalledProcessError as e:
+        logger.error(f"Error running command: {e}")
 
 def find_worlds(p = Path('./worlds')):
+    """
+    Find all Gazebo world files in the specified directory.
+    Returns a dictionary with world names as keys and their paths as values.
+    """
     try:
         worlds = {}
         for subdir in p.iterdir():
@@ -54,7 +66,7 @@ def find_worlds(p = Path('./worlds')):
                 worlds.update(world_in_dir)
         return worlds
     except FileNotFoundError:
-        print(f"Directory not found: {p}. Make sure it exists.")
+        logger.error(f"Directory not found: {p}. Make sure it exists.")
         return {}
 
 world_paths = find_worlds()
@@ -62,21 +74,20 @@ world_names = list(world_paths.keys())
 
 
 class World:
+    """
+    Class representing a Gazebo world.
+    This class manages the world and its models, allowing for operations such as running the world,
+    resetting the world, and starting and stopping the world.
+    """
     def __init__(self, name):
         self.name = name
         self.models: dict[str:Model]  = {}
         self.path = world_paths[name]
 
     def get_name(self) -> str:
+        """Get the name of the world."""
         return self.name
     
-    async def prep_bot(self, model_name: str ='bot', model_type: str='spiri_mu_no_gimbal', ip: str='127.0.0.1'):
-        
-        model = Model(self, model_name, model_type, ip, daemon=daemons[model_name])
-        await model.launch_model()
-        self.models.update({model_name:model})
-        return
-
     async def run_world(self) -> None:
         """Run world in Gazebo simulator."""
         try:
@@ -87,6 +98,7 @@ class World:
             logger.error(f"File not found: {self.name}. Make sure it is installed and available in the PATH.")
 
     async def reset(self, name):
+        """Reset the world to a new state."""
         running_world = get_running_worlds()
         if len(running_world) > 0:
             self.end_gz_proc()
@@ -99,6 +111,7 @@ class World:
         await self.run_world()
     
     def end_gz_proc(self) -> None:
+        """End the Gazebo process."""
         try:
             KILL_GZ_CMD = f"pkill -f 'gz sim -r {WORLD_PATHS[self.name]}.world'"
             dead_world_models = {} 
@@ -115,14 +128,16 @@ class World:
             logger.error(f"Error running command: {e}")
 
 class Model:
-    def __init__(self, parent: World, name: str, type: str ='spiri_mu', ip: str = '127.0.0.1', position: Optional[list[int]] = None, daemon=None ):
+    """
+    Class representing a model in the Gazebo simulator.
+    """
+    def __init__(self, parent: World, name: str, type: str ='spiri_mu', position: Optional[list[int]] = None, sys_id : int = 1):
         self.parent: World = parent
         self.name = name
         self.type = type
         self.path = MODEL_PATHS.get(type)
         self.position = position
-        self.daemon = daemon
-        self.sys_id = int(self.daemon.env_get('MAVLINK_SYS_ID', 0))
+        self.sys_id = sys_id
         self.sitl_port = 9002 + 10 * self.sys_id
         logger.debug(f"Model {self.name} of type {self.type} will use SITL port {self.sitl_port}")
 
@@ -143,7 +158,7 @@ class Model:
                 "-o",
                 "model.sdf",
             ]
-            xacro_proc = subprocess.Popen(
+            subprocess.Popen(
                 XACRO_CMD,
                 cwd=f"{self.path}",
                 stdout=subprocess.PIPE,
@@ -157,13 +172,18 @@ class Model:
             stderr=subprocess.PIPE
         )
         
-        out, err = ros2_gz_create_proc.communicate(timeout=3)
+        ros2_gz_create_proc.communicate(timeout=10)
         ros2_gz_create_proc.kill()
         return True
 
     
     def kill_model(self):
-        
+        """
+        Remove the model from the Gazebo world.
+        This method sends a service request to the Gazebo server to remove the model.
+        It constructs the request with the model's name and type, and then executes the command.
+        If the model is successfully removed, it also deletes the model from the parent's models dictionary.
+        """
         # http://osrf-distributions.s3.amazonaws.com/gazebo/api/7.1.0/classgazebo_1_1physics_1_1Entity.html
         ENTITY_TYPE_MODEL = 0x00000002
         REQUEST_ARG = f"name: '{self.name}' type: {ENTITY_TYPE_MODEL}"
@@ -192,6 +212,7 @@ class Model:
         remove_entity_proc.kill()
         del self.parent.models[self.name]
 
+# Check if a world is running and create a World instance of it if it is.
 running_world = get_running_worlds()
 if len(running_world) > 0:
     gz_world = World(running_world[0])

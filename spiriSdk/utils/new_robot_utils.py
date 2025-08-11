@@ -1,20 +1,23 @@
-import yaml, re, uuid, shutil, dotenv
-
-from nicegui import ui, run
+import yaml, re, uuid
+from nicegui import ui
 from pathlib import Path
 from loguru import logger
 
-from spiriSdk.docker.dindocker import DockerInDocker
-from spiriSdk.utils.daemon_utils import daemons, start_services, active_sys_ids
+from spiriSdk.classes.DinDockerRobot import DinDockerRobot
+from spiriSdk.classes.LocalRobot import LocalRobot
+from spiriSdk.classes.RemoteRobot import RemoteRobot
+from spiriSdk.utils.daemon_utils import robots, active_sys_ids
 from spiriSdk.utils.InputChecker import InputChecker
-
+from spiriSdk.settings import SIM_ADDRESS, GROUND_CONTROL_ADDRESS
+# Define the root directory and robots directory
 ROOT_DIR = Path(__file__).parents[2].absolute()
 ROBOTS_DIR = ROOT_DIR / 'robots'
 
-# Get the list of robots dynamically from the robots folder
-robots = [folder.name for folder in ROBOTS_DIR.iterdir() if folder.exists()]
-
 def ensure_options_yaml():
+    """
+    Ensure that each robot folder has an options.yaml file.
+    If it does not exist, create a default one based on the docker-compose file.
+    """
     robots = []
     for folder in ROBOTS_DIR.iterdir():
         if folder.exists():
@@ -50,61 +53,56 @@ def ensure_options_yaml():
                             "value": 0,  # Default to spiri.env value if available
                             "help-text": f"Auto-detected variable {var}"
                         }
-
                 with open(options_path, 'w') as yaml_file:
                     yaml.dump(default_options, yaml_file)
-
     return robots
 
 async def save_robot_config(robot_type, selected_options, dialog): 
+    """Save the robot configuration to the system based on the selected options."""
+    for key, value in selected_options.items():
+        if value is None:
+            selected_options[key] = ''
     robot_id = selected_options.get('MAVLINK_SYS_ID', uuid.uuid4().hex[:6])
     if robot_type == 'spiri_mu' and selected_options.get('GIMBAL') == False:
         robot_type = 'spiri_mu_no_gimbal'
+    robot_name = f"{robot_type}_{robot_id}"
+    selected_options["SIM_ADDRESS"] = SIM_ADDRESS
+    selected_options["GROUND_CONTROL_ADDRESS"] = GROUND_CONTROL_ADDRESS
+    selected_options['ARDUPILOT_PORT'] = str(5760 + 10 * robot_id)
+    selected_options["ROBOT_NAME"] = robot_name
+    logger.info(f"Saving robot configuration for {robot_name} with options: {selected_options}")
+    
+    if selected_options.get('ROBOT_CLASS') == 'Docker in Docker':
+        new_robot= DinDockerRobot(robot_name)
+    elif selected_options.get('ROBOT_CLASS') == 'Local':
+        new_robot = LocalRobot(robot_name, ROBOTS_DIR / robot_type / 'services')
+    else:
+        new_robot = RemoteRobot(robot_name, ROBOTS_DIR / robot_type / 'services')
         
-    folder_name = f"{robot_type}_{robot_id}"
-    folder_path = ROOT_DIR / 'data' / folder_name
-
-    folder_path.mkdir(parents=True, exist_ok=True)
+    await new_robot.add_to_system(selected_options)
     
-    new_daemon = DockerInDocker(image_name="docker:dind", container_name=folder_name)
-
-    config_path = new_daemon.robot_env
-    dotenv.set_key(config_path, 'ROBOT_NAME', folder_name)
-    for key, value in selected_options.items():
-        if 'DESC' in key:
-            if value:
-                dotenv.set_key(config_path, key, value)
-        else:
-            dotenv.set_key(config_path, key, str(value))
-    
-    await run.io_bound(new_daemon.ensure_started)
-    daemons[folder_name] = new_daemon
+    robots[robot_name] = new_robot
     active_sys_ids.append(robot_id)
     
     dialog.close()  # Close the dialog after saving
-
     from spiriSdk.utils.card_utils import displayCards
     displayCards.refresh()
-    await start_services(folder_name)
-
-    # ui.notify(f"Saved config.env and started daemon for {folder_name}")
-    ui.notify(f"Robot {folder_name} added successfully!", type='positive')
+    await new_robot.start()
+    ui.notify(f"Robot {robot_name} added successfully!", type='positive')
 
 async def delete_robot(robot_name: str) -> bool:
+    """Delete a robot from the system."""
     logger.info(f"Deleting robot {robot_name}")
-    robot_path = ROOT_DIR / 'data' / robot_name
-    daemon = daemons.pop(robot_name)
+    robot = robots.pop(robot_name)
     from spiriSdk.utils.card_utils import displayCards
     displayCards.refresh()
-    daemon.cleanup()
-    robot_sys = str(robot_name).rsplit('_', 1)
-    active_sys_ids.remove(int(robot_sys[1]))
-    if robot_path.exists():
-        shutil.rmtree(robot_path)
+    await robot.delete()
+    active_sys_ids.remove(int(robot_name.rsplit('_', 1)[1]))
     logger.success(f"Robot {robot_name} deleted successfully")
     return True
 
 def display_robot_options(robot_type: str, selected_options, options_container: ui.column, checker: InputChecker):
+    """Display the options for a specific robot type in the UI."""
     options_path = ROBOTS_DIR / robot_type / 'options.yaml'
     if not options_path.exists():
         options_container.clear()
@@ -152,7 +150,6 @@ def display_robot_options(robot_type: str, selected_options, options_container: 
             elif option_type == 'int':
                 min_val = option.get('min', None)
                 max_val = option.get('max', None)
-                step = option.get('step', 1)
                 current_value = option.get('value', 0)
 
                 def handleNum(e, k):
@@ -173,6 +170,18 @@ def display_robot_options(robot_type: str, selected_options, options_container: 
                 ).classes('w-full pb-1')
                 
                 checker.add(numInput, False)
+                
+            elif option_type == 'dropdown':
+                options_list = option.get('options', [])
+                selected_options[key] = current_value
+                def on_dropdown_change(e, k):
+                    selected_options[k] = e.value   
+                ui.select(
+                    options_list, 
+                    label=f'{formatted_key}*', 
+                    value=current_value, 
+                    on_change=lambda e, k=key: on_dropdown_change(e.sender, k)
+                ).classes('w-full pb-1')
             
             else:
                 def handleText(e: ui.input, k):

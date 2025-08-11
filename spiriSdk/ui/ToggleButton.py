@@ -3,6 +3,7 @@ from nicegui.binding import BindableProperty
 from typing import cast
 from typing_extensions import Self
 class ToggleButton(ui.button):
+    """A toggle button that can be in an on or off state with custom labels and icons."""
     state = BindableProperty(
     on_change=lambda sender, value: cast(Self, sender)._handle_state_change(value)
     )
@@ -19,10 +20,12 @@ class ToggleButton(ui.button):
         self.update()
     
     def _handle_state_change(self, state):
+        """Handle the change in state of the toggle button."""
         self.state = state
         self.update()
     
     async def toggle(self) -> None:
+        """Toggle the state of the button and execute the corresponding action."""
         result = False
         if self.state:
             result = await self.on_switch()
@@ -33,6 +36,7 @@ class ToggleButton(ui.button):
             self.update()
     
     def update(self) -> None:
+        """Update the button's appearance based on its state."""
         self.color = "negative" if self.state else "positive"
         label = self.on_label if self.state else self.off_label
         icon = self.on_icon if self.state else self.off_icon

@@ -1,5 +1,5 @@
 x-spiri-sdk-doc: |
-  Runs the core services for a simulated Spiri Mu  
+  Runs the core services for a simulated Spiri Mu    
 
 x-spiri-sdk-autostart: True
 
@@ -12,7 +12,7 @@ services:
       - -c
       - |
         ./Tools/autotest/sim_vehicle.py -v copter -f gazebo-mu --model=JSON --no-rebuild \
-        -I$MAVLINK_SYS_ID --no-mavproxy --sim-address=$SIM_ADDRESS --sysid $MAVLINK_SYS_ID
+        -I$MAVLINK_SYS_ID --no-mavproxy --sim-address=$SIM_ADDRESS --sysid $MAVLINK_SYS_ID        
     stdin_open: true
     tty: true
     restart: always
@@ -24,7 +24,7 @@ services:
       mavproxy.py --non-interactive
       --master tcp:127.0.0.1:$ARDUPILOT_PORT
       --out udpout:127.0.0.1:14552
-      --out tcpin:0.0.0.0:5760
+      --out tcpin:0.0.0.0:5760      
     stdin_open: true
     tty: true      
     ports:

@@ -8,20 +8,22 @@ from pathlib import Path
 from spiriSdk.pages.new_robots import new_robots
 from spiriSdk.pages.tools import gz_world
 from spiriSdk.ui.ToggleButton import ToggleButton
-from spiriSdk.utils.daemon_utils import daemons, display_daemon_status, start_container, stop_container, restart_container
+from spiriSdk.utils.daemon_utils import robots
 from spiriSdk.utils.gazebo_utils import get_running_worlds, is_robot_alive
 from spiriSdk.utils.InputChecker import InputChecker
 from spiriSdk.utils.new_robot_utils import delete_robot, save_robot_config
+from spiriSdk.classes.DinDockerRobot import DinDockerRobot
 from spiriSdk.utils.signals import update_cards
-
+# Constants for card layout
 half = 'calc(50%-(var(--nicegui-default-gap)/2))'
 third = 'calc((100%/3)-(var(--nicegui-default-gap)/1.5))' # formula: (100% / {# of cards}) - ({default gap} / ({# of cards} / {# of gaps}))
 card_padding = 'calc(var(--nicegui-default-padding)*1.2)'
-
+# Define the root directory and data directory paths
 ROOT_DIR = Path(__file__).parents[2].absolute()
 DATA_DIR = ROOT_DIR / 'data'
-    
+
 async def addRobot():
+    """Open a dialog to add a new robot."""
     with ui.dialog() as d, ui.card(align_items='stretch').classes('w-full'):
         checker = InputChecker()
         await new_robots(checker)
@@ -47,24 +49,14 @@ async def addRobot():
             ).bind_enabled_from(checker, 'isValid')
     
     d.open()
-    
-async def add_to_world(robot):
-    try:
-        robotType = "_".join(str(robot).split('_')[0:-1])
-        await gz_world.prep_bot(robot, robotType)
-        running_worlds = get_running_worlds()
-        if len(running_worlds) > 0:
-            ui.notify(f'Added {robot} to world', type='positive')
-            return True
-        else:
-            raise Exception('No world running')
-    except Exception as e:
-        logger.warning(e)
-        return False
 
 async def remove_from_world(robot):
+    """Remove the robot from the Gazebo world."""
     try:
-        gz_world.models[robot].kill_model()
+        result = await robots[robot].unspawn()
+        if not result:
+            logger.warning(f'Failed to remove {robot} from world')
+            return False
         ui.notify(f'Removed {robot} from world', type='positive')
         return True
     except Exception as e:
@@ -72,7 +64,8 @@ async def remove_from_world(robot):
         return False
     
 async def delete(robot):
-    cards[robot].destroy()
+    """Delete the robot card and remove the robot from the system."""
+    await cards[robot].destroy()
     del cards[robot]
     n = ui.notification(timeout=False)
     for i in range(1):
@@ -90,40 +83,45 @@ async def delete(robot):
     n.spinner = False
     n.timeout = 4
 
-    
-cards = {}
+cards= {}
             
 @ui.refreshable
-def displayCards():
-    names = daemons.keys()
+async def displayCards():
+    """Display cards for each robot in the robots dictionary."""
+    names = robots.keys()
     for name in names:
-        card = RobotCard(name, daemons[name])
+        card = RobotCard(name, robots[name])
         cards[name] = card
     with ui.row(align_items='stretch').classes('w-full'):
         for name, card in cards.items():
-            card.render()
+            await card.render()
+            
+            
 class RobotCard:
-    def __init__(self, name, daemon):
+    """A card representing a robot with its details and actions."""
+    def __init__(self, name, robot):
         self.name = name
         self.config_file = DATA_DIR / self.name / 'config.env'
         self.desc = None
-        self.daemon = daemon
+        self.robot : DinDockerRobot = robot
         self.gz_state = False
         self.gz_visible = False
         self.on = False
         self.last_updated = 2
+        self.chips = {}
         with open(self.config_file) as f:
             for line in f:
                 if 'DESC' in line:
                     self.desc = line.split('=', 1)
                     self.desc = self.desc[1].strip()
                     break
-        self.ip = ''
+        self.ip = None
         update_cards.connect(self.listen_to_polling)
     
     @ui.refreshable
-    def render(self):
-        container = self.daemon.container
+    async def render(self):
+        """Render the robot card with its details and buttons."""
+        status = await self.robot.get_status()
         with ui.card().classes(f'p-[{card_padding}] w-full min-[1466px]:w-[{half}] min-[2040px]:w-[{third}] h-auto'):
             # Name(s) and status
             with ui.card_section().classes('w-full p-0 pb-2 mb-auto'):
@@ -133,7 +131,6 @@ class RobotCard:
                     ui.space()
 
                     self.label_status = ui.label('Status Loading...').classes('text-lg font-semibold')
-                    self.chips = {}
                     self.chips["Running"] = ui.chip("", color='running', text_color='white')
                     self.chips["Restarting"] = ui.chip("", color='restarting', text_color='white')
                     self.chips["Exited"] = ui.chip("", color='exited', text_color='white')
@@ -141,31 +138,35 @@ class RobotCard:
                     self.chips["Paused"] = ui.chip("", color='paused', text_color='white')
                     self.chips["Dead"] = ui.chip("", color='dead', text_color='white')
                     
-                self.update_status()
+                for chip in self.chips.values():
+                    chip.visible = False
+                
+                await self.update_status()
                 
                 if self.desc != None:
                     ui.label(f'{self.desc[1:-1]}').classes('text-base font-normal italic text-gray-700 dark:text-gray-300')
 
             # Docker host
             with ui.card_section().classes('w-full p-0 mb-2'):
+                # TODO fix this for local and remote robots
                 command = f"DOCKER_HOST=unix:///tmp/dind-sockets/spirisdk_{self.name}.socket"
                 docker_host = ui.code(command, language='bash').classes('text-gray-600 dark:text-gray-200')
                 docker_host.bind_visibility(self.__dict__, 'on')
 
             # IP and web interface link
             with ui.card_section().classes('w-full p-0 mb-2'):
-                ip = ui.markdown(f'**Robot IP:** {self.ip}').classes('text-base')
-                ip.bind_visibility(self.__dict__, 'on')
+                self.ip = ui.markdown(f'**Robot IP:** {self.robot.get_ip()}').classes('text-base')
+                self.ip.bind_visibility(self.__dict__, 'on')
             
                 # Link to the robot's web interface if applicable 
                 # if "spiri_mu" in robotName:
-                #     url = f'http://{daemons[robotName].get_ip()}:{80}'
+                #     url = f'http://{robots[robotName].get_ip()}:{80}'
                 #     ui.link(f'Access the Web Interface at: {url}', url, new_tab=True).classes('py-3')
                             
             # Actions
             with ui.card_section().classes('w-full p-0'):
                 with ui.row(align_items='end'):
-                    if container is not None and container.status == 'running':
+                    if isinstance(status, dict) and status.get('Running', 0) > 0:
                         self.on = True
                     power = ToggleButton(on_label='power off', off_label='power on', state=self.on)
                     bind_from(self_obj=power, self_name='state', other_obj=self, other_name='on', backward=lambda v: v)
@@ -186,10 +187,11 @@ class RobotCard:
                     power.off_switch = lambda b=buttons: self.power_on(b)
                     reboot_btn.on_click(lambda b=buttons: self.reboot(b))
                     gz_toggle.on_switch = lambda r=self.name: remove_from_world(r)
-                    gz_toggle.off_switch = lambda r=self.name: add_to_world(r)
+                    gz_toggle.off_switch = lambda: self.spawn()
     
-    def update_status(self):
-        status = display_daemon_status(self.name)
+    async def update_status(self):
+        """Update the robot's status and visibility of chips based on the current state."""
+        status = await robots[self.name].get_status()
         if isinstance(status, dict):
             for state in status.keys():
                 if status[state] > 0:
@@ -203,16 +205,34 @@ class RobotCard:
                 self.chips[state].visible = False
             self.label_status.visible = True
             self.label_status.text = f'{status.title()}'
-        if status == 'stopped':
-            self.on = False
-            self.label_status.classes('text-[#BF5234]')
-        else: #TEMPORARY FIX IN THE FUTURE
-            if self.ip == '':
-                self.ip = self.daemon.get_ip()
+            if status.lower() == 'stopped':
+                self.on = False
+                self.label_status.classes('text-[#BF5234]')
+            else: 
+                self.on = True
+                self.label_status.classes('text-[#609926]')
+        if self.ip:
+            self.ip.content = f'**Robot IP:** {self.robot.get_ip()}'
+            
+    async def spawn(self):
+        """Spawn the robot in the Gazebo world if it is not already alive."""
+        if not is_robot_alive(self.name):
+            logger.info(f'Spawning {self.name}...')
+            n = ui.notification(timeout=None)
+            for i in range(1):
+                n.message = f'Spawning {self.name}...'
+                n.spinner = True
+                await asyncio.sleep(1)
+            await robots[self.name].spawn()
+            n.message = f'{self.name} spawned'
+            n.type = 'positive'
+            n.spinner = False
+            n.timeout = 4
             self.on = True
-            self.label_status.classes('text-[#609926]')
+            self.render.refresh()
     
     async def power_on(self, buttons: list):
+        """Power on the robot and update the UI accordingly."""
         for button in buttons:
             button.disable()
         logger.info(f'Powering on {self.name}...')
@@ -222,9 +242,9 @@ class RobotCard:
             n.spinner = True
             await asyncio.sleep(1)
             
-        await start_container(self.name)
+        await robots[self.name].start()
         
-        n.message = f'Container {self.name} started'
+        n.message = f'{self.name} started'
         n.type = 'positive'
         n.spinner = False
         n.timeout = 4
@@ -232,6 +252,7 @@ class RobotCard:
         self.render.refresh()
     
     async def power_off(self, buttons: list):
+        """Power off the robot and update the UI accordingly."""
         logger.info(f'Powering off {self.name}...')
         for button in buttons:
             button.disable()
@@ -240,22 +261,23 @@ class RobotCard:
             n.message = f'Powering off {self.name}...'
             n.spinner = True
             await asyncio.sleep(1)
-        message, type = await run.io_bound(lambda: stop_container(self.name))
+        await robots[self.name].stop()
         
-        n.message = message
-        n.type = type
+        n.message = f"Stopped {self.name}"
+        n.type = 'positive'
         n.spinner = False
         n.timeout = 4
         self.on = False
         self.render.refresh()
         
     async def reboot(self, buttons: list):
+        """Reboot the robot and update the UI accordingly."""
         logger.info(f'Rebooting {self.name}...')
         for button in buttons:
             button.disable()
         n = ui.notification(message=f'Rebooting {self.name}...', spinner=True, timeout=None)
 
-        await restart_container(self.name)
+        await robots[self.name].restart()
         
         n.message = f'{self.name} rebooted'
         n.spinner = False
@@ -265,11 +287,13 @@ class RobotCard:
         
         self.render.refresh()
         
-    def destroy(self):
-        update_cards.disconnect(self.listen_to_polling)
+    async def destroy(self):
+        """Disconnect the update_cards signal listener to prevent memory leaks."""
+        await run.io_bound(update_cards.disconnect, self.listen_to_polling)
     
     async def listen_to_polling(self, sender, visible=True):
-        self.update_status()
+        """Listen to the update_cards signal to update the robot's status and visibility in the Gazebo world."""
+        await self.update_status()
         world_running = get_running_worlds()
         if len(world_running) > 0:
             self.gz_visible = True

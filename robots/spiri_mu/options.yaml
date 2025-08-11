@@ -15,3 +15,11 @@ x-spiri-options:
     help-text: Whether or not the robot has a gimbal
     type: bool
     value: True
+  ROBOT_CLASS:
+    help-text: The robot's class
+    type: dropdown
+    options:
+      - Docker in Docker
+      - Local
+      - Remote
+    value: Docker in Docker
