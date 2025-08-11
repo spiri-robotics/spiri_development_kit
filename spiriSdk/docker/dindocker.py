@@ -290,7 +290,7 @@ if not dotenv_path.exists():
 dotenv.load_dotenv(dotenv_path=dotenv_path)
 
 creds = {
-    "REGISTRIES": os.getenv("REGISTRIES", "*"),
+    "REGISTRIES": os.getenv("REGISTRIES", "ghcr.io"),
     "AUTH_REGISTRIES": os.getenv("AUTH_REGISTRIES")
 }
 
