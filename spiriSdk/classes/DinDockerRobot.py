@@ -203,7 +203,7 @@ class DinDockerRobot(DockerRobot):
                     logger.info(f"Autostarting: {self.name}/{service_path.name}")
                     # Step 5: Run `docker compose up -d` inside the DinD container
                     inside_path = f"/robots/{self.robot_type}/services/{service_path.name}"
-                    command = f"docker compose --env-file=/data/config.env -f {inside_path}/{compose_path.name} up -d"
+                    command = f"docker compose --env-file=/data/{self.name}/config.env -f {inside_path}/{compose_path.name} up -d"
                     result = await run.io_bound(lambda r=self.name, c=command, i=inside_path: self.container.exec_run(c, workdir=i))
                     logger.debug(result.output.decode())
 

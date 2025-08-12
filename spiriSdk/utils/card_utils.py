@@ -109,6 +109,7 @@ class RobotCard:
         self.on = False
         self.last_updated = 2
         self.chips = {}
+        self.label_status = None
         with open(self.config_file) as f:
             for line in f:
                 if 'DESC' in line:
@@ -116,7 +117,14 @@ class RobotCard:
                     self.desc = self.desc[1].strip()
                     break
         self.ip = None
+        logger.debug("starting: " +str(id(self.listen_to_polling)))
         update_cards.connect(self.listen_to_polling)
+    
+    def __del__(self):
+        """Ensure the card is properly cleaned up when deleted."""
+        logger.debug(f"Deleting card for {self.name}")
+        self.destroy()
+
     
     @ui.refreshable
     async def render(self):
@@ -189,18 +197,19 @@ class RobotCard:
     
     async def update_status(self):
         """Update the robot's status and visibility of chips based on the current state."""
-        if self.name not in robots:
-            logger.warning(f"Robot {self.name} not found in robots dictionary.")
+        current_robots = robots.copy()
+        if self.name not in current_robots:
             return
-        status = await robots[self.name].get_status()
+        status = await current_robots[self.name].get_status()
         if isinstance(status, dict):
             self.on = True
             for state in status.keys():
-                if status[state] > 0:
-                    self.chips[state].visible = True
-                    self.chips[state].text = f'{state}: {status.get(state, 0)}'
-                else:
-                    self.chips[state].visible = False
+                if state in self.chips.keys():
+                    if status[state] > 0:
+                        self.chips[state].visible = True
+                        self.chips[state].text = f'{state}: {status.get(state, 0)}'
+                    else:
+                        self.chips[state].visible = False
             self.label_status.visible = False
         else:
             for state in self.chips.keys():
@@ -291,7 +300,10 @@ class RobotCard:
         
     async def destroy(self):
         """Disconnect the update_cards signal listener to prevent memory leaks."""
+        logger.info(f"Destroying card for {self.name}")
+        logger.debug(str(id(self.listen_to_polling)))
         await run.io_bound(update_cards.disconnect, self.listen_to_polling)
+        logger.info(f"Card for {self.name} destroyed")
     
     async def listen_to_polling(self, sender, visible=True):
         """Listen to the update_cards signal to update the robot's status and visibility in the Gazebo world."""
