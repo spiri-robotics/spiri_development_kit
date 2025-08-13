@@ -227,4 +227,3 @@ class DinDockerRobot(DockerRobot):
         robot_path = SDK_ROOT / 'data' / self.name
         if robot_path.exists():
             shutil.rmtree(robot_path)
-        logger.success(f"Robot {self.name} deleted successfully")

@@ -117,7 +117,6 @@ class RobotCard:
                     self.desc = self.desc[1].strip()
                     break
         self.ip = None
-        logger.debug("starting: " +str(id(self.listen_to_polling)))
         update_cards.connect(self.listen_to_polling)
     
     def __del__(self):
@@ -302,10 +301,8 @@ class RobotCard:
         
     async def destroy(self):
         """Disconnect the update_cards signal listener to prevent memory leaks."""
-        logger.info(f"Destroying card for {self.name}")
-        logger.debug(str(id(self.listen_to_polling)))
+        # TODO fix memory leak
         await run.io_bound(update_cards.disconnect, self.listen_to_polling)
-        logger.info(f"Card for {self.name} destroyed")
     
     async def listen_to_polling(self, sender, visible=True):
         """Listen to the update_cards signal to update the robot's status and visibility in the Gazebo world."""
