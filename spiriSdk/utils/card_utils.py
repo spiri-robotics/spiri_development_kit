@@ -96,7 +96,6 @@ async def displayCards():
         for name, card in cards.items():
             await card.render()
             
-            
 class RobotCard:
     """A card representing a robot with its details and actions."""
     def __init__(self, name, robot):
@@ -309,8 +308,6 @@ class RobotCard:
         if len(world_running) > 0:
             self.gz_visible = True
         else:
-            if is_robot_alive(self.name):
-                await remove_from_world(self.name)
             self.gz_visible = False
         if not is_robot_alive(self.name):
             self.gz_state = False
