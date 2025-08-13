@@ -118,10 +118,10 @@ class RobotCard:
         self.ip = None
         update_cards.connect(self.listen_to_polling)
     
-    def __del__(self):
+    async def __del__(self):
         """Ensure the card is properly cleaned up when deleted."""
         logger.debug(f"Deleting card for {self.name}")
-        self.destroy()
+        await self.destroy()
 
     
     @ui.refreshable
