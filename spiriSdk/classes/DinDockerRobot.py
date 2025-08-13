@@ -118,7 +118,12 @@ class DinDockerRobot(DockerRobot):
             str: The IP address of the robot.
         """
         if self.running:
-            return self.dind.get_ip()
+            try:
+                ip = self.dind.get_ip()
+            except Exception as e:
+                logger.debug(f"Robot IP not yet available")
+                ip = "Loading..."
+            return ip 
         else:
             return "Loading..."
         

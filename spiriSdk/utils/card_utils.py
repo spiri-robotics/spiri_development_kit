@@ -197,9 +197,7 @@ class RobotCard:
     async def update_status(self):
         """Update the robot's status and visibility of chips based on the current state."""
         current_robots = robots.copy()
-        if self.name not in current_robots:
-            return
-        if not self.label_status:
+        if self.name not in current_robots or not self.label_status:
             return
         status = await current_robots[self.name].get_status()
         if isinstance(status, dict):
