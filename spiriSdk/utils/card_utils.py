@@ -200,6 +200,8 @@ class RobotCard:
         current_robots = robots.copy()
         if self.name not in current_robots:
             return
+        if not self.label_status:
+            return
         status = await current_robots[self.name].get_status()
         if isinstance(status, dict):
             self.on = True
