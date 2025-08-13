@@ -96,7 +96,6 @@ async def displayCards():
         for name, card in cards.items():
             await card.render()
             
-            
 class RobotCard:
     """A card representing a robot with its details and actions."""
     def __init__(self, name, robot):
@@ -110,6 +109,7 @@ class RobotCard:
         self.on = False
         self.last_updated = 2
         self.chips = {}
+        self.label_status = None
         with open(self.config_file) as f:
             for line in f:
                 if 'DESC' in line:
@@ -120,6 +120,12 @@ class RobotCard:
                     self.robot_class = self.robot_class[1].strip()
         self.ip = None
         update_cards.connect(self.listen_to_polling)
+    
+    def __del__(self):
+        """Ensure the card is properly cleaned up when deleted."""
+        logger.debug(f"Deleting card for {self.name}")
+        self.destroy()
+
     
     @ui.refreshable
     async def render(self):
@@ -194,15 +200,19 @@ class RobotCard:
     
     async def update_status(self):
         """Update the robot's status and visibility of chips based on the current state."""
-        status = await robots[self.name].get_status()
+        current_robots = robots.copy()
+        if self.name not in current_robots or not self.label_status:
+            return
+        status = await current_robots[self.name].get_status()
         if isinstance(status, dict):
             self.on = True
             for state in status.keys():
-                if status[state] > 0:
-                    self.chips[state].visible = True
-                    self.chips[state].text = f'{state}: {status.get(state, 0)}'
-                else:
-                    self.chips[state].visible = False
+                if state in self.chips.keys():
+                    if status[state] > 0:
+                        self.chips[state].visible = True
+                        self.chips[state].text = f'{state}: {status.get(state, 0)}'
+                    else:
+                        self.chips[state].visible = False
             self.label_status.visible = False
         else:
             for state in self.chips.keys():
@@ -211,10 +221,10 @@ class RobotCard:
             self.label_status.text = f'{status.title()}'
             if status.lower() == 'stopped' or status.lower() == 'not created or removed':
                 self.on = False
-                self.label_status.classes(add='text-[#BF5234]', remove='text-[#666666] dark:text-[#AAAAAA]')
+                self.label_status.classes(add='text-[#BF5234]', remove='text-[#666666] dark:text-[#BBBBBB]')
             else: 
                 self.on = True
-                self.label_status.classes(add='text-[#666666] dark:text-[#AAAAAA]', remove='text-[#BF5234]')
+                self.label_status.classes(add='text-[#666666] dark:text-[#BBBBBB]', remove='text-[#BF5234]')
         if self.ip:
             self.ip.content = f'**Robot IP:** {self.robot.get_ip()}'
             
@@ -302,6 +312,7 @@ class RobotCard:
         
     async def destroy(self):
         """Disconnect the update_cards signal listener to prevent memory leaks."""
+        # TODO fix memory leak
         await run.io_bound(update_cards.disconnect, self.listen_to_polling)
     
     async def listen_to_polling(self, sender, visible=True):
@@ -311,8 +322,6 @@ class RobotCard:
         if len(world_running) > 0:
             self.gz_visible = True
         else:
-            if is_robot_alive(self.name):
-                await remove_from_world(self.name)
             self.gz_visible = False
         if not is_robot_alive(self.name):
             self.gz_state = False

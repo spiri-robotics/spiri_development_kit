@@ -1,5 +1,4 @@
 import os, asyncio
-
 from nicegui import app, ui
 from pathlib import Path
 
@@ -17,7 +16,6 @@ async def on_startup():
     asyncio.create_task(polling_loop())
     await init_robots()
     
-    
 async def polling_loop():
     """Continuously update the robot cards in the UI."""
     while True:
@@ -33,7 +31,7 @@ os.environ['WATCHFILES_IGNORE_PERMISSION_DENIED'] = 'True'
 ui.run(title='Spiri SDK',
     favicon=favicon,
     port=8197,
-    show=True,
+    show=False,
     #If 1833 gets resolves this will be a cleaner solution
     uvicorn_reload_dirs=str(Path(__file__).parent.resolve()),
     reload=True,
