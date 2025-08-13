@@ -109,6 +109,7 @@ class RobotCard:
         self.on = False
         self.last_updated = 2
         self.chips = {}
+        self.label_status = None
         with open(self.config_file) as f:
             for line in f:
                 if 'DESC' in line:
@@ -117,6 +118,12 @@ class RobotCard:
                     break
         self.ip = None
         update_cards.connect(self.listen_to_polling)
+    
+    def __del__(self):
+        """Ensure the card is properly cleaned up when deleted."""
+        logger.debug(f"Deleting card for {self.name}")
+        self.destroy()
+
     
     @ui.refreshable
     async def render(self):
@@ -189,15 +196,19 @@ class RobotCard:
     
     async def update_status(self):
         """Update the robot's status and visibility of chips based on the current state."""
-        status = await robots[self.name].get_status()
+        current_robots = robots.copy()
+        if self.name not in current_robots or not self.label_status:
+            return
+        status = await current_robots[self.name].get_status()
         if isinstance(status, dict):
             self.on = True
             for state in status.keys():
-                if status[state] > 0:
-                    self.chips[state].visible = True
-                    self.chips[state].text = f'{state}: {status.get(state, 0)}'
-                else:
-                    self.chips[state].visible = False
+                if state in self.chips.keys():
+                    if status[state] > 0:
+                        self.chips[state].visible = True
+                        self.chips[state].text = f'{state}: {status.get(state, 0)}'
+                    else:
+                        self.chips[state].visible = False
             self.label_status.visible = False
         else:
             for state in self.chips.keys():
@@ -288,6 +299,7 @@ class RobotCard:
         
     async def destroy(self):
         """Disconnect the update_cards signal listener to prevent memory leaks."""
+        # TODO fix memory leak
         await run.io_bound(update_cards.disconnect, self.listen_to_polling)
     
     async def listen_to_polling(self, sender, visible=True):

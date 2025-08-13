@@ -53,7 +53,8 @@ async def init_robots():
             active_sys_ids.append(int(robot_sys[1]))
             
     logger.debug(f"Starting services for {len(robots)} robots...")
-    for robot in robots.values():
+    current_robots = robots.copy()
+    for robot in current_robots.values():
         await robot.start()
         
     logger.success("Docker robots initialized.")
