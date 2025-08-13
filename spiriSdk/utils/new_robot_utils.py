@@ -9,6 +9,7 @@ from spiriSdk.classes.RemoteRobot import RemoteRobot
 from spiriSdk.utils.daemon_utils import robots, active_sys_ids
 from spiriSdk.utils.InputChecker import InputChecker
 from spiriSdk.settings import SIM_ADDRESS, GROUND_CONTROL_ADDRESS
+
 # Define the root directory and robots directory
 ROOT_DIR = Path(__file__).parents[2].absolute()
 ROBOTS_DIR = ROOT_DIR / 'robots'
@@ -73,7 +74,7 @@ async def save_robot_config(robot_type, selected_options, dialog):
     logger.info(f"Saving robot configuration for {robot_name}")
     
     if selected_options.get('ROBOT_CLASS') == 'Docker in Docker':
-        new_robot= DinDockerRobot(robot_name)
+        new_robot = DinDockerRobot(robot_name)
     elif selected_options.get('ROBOT_CLASS') == 'Local':
         new_robot = LocalRobot(robot_name, ROBOTS_DIR / robot_type / 'services')
     else:

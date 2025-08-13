@@ -102,7 +102,8 @@ class RobotCard:
         self.name = name
         self.config_file = DATA_DIR / self.name / 'config.env'
         self.desc = None
-        self.robot : DinDockerRobot = robot
+        self.robot: DinDockerRobot = robot
+        self.robot_class = None
         self.gz_state = False
         self.gz_visible = False
         self.on = False
@@ -114,7 +115,9 @@ class RobotCard:
                 if 'DESC' in line:
                     self.desc = line.split('=', 1)
                     self.desc = self.desc[1].strip()
-                    break
+                elif 'ROBOT_CLASS' in line:
+                    self.robot_class = line.split('=', 1)
+                    self.robot_class = self.robot_class[1].strip()
         self.ip = None
         update_cards.connect(self.listen_to_polling)
     
@@ -129,15 +132,17 @@ class RobotCard:
         """Render the robot card with its details and buttons."""
         status = await self.robot.get_status()
         with ui.card().classes(f'p-[{card_padding}] w-full min-[1466px]:w-[{half}] min-[2040px]:w-[{third}] h-auto'):
-            # Name(s) and status
+            # Key details - name, status, class, description
             with ui.card_section().classes('w-full p-0 pb-2 mb-auto'):
                 with ui.row(align_items='center').classes('w-full'):
                     ui.label(f'{self.name}').classes('text-xl font-semibold')
+                    with ui.icon('sym_o_info', size='sm'):
+                        ui.tooltip(self.robot_class[1:-1]).classes('text-sm')
 
                     ui.space()
 
                     self.label_status = ui.label('Status Loading...').classes('text-lg font-semibold')
-                    self.chips["Running"] = ui.chip("", color='running', text_color='white')
+                    self.chips["Running"] = ui.chip("", color='running', text_color='white').classes('m-0')
                     self.chips["Restarting"] = ui.chip("", color='restarting', text_color='white')
                     self.chips["Exited"] = ui.chip("", color='exited', text_color='white')
                     self.chips["Created"] = ui.chip("", color='created', text_color='white')
@@ -148,17 +153,12 @@ class RobotCard:
                     chip.visible = False
                 
                 await self.update_status()
-                
+                                
                 if self.desc != None:
-                    ui.label(f'{self.desc[1:-1]}').classes('text-base font-normal italic text-gray-700 dark:text-gray-300')
-
-            # Docker host
-            with ui.card_section().classes('w-full p-0 mb-2'):
-                docker_host = ui.code(f"DOCKER_HOST={self.robot.get_docker_host()}", language='bash').classes('text-gray-600 dark:text-gray-200')
-                docker_host.bind_visibility(self.__dict__, 'on')
+                    ui.label(f'{self.desc[1:-1]}').classes('text-base italic text-zinc-700 dark:text-zinc-300')
 
             # IP and web interface link
-            with ui.card_section().classes('w-full p-0 mb-2'):
+            with ui.card_section().classes('w-full p-0'):
                 self.ip = ui.markdown(f'**Robot IP:** {self.robot.get_ip()}').classes('text-base')
                 self.ip.bind_visibility(self.__dict__, 'on')
             
@@ -166,7 +166,12 @@ class RobotCard:
                 # if "spiri_mu" in robotName:
                 #     url = f'http://{robots[robotName].get_ip()}:{80}'
                 #     ui.link(f'Access the Web Interface at: {url}', url, new_tab=True).classes('py-3')
-                            
+            
+            # Docker host
+            with ui.card_section().classes('w-full p-0 mb-6'):
+                docker_host = ui.code(f"DOCKER_HOST={self.robot.get_docker_host()}", language='bash').classes('text-zinc-700 dark:text-zinc-300')
+                docker_host.bind_visibility(self.__dict__, 'on')   
+                             
             # Actions
             with ui.card_section().classes('w-full p-0'):
                 with ui.row(align_items='end'):
@@ -216,10 +221,10 @@ class RobotCard:
             self.label_status.text = f'{status.title()}'
             if status.lower() == 'stopped' or status.lower() == 'not created or removed':
                 self.on = False
-                self.label_status.classes('text-[#BF5234]')
+                self.label_status.classes(add='text-[#BF5234]', remove='text-[#666666] dark:text-[#BBBBBB]')
             else: 
                 self.on = True
-                self.label_status.classes(add='text-[#666666]', remove='text-[#BF5234]')
+                self.label_status.classes(add='text-[#666666] dark:text-[#BBBBBB]', remove='text-[#BF5234]')
         if self.ip:
             self.ip.content = f'**Robot IP:** {self.robot.get_ip()}'
             
@@ -240,11 +245,13 @@ class RobotCard:
             self.on = True
             self.render.refresh()
     
-    async def power_on(self, buttons: list):
+    async def power_on(self, buttons: list[ui.button]):
         """Power on the robot and update the UI accordingly."""
         for button in buttons:
             button.disable()
+            
         logger.info(f'Powering on {self.name}...')
+        
         n = ui.notification(timeout=None)
         for i in range(1):
             n.message = f'Powering on {self.name}...'
@@ -258,18 +265,22 @@ class RobotCard:
         n.spinner = False
         n.timeout = 4
         self.on = True
+        
         self.render.refresh()
     
-    async def power_off(self, buttons: list):
+    async def power_off(self, buttons: list[ui.button]):
         """Power off the robot and update the UI accordingly."""
         logger.info(f'Powering off {self.name}...')
+        
         for button in buttons:
             button.disable()
+            
         n = ui.notification(timeout=None)
         for i in range(1):
             n.message = f'Powering off {self.name}...'
             n.spinner = True
             await asyncio.sleep(1)
+            
         await robots[self.name].stop()
         
         n.message = f"Stopped {self.name}"
@@ -277,13 +288,16 @@ class RobotCard:
         n.spinner = False
         n.timeout = 4
         self.on = False
+        
         self.render.refresh()
         
-    async def reboot(self, buttons: list):
+    async def reboot(self, buttons: list[ui.button]):
         """Reboot the robot and update the UI accordingly."""
         logger.info(f'Rebooting {self.name}...')
+        
         for button in buttons:
             button.disable()
+            
         n = ui.notification(message=f'Rebooting {self.name}...', spinner=True, timeout=None)
 
         await robots[self.name].restart()
