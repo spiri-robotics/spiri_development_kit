@@ -51,6 +51,11 @@
     </include>
     <include>
       <static>true</static>
+      <uri>file://worlds/yarmouth_airport/models/spiri_hanger</uri>
+      <pose degrees="true">8 8 0 0 0 0</pose>
+    </include>
+    <include>
+      <static>true</static>
       <uri>file://worlds/yarmouth_airport/models/ground</uri>
       <pose degrees="true">10 10 0 0 0 0</pose>
     </include>
