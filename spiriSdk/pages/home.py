@@ -11,6 +11,7 @@ from spiriSdk.utils.card_utils import addRobot, displayCards
 ENV_FILE_PATH = Path('.env')
 
 def read_env():
+    """Read the .env file and return its contents as a dictionary."""
     env = {}
     if ENV_FILE_PATH.exists():
         for line in ENV_FILE_PATH.read_text().splitlines():
@@ -33,4 +34,4 @@ async def home():
     ui.separator()
 
     await asyncio.sleep(0.5)
-    displayCards()
+    await displayCards()
