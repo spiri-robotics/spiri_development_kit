@@ -1,0 +1,44 @@
+name: Build Docs
+
+on:
+  push:
+
+env:
+  REGISTRY: git.spirirobotics.com
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container: sphinxdoc/sphinx-latexpdf
+
+    steps:
+    - name: Install sphinx-rtd-theme
+      run: pip install sphinx-rtd-theme
+    - name: Install node so that custom actions work.
+      run : apt-get update && apt-get --yes install nodejs git
+
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+
+    - name: Build Docs
+      run: make html latexpdf
+      working-directory: docs  # assuming your documentation is in a 'docs' folder
+
+    - name: Save PDF Artifacts
+      run: mv docs/build/latex/*.pdf ${{ github.workspace }}/docs.pdf
+
+    - name: Compress HTML
+      run: tar -czvf docs_html.tar.gz -C docs/build/html .
+
+    - name: Upload Docs
+      uses: actions/upload-artifact@v3
+      with:
+        name: docs_html.tar.gz
+        path: docs_html.tar.gz
+
+    - name: Upload PDF
+      uses: actions/upload-artifact@v3
+      with:
+        name: docs.pdf
+        path: docs.pdf

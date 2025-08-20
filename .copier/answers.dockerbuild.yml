@@ -1,0 +1,4 @@
+# Changes here will be overwritten by Copier; NEVER EDIT MANUALLY
+_commit: v1.1.5
+_src_path: https://git.spirirobotics.com/Spiri/template-dockerbuild.git
+platforms: linux/amd64,linux/arm64
