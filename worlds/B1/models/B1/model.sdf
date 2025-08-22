@@ -1,0 +1,22 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <model name="B1">
+    <static>true</static>
+    <link name="B1_link">
+      <visual name="B1_visual">
+        <geometry>
+          <mesh>
+            <uri>model://worlds/B1/models/B1/meshes/B1.dae</uri>
+          </mesh>
+        </geometry>
+      </visual>
+      <collision name="B1_collision">
+        <geometry>
+          <mesh>
+            <uri>model://worlds/B1/models/B1/meshes/B1.dae</uri>
+          </mesh>
+        </geometry>
+      </collision>
+    </link>
+  </model>
+</sdf>
